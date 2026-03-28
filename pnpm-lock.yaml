@@ -51,8 +51,8 @@ importers:
         specifier: file:steel-cut-steel-lib-0.1.111.tgz
         version: file:steel-cut-steel-lib-0.1.111.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
       '@steel-cut/trpc-shared':
-        specifier: file:steel-cut-trpc-shared-0.0.25.tgz
-        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
+        specifier: file:steel-cut-trpc-shared-0.0.26.tgz
+        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.26.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
       '@supabase/auth-js':
         specifier: ^2.98.0
         version: 2.98.0
@@ -5531,9 +5531,9 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz:
-    resolution: {integrity: sha512-uvpVHCvGlYiTohmL+XOtZmN5ELIeUNbq0Tl1ci56IJoMpUfmva47DAEeIzoB5P3DJrJgNl4y7W/XOTxeiQ2DkA==, tarball: file:steel-cut-trpc-shared-0.0.25.tgz}
-    version: 0.0.25
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.26.tgz:
+    resolution: {integrity: sha512-KFq7Ujy2YAY8pK5dXRWQdExtj02NbEoTxhR5k1P+GZ9SatETxcpEmYr7llhVGUO2ZinQagn2lyeSD6j9MnkKsA==, tarball: file:steel-cut-trpc-shared-0.0.26.tgz}
+    version: 0.0.26
     peerDependencies:
       '@prisma/client': ^6.14.0
       '@supabase/supabase-js': ^2.98.0
@@ -11817,7 +11817,7 @@ snapshots:
 
   stdin-discarder@0.2.2: {}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.26.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
     dependencies:
       '@prisma/client': 6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3)
       '@supabase/supabase-js': 2.98.0
