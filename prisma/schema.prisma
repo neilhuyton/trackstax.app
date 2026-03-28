@@ -5,18 +5,232 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")   // uncomment later if needed
 }
 
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String    @unique
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
+  stacks Stack[]
 
   @@index([createdAt])
   @@map("user")
+}
+
+model Duration {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  start Int
+  stop  Int
+
+  track   Track?  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trackId])
+  @@map("duration")
+}
+
+model Track {
+  id String @id // Existing table - keep as text
+
+  type          String
+  label         String
+  color         String
+  sortOrder     Int
+  isMute        Boolean
+  isSolo        Boolean
+  isFavourite   Boolean
+  volumePercent Int
+  low           Int
+  mid           Int
+  high          Int
+  lowFrequency  Int
+  highFrequency Int
+  isBypass      Boolean
+
+  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  stackId String
+
+  durations  Duration[]
+  audioTrack AudioTrack?   @relation(name: "TrackToAudioTrack")
+  midiTrack  MidiTrack?    @relation(name: "TrackToMIDITrack")
+  samples    TrackSample[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stackId, sortOrder])
+  @@index([stackId])
+  @@map("track")
+}
+
+model AudioTrack {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  filename     String
+  downloadUrl  String?
+  sample       String?
+  loopLength   Int
+  offset       Float   @default(0)
+  duration     Float   @default(0)
+  pitch        Float   @default(0)
+  timestretch  Float   @default(1)
+  fullDuration Float   @default(0)
+
+  fileMetadata   FileMetadata? @relation(fields: [fileMetadataId], references: [id])
+  fileMetadataId String?       @db.Uuid
+
+  track   Track  @relation(name: "TrackToAudioTrack", fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trackId])
+  @@index([fileMetadataId])
+  @@map("audio_track")
+}
+
+model MidiTrack {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  filename     String
+  duration     Float  @default(0)
+  fullDuration Float  @default(0)
+  envelope     Json
+
+  fileMetadata   FileMetadata? @relation(fields: [fileMetadataId], references: [id])
+  fileMetadataId String?       @db.Uuid
+
+  track   Track  @relation(name: "TrackToMIDITrack", fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trackId])
+  @@index([fileMetadataId])
+  @@map("midi_track")
+}
+
+model TrackSample {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  note String
+
+  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String
+
+  fileMetadata   FileMetadata @relation(fields: [fileMetadataId], references: [id], onDelete: Cascade)
+  fileMetadataId String       @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trackId])
+  @@index([fileMetadataId])
+  @@map("track_sample")
+}
+
+model Stack {
+  id String @id // Existing table - keep as text
+
+  title     String
+  sortOrder Int
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.Uuid // ← THIS WAS MISSING
+
+  transport   Transport?
+  tracks      Track[]
+  screen      Screen?
+  destination Destination?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, sortOrder])
+  @@index([userId])
+  @@index([sortOrder])
+  @@map("stack")
+}
+
+model Transport {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  tempo     Float
+  isLoop    Boolean
+  loopStart Int
+  loopEnd   Int
+
+  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  stackId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stackId])
+  @@map("transport")
+}
+
+model Screen {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  gridLengthInBars Int
+
+  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  stackId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stackId])
+  @@map("screen")
+}
+
+model Destination {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  volumePercent Int
+  isMute        Boolean
+
+  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  stackId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stackId])
+  @@map("destination")
+}
+
+model FileMetadata {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  uuidFilename     String   @unique
+  originalFilename String
+  url              String   @unique
+  pathname         String
+  size             Int
+  uploadedAt       DateTime
+
+  audioTracks  AudioTrack[]
+  midiTracks   MidiTrack[]
+  trackSamples TrackSample[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([uuidFilename])
+  @@index([originalFilename])
+  @@map("file_metadata")
 }
