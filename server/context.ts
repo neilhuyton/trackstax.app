@@ -1,7 +1,10 @@
 // server/context.ts
 import { PrismaClient } from "@prisma/client";
-import { extractToken } from "@steel-cut/trpc-shared/server";
-import { jwtVerify, createRemoteJWKSet } from "jose";
+import {
+  extractToken,
+  verifyTokenAndGetUserId,
+  type SupabaseConfig,
+} from "@steel-cut/trpc-shared/server";
 
 const globalForPrisma = globalThis as typeof globalThis & {
   prisma?: PrismaClient;
@@ -9,40 +12,13 @@ const globalForPrisma = globalThis as typeof globalThis & {
 
 export const prisma = (globalForPrisma.prisma ??= new PrismaClient());
 
-const SUPABASE_URL = "https://pdzbvpphnzlbohfqbrmj.supabase.co";   // ← CHANGE THIS
+const supabaseUrlFromEnv = process.env.SUPABASE_URL;
 
-let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
-let ISSUER: string | null = null;
+console.error("[DEBUG] SUPABASE_URL from env:", supabaseUrlFromEnv ? "PRESENT" : "MISSING/EMPTY");
 
-function getSupabaseConfig() {
-  if (!SUPABASE_URL) {
-    throw new Error("SUPABASE_URL is not configured");
-  }
-
-  if (!JWKS || !ISSUER) {
-    ISSUER = `${SUPABASE_URL}/auth/v1`;
-    JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
-  }
-
-  return { JWKS: JWKS!, ISSUER: ISSUER! };
-}
-
-export async function verifyTokenAndGetUserId(token: string | null): Promise<string | null> {
-  if (!token) return null;
-
-  const { JWKS, ISSUER } = getSupabaseConfig();
-
-  try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: ISSUER,
-      audience: "authenticated",
-    });
-    return typeof payload.sub === "string" ? payload.sub : null;
-  } catch (err) {
-    console.warn("JWT verification failed:", err);
-    return null;
-  }
-}
+const supabaseConfig: SupabaseConfig = {
+  supabaseUrl: supabaseUrlFromEnv || "https://pdzbvpphnzlbohfqbrmj.supabase.co",
+};
 
 export interface Context {
   prisma: PrismaClient;
@@ -51,6 +27,6 @@ export interface Context {
 
 export async function createContext({ req }: { req: Request }): Promise<Context> {
   const token = extractToken(req);
-  const userId = await verifyTokenAndGetUserId(token);
+  const userId = await verifyTokenAndGetUserId(token, supabaseConfig);
   return { prisma, userId };
 }
