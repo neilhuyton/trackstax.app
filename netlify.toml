@@ -1,9 +1,6 @@
 [build]
+  command = "npx prisma generate && npm run build"
   publish = "dist"
-  command = "npx prisma generate && npm run build"
-
-[context.production]
-  command = "npx prisma generate && npm run build"
 
 [[redirects]]
   from = "/trpc/*"
@@ -11,5 +8,7 @@
   status = 200
   force = true
 
-[functions]
-  node_bundler = "esbuild"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
