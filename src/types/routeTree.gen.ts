@@ -20,6 +20,7 @@ import { Route as AuthenticatedProfileRouteImport } from './../routes/_authentic
 import { Route as AuthenticatedHomeRouteImport } from './../routes/_authenticated/home'
 import { Route as AuthenticatedStacksIndexRouteImport } from './../routes/_authenticated/stacks/index'
 import { Route as AuthenticatedStacksNewRouteImport } from './../routes/_authenticated/stacks/new'
+import { Route as AuthenticatedStacksStackIdIndexRouteImport } from './../routes/_authenticated/stacks/$stackId/index'
 import { Route as AuthenticatedStacksStackIdDeleteRouteImport } from './../routes/_authenticated/stacks/$stackId/delete'
 
 const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
@@ -77,6 +78,12 @@ const AuthenticatedStacksNewRoute = AuthenticatedStacksNewRouteImport.update({
   path: '/stacks/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStacksStackIdIndexRoute =
+  AuthenticatedStacksStackIdIndexRouteImport.update({
+    id: '/stacks/$stackId/',
+    path: '/stacks/$stackId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStacksStackIdDeleteRoute =
   AuthenticatedStacksStackIdDeleteRouteImport.update({
     id: '/stacks/$stackId/delete',
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/stacks/new': typeof AuthenticatedStacksNewRoute
   '/stacks/': typeof AuthenticatedStacksIndexRoute
   '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
+  '/stacks/$stackId/': typeof AuthenticatedStacksStackIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/stacks/new': typeof AuthenticatedStacksNewRoute
   '/stacks': typeof AuthenticatedStacksIndexRoute
   '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
+  '/stacks/$stackId': typeof AuthenticatedStacksStackIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated/stacks/new': typeof AuthenticatedStacksNewRoute
   '/_authenticated/stacks/': typeof AuthenticatedStacksIndexRoute
   '/_authenticated/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
+  '/_authenticated/stacks/$stackId/': typeof AuthenticatedStacksStackIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/stacks/new'
     | '/stacks/'
     | '/stacks/$stackId/delete'
+    | '/stacks/$stackId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/stacks/new'
     | '/stacks'
     | '/stacks/$stackId/delete'
+    | '/stacks/$stackId'
   id:
     | '__root__'
     | '/'
@@ -166,6 +178,7 @@ export interface FileRouteTypes {
     | '/_authenticated/stacks/new'
     | '/_authenticated/stacks/'
     | '/_authenticated/stacks/$stackId/delete'
+    | '/_authenticated/stacks/$stackId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStacksNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/stacks/$stackId/': {
+      id: '/_authenticated/stacks/$stackId/'
+      path: '/stacks/$stackId'
+      fullPath: '/stacks/$stackId/'
+      preLoaderRoute: typeof AuthenticatedStacksStackIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/stacks/$stackId/delete': {
       id: '/_authenticated/stacks/$stackId/delete'
       path: '/stacks/$stackId/delete'
@@ -273,6 +293,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStacksNewRoute: typeof AuthenticatedStacksNewRoute
   AuthenticatedStacksIndexRoute: typeof AuthenticatedStacksIndexRoute
   AuthenticatedStacksStackIdDeleteRoute: typeof AuthenticatedStacksStackIdDeleteRoute
+  AuthenticatedStacksStackIdIndexRoute: typeof AuthenticatedStacksStackIdIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -281,6 +302,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStacksNewRoute: AuthenticatedStacksNewRoute,
   AuthenticatedStacksIndexRoute: AuthenticatedStacksIndexRoute,
   AuthenticatedStacksStackIdDeleteRoute: AuthenticatedStacksStackIdDeleteRoute,
+  AuthenticatedStacksStackIdIndexRoute: AuthenticatedStacksStackIdIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
