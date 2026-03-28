@@ -1,12 +1,24 @@
-exports.handler = async (event, context) => {
-  console.log("All env vars:", Object.keys(process.env));
-  console.log("My custom var:", process.env.DATABASE_URL);  // replace with your var name
+// netlify/functions/trpc.ts
+import "dotenv/config";
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "Check the function logs in Netlify dashboard",
-      hasMyVar: !!process.env.DATABASE_URL
-    })
-  };
-};
+console.log("=== FUNCTION STARTED AT", new Date().toISOString());
+console.log("DATABASE_URL present?", !!process.env.DATABASE_URL);
+console.log("SUPABASE_URL present?", !!process.env.SUPABASE_URL);
+console.log("All env keys:", Object.keys(process.env).filter(k => k.includes("SUPABASE") || k.includes("DATABASE")));
+
+// import { appRouter } from "../../server/trpc";
+// import { createContext } from "../../server/context";
+// import { createNetlifyTrpcHandler } from "@steel-cut/trpc-shared/server";
+
+// const corsConfig = {
+//   allowedOrigins: (process.env.VITE_APP_URL || "")
+//     .split(",")
+//     .map((s) => s.trim())
+//     .filter(Boolean),
+// };
+
+// export default createNetlifyTrpcHandler({
+//   router: appRouter,
+//   createContext: ({ req }) => createContext({ req }),
+//   corsConfig,
+// });
