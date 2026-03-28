@@ -1,16 +1,12 @@
 [build]
-  publish = "dist"         
-  command = "npm run build" 
-
-[context.production]
   command = "npx prisma generate && npm run build"
+  publish = "dist"
 
 [[redirects]]
   from = "/trpc/*"
   to = "/.netlify/functions/trpc/:splat"
   status = 200
   force = true
-  headers = { Authorization = "{Authorization}" }
 
 [[redirects]]
   from = "/*"
