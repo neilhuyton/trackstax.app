@@ -29,6 +29,16 @@ const env = {
   // add any others you need
 };
 
+console.log("=== FUNCTION STARTED AT::", new Date().toISOString());
+console.log("DATABASE_URL present?", !!process.env.DATABASE_URL);
+console.log("SUPABASE_URL present?", !!process.env.SUPABASE_URL);
+console.log(
+  "All env keys:",
+  Object.keys(process.env).filter(
+    (k) => k.includes("SUPABASE") || k.includes("DATABASE"),
+  ),
+);
+
 export default createNetlifyTrpcHandler({
   router: undefined as unknown as AnyRouter,
   createContext: () => ({ env }),   // pass env down
