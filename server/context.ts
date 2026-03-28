@@ -27,6 +27,7 @@ export async function createContext({
   req: Request;
 }): Promise<Context> {
   const token = extractToken(req);
+  console.log(supabaseConfig);
   const userId = await verifyTokenAndGetUserId(token, supabaseConfig);
   return { prisma, userId };
 }
