@@ -1,4 +1,3 @@
-// src/routes/_authenticated/stacks/index.tsx
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useStackRead } from "@/features/stacks/useStackRead";
 import { StackList } from "@/features/stacks/List";
