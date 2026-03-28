@@ -1,5 +1,10 @@
 import "dotenv/config";
 
+console.error(
+  "DATABASE_URL in function:",
+  process.env.DATABASE_URL ? "PRESENT" : "MISSING",
+);
+
 import { appRouter } from "../../server/trpc";
 import { createContext } from "../../server/context";
 import { createNetlifyTrpcHandler } from "@steel-cut/trpc-shared/server";
