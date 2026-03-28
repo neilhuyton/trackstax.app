@@ -23,3 +23,17 @@ export function useStackRead() {
     stacksQueryKey,
   };
 }
+
+// New hook for single stack
+export function useStack(stackId: string) {
+  const trpc = useTRPC();
+
+  return useSuspenseQuery(
+    trpc.stack.getById.queryOptions(
+      { id: stackId },
+      {
+        staleTime: 1000 * 60 * 30,
+      }
+    )
+  );
+}

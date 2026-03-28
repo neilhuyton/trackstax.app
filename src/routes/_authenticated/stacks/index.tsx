@@ -1,39 +1,39 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useStackRead } from "@/features/stacks/useStackRead";
 import { StackList } from "@/features/stacks/List";
 import { columns } from "@/features/stacks/Columns";
 import { FabButton, RouteError } from "@steel-cut/steel-lib";
-// import { trpc } from "@/trpc";
-// import { useAuthStore } from "@/store/authStore";
+import { trpc } from "@/trpc";
+import { useAuthStore } from "@/store/authStore";
 
 export const Route = createFileRoute("/_authenticated/stacks/")({
-  // loader: async ({ context: { queryClient } }) => {
-  //   const sessionPromise = useAuthStore.getState().waitUntilReady();
-  //   const timeout = new Promise<null>((_, reject) =>
-  //     setTimeout(() => reject(new Error("Auth loader timeout")), 8000),
-  //   );
+  loader: async ({ context: { queryClient } }) => {
+    const sessionPromise = useAuthStore.getState().waitUntilReady();
+    const timeout = new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error("Auth loader timeout")), 8000),
+    );
 
-  //   let session;
-  //   try {
-  //     session = await Promise.race([sessionPromise, timeout]);
-  //   } catch {
-  //     session = null;
-  //   }
+    let session;
+    try {
+      session = await Promise.race([sessionPromise, timeout]);
+    } catch {
+      session = null;
+    }
 
-  //   if (!session?.user?.id) {
-  //     throw redirect({ to: "/login" });
-  //   }
+    if (!session?.user?.id) {
+      throw redirect({ to: "/login" });
+    }
 
-  //   try {
-  //     await queryClient.ensureQueryData(
-  //       trpc.stack.getAll.queryOptions(undefined),
-  //     );
-  //   } catch {
-  //     // leave this comment here
-  //   }
+    try {
+      await queryClient.ensureQueryData(
+        trpc.stack.getAll.queryOptions(undefined),
+      );
+    } catch {
+      // leave this comment here
+    }
 
-  //   return { session };
-  // },
+    return { session };
+  },
 
   pendingComponent: () => (
     <div className="flex min-h-[60vh] items-center justify-center">
