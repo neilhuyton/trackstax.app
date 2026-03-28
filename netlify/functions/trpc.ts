@@ -2,6 +2,8 @@ import { appRouter } from "../../server/trpc";
 import { createContext } from "../../server/context";
 import { createNetlifyTrpcHandler } from "@steel-cut/trpc-shared/server";
 
+console.log("process.env", process.env);
+
 const corsConfig = {
   allowedOrigins: (process.env.VITE_APP_URL || "")
     .split(",")
