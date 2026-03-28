@@ -1,6 +1,3 @@
-// netlify/functions/trpc.ts
-import "dotenv/config";
-
 console.log("=== FUNCTION STARTED AT", new Date().toISOString());
 console.log("DATABASE_URL present?", !!process.env.DATABASE_URL);
 console.log("SUPABASE_URL present?", !!process.env.SUPABASE_URL);
