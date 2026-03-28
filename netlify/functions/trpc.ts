@@ -1,3 +1,4 @@
+console.log("=== BRAND NEW FORCE REBUILD - March 28 ===");
 export default async function (req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204 });
