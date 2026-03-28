@@ -7,6 +7,7 @@ import {
 const globalForPrisma = globalThis as typeof globalThis & {
   prisma?: PrismaClient;
 };
+
 export const prisma = (globalForPrisma.prisma ??= new PrismaClient());
 
 export interface Context {
