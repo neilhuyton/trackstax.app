@@ -1,20 +1,16 @@
-console.log("=== BRAND NEW FORCE REBUILD - March 28 ===");
-export default async function (req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204 });
-  }
+import { appRouter } from "../../server/trpc";
+import { createContext } from "../../server/context";
+import { createNetlifyTrpcHandler } from "@steel-cut/trpc-shared/server";
 
-  const allEnv = Object.keys(process.env).sort();
+const corsConfig = {
+  allowedOrigins: (process.env.VITE_APP_URL || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+};
 
-  return new Response(
-    JSON.stringify({
-      total: allEnv.length,
-      envVars: allEnv,
-      timestamp: new Date().toISOString()
-    }, null, 2),
-    {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
-}
+export default createNetlifyTrpcHandler({
+  router: appRouter,
+  createContext: ({ req }) => createContext({ req }),
+  corsConfig,
+});
