@@ -1,9 +1,9 @@
+// netlify/functions/trpc.ts
 import "dotenv/config";
 
-console.error(
-  "DATABASE_URL in function:",
-  process.env.DATABASE_URL ? "PRESENT" : "MISSING",
-);
+console.log("=== ENV VARS IN FUNCTION ===");
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "PRESENT" : "MISSING");
+console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "PRESENT" : "MISSING");
 
 import { appRouter } from "../../server/trpc";
 import { createContext } from "../../server/context";
