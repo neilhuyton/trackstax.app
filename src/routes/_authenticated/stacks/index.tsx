@@ -1,10 +1,10 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useStackRead } from "@/features/stacks/useStackRead";
 import { StackList } from "@/features/stacks/List";
 import { columns } from "@/features/stacks/Columns";
 import { FabButton, RouteError } from "@steel-cut/steel-lib";
-import { trpc } from "@/trpc";
-import { useAuthStore } from "@/store/authStore";
+// import { trpc } from "@/trpc";
+// import { useAuthStore } from "@/store/authStore";
 
 export const Route = createFileRoute("/_authenticated/stacks/")({
   // loader: async ({ context: { queryClient } }) => {
