@@ -18,6 +18,9 @@ import { Route as AuthenticatedRouteRouteImport } from './../routes/_authenticat
 import { Route as IndexRouteImport } from './../routes/index'
 import { Route as AuthenticatedProfileRouteImport } from './../routes/_authenticated/profile'
 import { Route as AuthenticatedHomeRouteImport } from './../routes/_authenticated/home'
+import { Route as AuthenticatedStacksIndexRouteImport } from './../routes/_authenticated/stacks/index'
+import { Route as AuthenticatedStacksNewRouteImport } from './../routes/_authenticated/stacks/new'
+import { Route as AuthenticatedStacksStackIdDeleteRouteImport } from './../routes/_authenticated/stacks/$stackId/delete'
 
 const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
   id: '/update-password',
@@ -63,6 +66,23 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStacksIndexRoute =
+  AuthenticatedStacksIndexRouteImport.update({
+    id: '/stacks/',
+    path: '/stacks/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStacksNewRoute = AuthenticatedStacksNewRouteImport.update({
+  id: '/stacks/new',
+  path: '/stacks/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStacksStackIdDeleteRoute =
+  AuthenticatedStacksStackIdDeleteRouteImport.update({
+    id: '/stacks/$stackId/delete',
+    path: '/stacks/$stackId/delete',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +93,9 @@ export interface FileRoutesByFullPath {
   '/update-password': typeof UpdatePasswordRoute
   '/home': typeof AuthenticatedHomeRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/stacks/new': typeof AuthenticatedStacksNewRoute
+  '/stacks/': typeof AuthenticatedStacksIndexRoute
+  '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +106,9 @@ export interface FileRoutesByTo {
   '/update-password': typeof UpdatePasswordRoute
   '/home': typeof AuthenticatedHomeRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/stacks/new': typeof AuthenticatedStacksNewRoute
+  '/stacks': typeof AuthenticatedStacksIndexRoute
+  '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +121,9 @@ export interface FileRoutesById {
   '/update-password': typeof UpdatePasswordRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/stacks/new': typeof AuthenticatedStacksNewRoute
+  '/_authenticated/stacks/': typeof AuthenticatedStacksIndexRoute
+  '/_authenticated/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +136,9 @@ export interface FileRouteTypes {
     | '/update-password'
     | '/home'
     | '/profile'
+    | '/stacks/new'
+    | '/stacks/'
+    | '/stacks/$stackId/delete'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +149,9 @@ export interface FileRouteTypes {
     | '/update-password'
     | '/home'
     | '/profile'
+    | '/stacks/new'
+    | '/stacks'
+    | '/stacks/$stackId/delete'
   id:
     | '__root__'
     | '/'
@@ -128,6 +163,9 @@ export interface FileRouteTypes {
     | '/update-password'
     | '/_authenticated/home'
     | '/_authenticated/profile'
+    | '/_authenticated/stacks/new'
+    | '/_authenticated/stacks/'
+    | '/_authenticated/stacks/$stackId/delete'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,17 +243,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/stacks/': {
+      id: '/_authenticated/stacks/'
+      path: '/stacks'
+      fullPath: '/stacks/'
+      preLoaderRoute: typeof AuthenticatedStacksIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stacks/new': {
+      id: '/_authenticated/stacks/new'
+      path: '/stacks/new'
+      fullPath: '/stacks/new'
+      preLoaderRoute: typeof AuthenticatedStacksNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/stacks/$stackId/delete': {
+      id: '/_authenticated/stacks/$stackId/delete'
+      path: '/stacks/$stackId/delete'
+      fullPath: '/stacks/$stackId/delete'
+      preLoaderRoute: typeof AuthenticatedStacksStackIdDeleteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedStacksNewRoute: typeof AuthenticatedStacksNewRoute
+  AuthenticatedStacksIndexRoute: typeof AuthenticatedStacksIndexRoute
+  AuthenticatedStacksStackIdDeleteRoute: typeof AuthenticatedStacksStackIdDeleteRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedStacksNewRoute: AuthenticatedStacksNewRoute,
+  AuthenticatedStacksIndexRoute: AuthenticatedStacksIndexRoute,
+  AuthenticatedStacksStackIdDeleteRoute: AuthenticatedStacksStackIdDeleteRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -51,8 +51,8 @@ importers:
         specifier: file:steel-cut-steel-lib-0.1.111.tgz
         version: file:steel-cut-steel-lib-0.1.111.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
       '@steel-cut/trpc-shared':
-        specifier: file:steel-cut-trpc-shared-0.0.23.tgz
-        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.23.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
+        specifier: file:steel-cut-trpc-shared-0.0.24.tgz
+        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.24.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
       '@supabase/auth-js':
         specifier: ^2.98.0
         version: 2.98.0
@@ -80,6 +80,9 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.160.2
         version: 1.163.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tanstack/react-table':
+        specifier: ^8.21.3
+        version: 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/router-devtools':
         specifier: ^1.160.2
         version: 1.163.2(@tanstack/react-router@1.163.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@tanstack/router-core@1.163.2)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2234,6 +2237,13 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  '@tanstack/react-table@8.21.3':
+    resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
   '@tanstack/router-core@1.163.2':
     resolution: {integrity: sha512-mD0Pav6kcpS317XSJN+wCZaxLLngDhlwgzPNca56dWCp8YKPEvhhj/Zdl+LdRlJQ2VJ5BOy7FbOV1hErc9Nj5Q==}
     engines: {node: '>=20.19'}
@@ -2291,6 +2301,10 @@ packages:
 
   '@tanstack/store@0.9.1':
     resolution: {integrity: sha512-+qcNkOy0N1qSGsP7omVCW0SDrXtaDcycPqBDE726yryiA5eTDFpjBReaYjghVJwNf1pcPMyzIwTGlYjCSQR0Fg==}
+
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
 
   '@tanstack/virtual-file-routes@1.161.4':
     resolution: {integrity: sha512-42WoRePf8v690qG8yGRe/YOh+oHni9vUaUUfoqlS91U2scd3a5rkLtVsc6b7z60w3RogH0I00vdrC5AaeiZ18w==}
@@ -5517,9 +5531,9 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.23.tgz:
-    resolution: {integrity: sha512-hIRe+sF0pvSKdDI4vfh//Kpf4rvUrn3QoXMOLcDztzP79gODkVNLZh8iHYeWAuqFI06wyF2GViU2/NcTekdvNw==, tarball: file:steel-cut-trpc-shared-0.0.23.tgz}
-    version: 0.0.23
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.24.tgz:
+    resolution: {integrity: sha512-W4nztPOkiPQqEO7MPOuLck3x1iqcqKhLgCHQ/E2nbepk6pSDNwKs1isPEENzG4vcs5TwcEZnXlUC2ADLZ4YEXw==, tarball: file:steel-cut-trpc-shared-0.0.24.tgz}
+    version: 0.0.24
     peerDependencies:
       '@prisma/client': ^6.14.0
       '@supabase/supabase-js': ^2.98.0
@@ -8197,6 +8211,12 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
       use-sync-external-store: 1.6.0(react@19.2.4)
 
+  '@tanstack/react-table@8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@tanstack/table-core': 8.21.3
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
   '@tanstack/router-core@1.163.2':
     dependencies:
       '@tanstack/history': 1.161.4
@@ -8278,6 +8298,8 @@ snapshots:
       - supports-color
 
   '@tanstack/store@0.9.1': {}
+
+  '@tanstack/table-core@8.21.3': {}
 
   '@tanstack/virtual-file-routes@1.161.4': {}
 
@@ -11795,7 +11817,7 @@ snapshots:
 
   stdin-discarder@0.2.2: {}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.23.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.24.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
     dependencies:
       '@prisma/client': 6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3)
       '@supabase/supabase-js': 2.98.0
