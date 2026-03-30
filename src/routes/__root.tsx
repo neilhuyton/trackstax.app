@@ -39,7 +39,7 @@ function RootComponent() {
 
   return (
     <>
-      {isLoggedIn && APP_CONFIG.navItems && (
+      {isLoggedIn && APP_CONFIG.navItems.length > 0 && (
         <Navigation
           items={APP_CONFIG.navItems}
           LinkComponent={(props) => (

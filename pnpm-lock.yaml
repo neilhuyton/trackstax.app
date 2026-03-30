@@ -48,11 +48,11 @@ importers:
         specifier: ^1.2.4
         version: 1.2.4(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@steel-cut/steel-lib':
-        specifier: file:steel-cut-steel-lib-0.1.111.tgz
-        version: file:steel-cut-steel-lib-0.1.111.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
+        specifier: file:steel-cut-steel-lib-0.1.112.tgz
+        version: file:steel-cut-steel-lib-0.1.112.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))
       '@steel-cut/trpc-shared':
-        specifier: file:steel-cut-trpc-shared-0.0.27.tgz
-        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.27.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
+        specifier: file:steel-cut-trpc-shared-0.0.25.tgz
+        version: steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6)
       '@supabase/auth-js':
         specifier: ^2.98.0
         version: 2.98.0
@@ -179,6 +179,9 @@ importers:
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
+      vaul:
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       zod:
         specifier: ^4.0.17
         version: 4.3.6
@@ -2060,9 +2063,9 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
-  '@steel-cut/steel-lib@file:steel-cut-steel-lib-0.1.111.tgz':
-    resolution: {integrity: sha512-VwIcoAtvoc1IuVxGAoyd5Ox41xRPtdD1tyibH3xY1TDT9cPMyI/if+9oW+/JK/buOHmnbcwW47eYhOmVOPKXIw==, tarball: file:steel-cut-steel-lib-0.1.111.tgz}
-    version: 0.1.111
+  '@steel-cut/steel-lib@file:steel-cut-steel-lib-0.1.112.tgz':
+    resolution: {integrity: sha512-iu2GCsR7S85gO0K3IhrwVqlInFsBXrOlam6NTzkxN1OiyUc4huctN7kiZvSErOp9LB46MRY03lg9BaASiLMq7Q==, tarball: file:steel-cut-steel-lib-0.1.112.tgz}
+    version: 0.1.112
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       lucide-react: ^0.577.0
@@ -5553,9 +5556,9 @@ packages:
     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
     engines: {node: '>=18'}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.27.tgz:
-    resolution: {integrity: sha512-3eDTQVgcFyZ7huq32Iiz5SaWyNLCcb73d+k/a0C+qAuyq6J+ylD4yaaujzCCiz6ZdUvkFN7Kdhlo/RQcPaKdFA==, tarball: file:steel-cut-trpc-shared-0.0.27.tgz}
-    version: 0.0.27
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz:
+    resolution: {integrity: sha512-uvpVHCvGlYiTohmL+XOtZmN5ELIeUNbq0Tl1ci56IJoMpUfmva47DAEeIzoB5P3DJrJgNl4y7W/XOTxeiQ2DkA==, tarball: file:steel-cut-trpc-shared-0.0.25.tgz}
+    version: 0.0.25
     peerDependencies:
       '@prisma/client': ^6.14.0
       '@supabase/supabase-js': ^2.98.0
@@ -5977,6 +5980,12 @@ packages:
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+
+  vaul@1.1.2:
+    resolution: {integrity: sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
 
   victory-vendor@36.9.2:
     resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
@@ -8036,7 +8045,7 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@steel-cut/steel-lib@file:steel-cut-steel-lib-0.1.111.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))':
+  '@steel-cut/steel-lib@file:steel-cut-steel-lib-0.1.112.tgz(@tanstack/react-query@5.90.21(react@19.2.4))(@types/node@24.10.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(lucide-react@0.540.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.8.3)(use-sync-external-store@1.6.0(react@19.2.4))(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))':
     dependencies:
       '@fontsource-variable/geist': 5.2.8
       '@hookform/resolvers': 5.2.2(react-hook-form@7.71.2(react@19.2.4))
@@ -11859,7 +11868,7 @@ snapshots:
 
   stdin-discarder@0.2.2: {}
 
-  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.27.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
+  steel-cut-trpc-shared@file:steel-cut-trpc-shared-0.0.25.tgz(@prisma/client@6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3))(@supabase/supabase-js@2.98.0)(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(@trpc/tanstack-react-query@11.10.0(@tanstack/react-query@5.90.21(react@19.2.4))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.8.3))(typescript@5.8.3))(@trpc/server@11.10.0(typescript@5.8.3))(react@19.2.4)(typescript@5.8.3))(@types/node@24.10.15)(react@19.2.4)(rollup@4.59.0)(typescript@5.8.3)(vite@7.3.1(@types/node@24.10.15)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0))(zod@4.3.6):
     dependencies:
       '@prisma/client': 6.19.2(prisma@6.19.2(typescript@5.8.3))(typescript@5.8.3)
       '@supabase/supabase-js': 2.98.0
@@ -12290,6 +12299,15 @@ snapshots:
   validate-npm-package-name@7.0.2: {}
 
   vary@1.1.2: {}
+
+  vaul@1.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
 
   victory-vendor@36.9.2:
     dependencies:
