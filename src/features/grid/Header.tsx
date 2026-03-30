@@ -49,27 +49,29 @@ const GridHeader = () => {
 
   const getBgColor = (i: number) => {
     const globalBar = visibleStartBar + i;
-    let bg = globalBar % 8 === 0 ? "bg-neutral-800" : "bg-neutral-900";
 
-    if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
-      bg = "bg-neutral-700";
-    }
-
+    // Current playing bar - lighter colour
     if (globalBar === currentBar && currentBar >= 0) {
-      bg = "bg-neutral-500";
+      return "bg-neutral-500";
     }
 
-    return bg;
+    // Loop range
+    if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
+      return "bg-neutral-700";
+    }
+
+    // All other bars - exactly the same colour
+    return "bg-neutral-900";
   };
 
   const getTextColor = (i: number) => {
     const globalBar = visibleStartBar + i;
+
     if (globalBar === currentBar && currentBar >= 0) {
       return "text-white font-extrabold";
     }
-    return globalBar % 8 === 0
-      ? "text-white font-extrabold"
-      : "text-neutral-300 font-light";
+
+    return "text-neutral-300 font-light";
   };
 
   if (isError) return null;

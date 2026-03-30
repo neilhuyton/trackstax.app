@@ -9,6 +9,8 @@ import { useGridPageStore } from "../stores/useGridPageStore";
 import { useScreen } from "../screen/useScreen";
 import useStackIdStore from "../stores/useStackIdStore";
 import TransportPositionDialog from "../transport/PositionDialog";
+import { useGridEndStop } from "./useGridEndStop";
+import { useGridAutoPage } from "./useGridAutoPage";
 
 const GridPager = () => {
   const stackId = useStackIdStore((state) => state.stackId);
@@ -30,6 +32,9 @@ const GridPager = () => {
 
   const canGoPrev = currentPage > 0;
   const canGoNext = currentPage < totalPages - 1;
+
+  useGridEndStop(totalBars);
+  useGridAutoPage(totalBars);
 
   return (
     <div className="flex items-center justify-between bg-[#2a2a2a] rounded-lg px-4 h-9">
