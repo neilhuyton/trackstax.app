@@ -1,12 +1,13 @@
+// src/routes/_authenticated/stacks/$stackId/index.tsx
 import { createFileRoute, redirect } from "@tanstack/react-router";
-
 import { useAuthStore } from "@/store/authStore";
-import { RouteError } from "@steel-cut/steel-lib";
 import useStackIdStore from "@/features/stores/useStackIdStore";
-
-import TransportControls from "@/features/transport/Controls";
 import { trpc } from "@/trpc";
-import GridWrapper from "@/features/grid/Wrapper";
+
+import GridContainer from "@/features/grid/GridContainer";
+import { TransportSheet } from "@/features/transport/TransportSheet";
+import { TrackListSheet } from "@/features/track/TrackListSheet";
+import { TrackToolsSheet } from "@/features/track/TrackToolsSheet";
 import ClientStackPage from "@/features/stacks/ClientStackPage";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
@@ -32,32 +33,11 @@ export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
         trpc.stack.getById.queryOptions({ id: params.stackId }),
       );
     } catch {
-      // leave this comment here
+      // leave this in
     }
 
     return { session };
   },
-
-  pendingComponent: () => (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-        <p className="text-muted-foreground">Loading stack…</p>
-      </div>
-    </div>
-  ),
-
-  pendingMs: 0,
-  pendingMinMs: 400,
-
-  errorComponent: ({ error, reset }) => (
-    <RouteError
-      error={error}
-      reset={reset}
-      title="Failed to load stack"
-      backLabel="Back to Stacks"
-    />
-  ),
 
   component: StackDetailPage,
 });
@@ -65,35 +45,23 @@ export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
 function StackDetailPage() {
   const { stackId } = Route.useParams();
 
-  // This runs on every render, not just after mount
   if (stackId) {
     useStackIdStore.setState({ stackId });
   }
 
-  if (!stackId) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="text-muted-foreground">Loading stack ID...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Stack Details</h1>
-        <p className="text-muted-foreground">ID: {stackId}</p>
+    <div className="h-full flex flex-col overflow-hidden bg-[#1a1a1a]">
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
+        <TrackListSheet />
+
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <GridContainer />
+        </div>
+
+        <TrackToolsSheet />
       </div>
 
-      <main className="overflow-hidden h-full p-4 pt-0">
-        <GridWrapper />
-      </main>
-
-      <TransportControls />
-
+      <TransportSheet />
       <ClientStackPage stackId={stackId} />
     </div>
   );
