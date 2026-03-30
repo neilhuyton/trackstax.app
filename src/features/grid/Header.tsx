@@ -50,17 +50,14 @@ const GridHeader = () => {
   const getBgColor = (i: number) => {
     const globalBar = visibleStartBar + i;
 
-    // Current playing bar - lighter colour
     if (globalBar === currentBar && currentBar >= 0) {
       return "bg-neutral-500";
     }
 
-    // Loop range
     if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
       return "bg-neutral-700";
     }
 
-    // All other bars - exactly the same colour
     return "bg-neutral-900";
   };
 
