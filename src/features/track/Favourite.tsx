@@ -14,8 +14,8 @@ export const TrackFavouriteButton = ({ track }: TrackFavouriteButtonProps) => {
 
   const updateTrackMutation = useMutation(
     trpc.track.update.mutationOptions({
-      onSuccess: (updatedTrack) => {
-        storeUpdateTrack(updatedTrack);
+      onError: (error) => {
+        console.error("Failed to update favourite state:", error);
       },
     }),
   );

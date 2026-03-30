@@ -6,6 +6,7 @@ export const trackUpdateRouter = router({
     .input(
       z.object({
         id: z.string().min(1),
+        label: z.string().min(1).max(100).optional(),
         isMute: z.boolean().optional(),
         isSolo: z.boolean().optional(),
         isFavourite: z.boolean().optional(),
@@ -24,6 +25,7 @@ export const trackUpdateRouter = router({
           id: input.id,
         },
         data: {
+          label: input.label,
           isMute: input.isMute,
           isSolo: input.isSolo,
           isFavourite: input.isFavourite,
