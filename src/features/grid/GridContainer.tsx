@@ -1,12 +1,12 @@
 import GridHeader from "./Header";
 import GridTrackRow from "./TrackRow";
 import GridPager from "./GridPager";
-import useTracksStore from "../stores/tracks";
+import useTracksStore from "../track/useTracksStore";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/utils/track-utils";
-import { useGridPageStore } from "../stores/useGridPageStore";
+import { useGridPageStore } from "./useGridPageStore";
 
 const GridContainer = () => {
   const { tracks, trackErrors, storeUpdateTrack } = useTracksStore();

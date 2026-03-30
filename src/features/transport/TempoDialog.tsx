@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import useStackIdStore from "../stores/useStackIdStore";
-import useTransportStore from "../stores/transport";
+import useStackIdStore from "../stacks/useStackIdStore";
+import useTransportStore from "./useTransportStore";
 import { useTransportRead } from "./useTransportRead";
 
 import { trpc } from "@/trpc";

@@ -5,7 +5,7 @@ import TrackVolumeDialog from "@/features/track/VolumeDialog";
 import { borderColors } from "@/consts";
 import { type Track } from "@/types";
 
-import useTracksStore from "../stores/tracks";
+import useTracksStore from "./useTracksStore";
 
 export const TrackTools = () => {
   const { tracks } = useTracksStore();
@@ -19,8 +19,8 @@ export const TrackTools = () => {
             gridTemplateRows: `repeat(${(tracks?.length || 0) + 2}, minmax(0, 1fr))`,
           }}
         >
-         <div></div>
-         <div></div>
+          <div></div>
+          <div></div>
 
           {tracks.map((track: Track) => {
             const color =

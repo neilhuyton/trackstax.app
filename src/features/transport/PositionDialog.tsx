@@ -17,8 +17,8 @@ import { Label } from "@/components/ui/label";
 import { PIXELS_PER_SIXTEENTH } from "@/consts";
 
 import { formatPosition, isPositionZero, toPosition } from "@/utils";
-import usePositionStore from "../stores/position";
-import useScreenStore from "../stores/screen";
+import usePositionStore from "../position/usePositionStore";
+import useScreenStore from "../screen/useScreenStore";
 
 const calculateScrollAndPosition = (
   bar: string,

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import InlineEdit from "@/features/grid/InlineEdit";
 import { useStack } from "../stacks/useStackRead";
-import useStackIdStore from "../stores/useStackIdStore";
+import useStackIdStore from "../stacks/useStackIdStore";
 import { trpc } from "@/trpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 

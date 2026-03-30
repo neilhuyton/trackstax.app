@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import useStackIdStore from "../stores/useStackIdStore";
-import useTracksStore from "../stores/tracks";
+import useStackIdStore from "./useStackIdStore";
+import useTracksStore from "../track/useTracksStore";
 import { useTrackRead } from "../track/useTrackRead";
 
 interface ClientStackPageProps {
