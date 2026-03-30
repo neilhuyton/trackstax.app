@@ -14,8 +14,8 @@ export const TrackSoloButton = ({ track }: TrackSoloButtonProps) => {
 
   const updateTrackMutation = useMutation(
     trpc.track.update.mutationOptions({
-      onSuccess: (updatedTrack) => {
-        storeUpdateTrack(updatedTrack);
+      onError: (error) => {
+        console.error("Failed to update solo state:", error);
       },
     }),
   );
