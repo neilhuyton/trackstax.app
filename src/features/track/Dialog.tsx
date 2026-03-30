@@ -233,7 +233,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
         }
         confirmLabel="Delete"
         cancelLabel="Cancel"
-        onConfirm={handleDelete} // ← This was missing! Now correctly calls handleDelete
+        onConfirm={handleDelete}
       />
     </>
   );
