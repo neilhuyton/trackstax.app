@@ -1,7 +1,9 @@
-import React, { useMemo } from "react";
+import React from "react";
 
-import GridPlayHead from "@/features/grid/PlayHead";
+// import GridHeader from "@/features/grid/Header";
+// import GridExtraRow from "@/features/grid/ExtraRow";
 import GridTracks from "@/features/grid/Tracks";
+import GridPlayHead from "@/features/grid/PlayHead";
 
 import useStackIdStore from "../stores/useStackIdStore";
 import { useStack } from "../stacks/useStackRead";
@@ -26,44 +28,23 @@ export const GridEntries = ({
   const { isError: stackError } = useStack(stackId);
   const { trackErrors, tracks } = useTracksStore();
 
-  const gridBackground = useMemo(
-    () =>
-      "linear-gradient(to right, #404040 1px, transparent 0px), linear-gradient(to right, #303132 1px, transparent 0px)",
-    [],
-  );
-
   if (stackError) {
-    return <div className="text-red-500">Error loading stack</div>;
+    return <div className="text-red-500 p-4">Error loading stack</div>;
   }
 
   return (
-    <div
-      data-testid="grid-entries-container"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.currentTarget.style.border = "2px dashed #888";
-      }}
-      onDragLeave={(e) => {
-        e.currentTarget.style.border = "none";
-      }}
-      onDrop={(e) => {
-        e.currentTarget.style.border = "none";
-      }}
-      className="relative z-0 flex-1"
-      style={{
-        background: gridBackground,
-        backgroundSize: "84px, 21px",
-        backgroundPosition: "2px",
-      }}
-    >
-      <GridTracks
-        tracks={tracks}
-        gridLengthInBars={gridLengthInBars}
-        trackErrors={trackErrors}
-        menu={menu}
-        showMenu={showMenu}
-        closeMenu={closeMenu}
-      />
+    <div className="h-full flex flex-col bg-[#1a1a1a] p-1.5 overflow-hidden">
+      <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
+        <GridTracks
+          tracks={tracks}
+          gridLengthInBars={gridLengthInBars}
+          trackErrors={trackErrors}
+          menu={menu}
+          showMenu={showMenu}
+          closeMenu={closeMenu}
+        />
+      </div>
+
       <GridPlayHead scrollAreaRef={scrollAreaRef} />
     </div>
   );

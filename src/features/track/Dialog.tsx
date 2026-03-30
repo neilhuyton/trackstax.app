@@ -88,7 +88,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     setIsSaving(true);
     try {
       setIsOpen(false);
-      // TODO: Add actual track update mutation here when ready
     } catch (error) {
       console.error("Update track error:", error);
     } finally {
@@ -109,17 +108,15 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
         <DialogTrigger asChild data-testid="dialog-trigger">
           <Button
             type="button"
-            className={`focus:outline-none focus-visible:ring-2 focus-visible:${color} focus:bg-neutral-900 bg-neutral-900 hover:bg-neutral-800 w-full pl-4 rounded-md cursor-pointer h-[42px] mt-[6px] border-2 ${color}`}
+            className={`focus:outline-none focus-visible:ring-2 focus-visible:${color} focus:bg-neutral-900 bg-neutral-900 hover:bg-neutral-800 w-full h-full pl-4 rounded-md cursor-pointer border-2 ${color} flex items-center text-left transition-colors`}
           >
-            <div className="text-left w-full text-white flex items-center justify-between">
-              {track.label}{" "}
-              {trackError ? (
-                <FaCircleExclamation
-                  className="text-red-500"
-                  title="There is an error with this track"
-                />
-              ) : null}
-            </div>
+            <div className="text-white flex-1 truncate">{track.label}</div>
+            {trackError ? (
+              <FaCircleExclamation
+                className="text-red-500 ml-2 flex-shrink-0"
+                title="There is an error with this track"
+              />
+            ) : null}
           </Button>
         </DialogTrigger>
 
@@ -163,7 +160,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                 />
               </div>
 
-              {/* Hidden inputs for audio track metadata */}
               <input
                 type="hidden"
                 name="loopLength"
@@ -200,7 +196,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={() => setIsDeleteConfirmOpen(true)} // Opens confirmation
+                  onClick={() => setIsDeleteConfirmOpen(true)}
                 >
                   Remove
                 </Button>
@@ -217,7 +213,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isDeleteConfirmOpen}
         onOpenChange={setIsDeleteConfirmOpen}
