@@ -17,10 +17,10 @@ import { Label } from "@/components/ui/label";
 import { borderColors } from "@/consts";
 import { type Track } from "@/types";
 import useTracksStore from "../stores/tracks";
-import { ConfirmDialog } from "./ConfirmDialog";
 
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
+import ConfirmDialog from "./ConfirmDialog";
 
 type TrackDialogProps = {
   track: Track;
@@ -28,7 +28,7 @@ type TrackDialogProps = {
 };
 
 export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
-  const { storeDeleteTrack } = useTracksStore();
+  const { storeUpdateTrack, storeDeleteTrack } = useTracksStore();
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] =
@@ -37,23 +37,25 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
 
   const [formValues, setFormValues] = useState({
     label: track?.label ?? "",
-    loopLength: track?.audioTrack?.loopLength ?? 0,
-    offset: track?.audioTrack?.offset ?? 0,
-    duration: track?.audioTrack?.duration ?? 0,
-    pitch: track?.audioTrack?.pitch ?? 0,
-    timestretch: track?.audioTrack?.timestretch ?? 1,
   });
 
   useEffect(() => {
     setFormValues({
       label: track?.label ?? "",
-      loopLength: track?.audioTrack?.loopLength ?? 0,
-      offset: track?.audioTrack?.offset ?? 0,
-      duration: track?.audioTrack?.duration ?? 0,
-      pitch: track?.audioTrack?.pitch ?? 0,
-      timestretch: track?.audioTrack?.timestretch ?? 1,
     });
   }, [track]);
+
+  const updateTrackMutation = useMutation(
+    trpc.track.update.mutationOptions({
+      onSuccess: (updatedTrack) => {
+        storeUpdateTrack(updatedTrack);
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error("Failed to update track:", error);
+      },
+    }),
+  );
 
   const deleteTrackMutation = useMutation(
     trpc.track.delete.mutationOptions({
@@ -74,7 +76,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     const { name, value } = e.target;
     setFormValues((prev) => ({
       ...prev,
-      [name]: name === "label" ? value : Number(value),
+      [name]: value,
     }));
   };
 
@@ -87,7 +89,10 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     if (!track?.id) return;
     setIsSaving(true);
     try {
-      setIsOpen(false);
+      await updateTrackMutation.mutateAsync({
+        id: track.id,
+        label: formValues.label,
+      });
     } catch (error) {
       console.error("Update track error:", error);
     } finally {
@@ -124,7 +129,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
           <DialogHeader>
             <DialogTitle>Edit Track</DialogTitle>
             <DialogDescription>
-              Edit the track label, waveform, or remove the track.
+              Edit the track label or remove the track.
             </DialogDescription>
           </DialogHeader>
 
@@ -139,7 +144,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                 </Label>
                 <Input
                   id="filename"
-                  name="filename"
                   defaultValue={track.audioTrack?.filename ?? ""}
                   disabled
                   className="col-span-3"
@@ -160,32 +164,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                 />
               </div>
 
-              <input
-                type="hidden"
-                name="loopLength"
-                value={track.audioTrack?.loopLength ?? 0}
-              />
-              <input
-                type="hidden"
-                name="offset"
-                value={track.audioTrack?.offset ?? 0}
-              />
-              <input
-                type="hidden"
-                name="duration"
-                value={track.audioTrack?.duration ?? 0}
-              />
-              <input
-                type="hidden"
-                name="pitch"
-                value={track.audioTrack?.pitch ?? 0}
-              />
-              <input
-                type="hidden"
-                name="timestretch"
-                value={track.audioTrack?.timestretch ?? 1}
-              />
-
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label
                   htmlFor="delete"
@@ -204,8 +182,13 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
             </div>
 
             <DialogFooter>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <FaSpinner className="animate-spin mr-2" />}
+              <Button
+                type="submit"
+                disabled={isSaving || updateTrackMutation.isPending}
+              >
+                {isSaving || updateTrackMutation.isPending ? (
+                  <FaSpinner className="animate-spin mr-2" />
+                ) : null}
                 OK
               </Button>
             </DialogFooter>

@@ -14,8 +14,8 @@ export const TrackMuteButton = ({ track }: TrackMuteButtonProps) => {
 
   const updateTrackMutation = useMutation(
     trpc.track.update.mutationOptions({
-      onSuccess: (updatedTrack) => {
-        storeUpdateTrack(updatedTrack);
+      onError: (error) => {
+        console.error("Failed to update mute state:", error);
       },
     }),
   );
