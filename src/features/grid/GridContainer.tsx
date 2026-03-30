@@ -1,14 +1,17 @@
 import GridHeader from "./Header";
 import GridTrackRow from "./TrackRow";
-import GridExtraRow from "./ExtraRow";
+import GridPager from "./GridPager";
 import useTracksStore from "../stores/tracks";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/utils/track-utils";
+import { useGridPageStore } from "../stores/useGridPageStore";
 
 const GridContainer = () => {
   const { tracks, trackErrors, storeUpdateTrack } = useTracksStore();
+  const { currentPage, pageSize } = useGridPageStore();
+  const visibleStartBar = currentPage * pageSize;
 
   const updateDurationsMutation = useMutation(
     trpc.track.updateDurations.mutationOptions({
@@ -33,9 +36,8 @@ const GridContainer = () => {
   return (
     <div className="h-full bg-[#1a1a1a] p-1.5 flex flex-col">
       <div className="flex-1 grid grid-rows-[repeat(10,1fr)] gap-1.5 min-h-0 overflow-hidden">
-        <GridExtraRow />
+        <GridPager />
         <GridHeader />
-
         {tracks && tracks.length > 0 ? (
           tracks.map((track: Track) => {
             const hasError = trackErrors.some(
@@ -46,7 +48,8 @@ const GridContainer = () => {
               <GridTrackRow
                 key={track.id}
                 track={track}
-                gridLengthInBars={8}
+                visibleStartBar={visibleStartBar}
+                visibleBarCount={pageSize}
                 hasError={hasError}
                 onToggle={(bar, wasActive) =>
                   handleToggle(track.id, bar, wasActive)
