@@ -1,5 +1,3 @@
-// __tests__/setupTests.ts
-
 import { vi, beforeAll, afterEach, afterAll } from "vitest";
 import { server } from "../__mocks__/server";
 import fetch, { Request } from "node-fetch";

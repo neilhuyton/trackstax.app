@@ -81,14 +81,12 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     const store = useAuthStore.getState();
 
-    // If store not ready → wait for init
     if (!store.isInitialized) {
       await store.initialize();
     }
 
     const { user, loading } = useAuthStore.getState();
 
-    // Still loading after init → defer decision to layout
     if (loading) return;
 
     if (!user) {

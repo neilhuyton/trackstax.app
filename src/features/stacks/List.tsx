@@ -1,6 +1,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
-import DataTableContainer from "./DataTableContainer";
+import DataTable from "./DataTable";
 
 import type { Stack } from "./useStackRead";
 
@@ -20,7 +20,7 @@ export const StackList = ({ stacks, columns }: Props) => {
       </div>
 
       <div className="flex-1 min-h-0">
-        <DataTableContainer columns={columns} data={stacks} />
+        <DataTable columns={columns} data={stacks} />
       </div>
     </Card>
   );

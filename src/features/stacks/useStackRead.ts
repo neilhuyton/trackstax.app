@@ -24,7 +24,6 @@ export function useStackRead() {
   };
 }
 
-// New hook for single stack
 export function useStack(stackId: string) {
   const trpc = useTRPC();
 
@@ -33,7 +32,7 @@ export function useStack(stackId: string) {
       { id: stackId },
       {
         staleTime: 1000 * 60 * 30,
-      }
-    )
+      },
+    ),
   );
 }

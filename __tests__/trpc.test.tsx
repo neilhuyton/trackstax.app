@@ -1,5 +1,3 @@
-// __tests__/trpc.test.tsx
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { TRPCClient } from "@trpc/client";
 import type { AppRouter } from "server/trpc";
