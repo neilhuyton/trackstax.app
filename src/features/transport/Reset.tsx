@@ -6,15 +6,17 @@ import { Button } from "@/components/ui/button";
 
 import { toPosition } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
-import usePositionStore from "../stores/position";
-import useStackIdStore from "../stores/useStackIdStore";
-import useTransportStore from "../stores/transport";
+import usePositionStore from "../position/usePositionStore";
+import useStackIdStore from "../stacks/useStackIdStore";
+import useTransportStore from "./useTransportStore";
+import { useGridPageStore } from "../grid/useGridPageStore";
 
 export const TransportReset = () => {
   const stackId = useStackIdStore((state) => state.stackId);
   const { setPosition, setStopPosition } = usePositionStore();
   const { transport, isError } = useTransportRead(stackId);
   const { isPlay, setIsReset } = useTransportStore();
+  const { goToFirstPage } = useGridPageStore();
 
   const handleReset = () => {
     Tone.getTransport().stop();
@@ -22,10 +24,14 @@ export const TransportReset = () => {
     const position = transport?.isLoop
       ? toPosition(transport.loopStart)
       : "0:0:0";
+
     setIsReset(true);
     setPosition(position);
     setStopPosition(position);
     Tone.getTransport().position = position;
+
+    goToFirstPage();
+
     if (isPlay) {
       Tone.getTransport().start();
     }

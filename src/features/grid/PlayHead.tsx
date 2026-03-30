@@ -10,10 +10,10 @@ import {
   toPosition,
 } from "@/utils";
 import { useTransportRead } from "../transport/useTransportRead";
-import usePositionStore from "../stores/position";
-import useScreenStore from "../stores/screen";
-import useStackIdStore from "../stores/useStackIdStore";
-import useTransportStore from "../stores/transport";
+import usePositionStore from "../position/usePositionStore";
+import useScreenStore from "../screen/useScreenStore";
+import useStackIdStore from "../stacks/useStackIdStore";
+import useTransportStore from "../transport/useTransportStore";
 
 const GridPlayHead = ({
   scrollAreaRef,

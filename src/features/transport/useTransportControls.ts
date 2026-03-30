@@ -5,9 +5,9 @@ import { PIXELS_PER_SIXTEENTH } from "@/consts";
 
 import { type Track } from "@/types";
 import { positionToSixteenths, toPosition } from "@/utils";
-import usePositionStore from "../stores/position";
-import useTransportStore from "../stores/transport";
-import useScreenStore from "../stores/screen";
+import usePositionStore from "../position/usePositionStore";
+import useTransportStore from "./useTransportStore";
+import useScreenStore from "../screen/useScreenStore";
 import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
 

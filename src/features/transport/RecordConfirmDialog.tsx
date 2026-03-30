@@ -15,10 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { getLastBar } from "@/utils";
-import useStackIdStore from "../stores/useStackIdStore";
+import useStackIdStore from "../stacks/useStackIdStore";
 import { useTransportRead } from "./useTransportRead";
-import useTracksStore from "../stores/tracks";
-import useTransportStore from "../stores/transport";
+import useTracksStore from "../track/useTracksStore";
+import useTransportStore from "./useTransportStore";
 import useRecord from "./useRecord";
 
 export const TransportRecordConfirmDialog = () => {

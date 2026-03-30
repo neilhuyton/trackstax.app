@@ -5,8 +5,8 @@ import TransportPlay from "@/features/transport/Play";
 import TransportRecordConfirmDialog from "@/features/transport/RecordConfirmDialog";
 import TransportRecordDownloadDialog from "@/features/transport/RecordDownloadDialog";
 import TransportReset from "@/features/transport/Reset";
-import useStackIdStore from "../stores/useStackIdStore";
-import useTransportStore from "../stores/transport";
+import useStackIdStore from "../stacks/useStackIdStore";
+import useTransportStore from "./useTransportStore";
 import useRecord from "./useRecord";
 
 const TransportControls = () => {

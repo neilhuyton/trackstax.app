@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dialog";
 
 import { TrackLibraryDialog } from "./LibraryDialog";
-import useStackIdStore from "../stores/useStackIdStore";
+import useStackIdStore from "../stacks/useStackIdStore";
 import { useStack } from "../stacks/useStackRead";
-import useTracksStore from "../stores/tracks";
+import useTracksStore from "./useTracksStore";
 import { useAuthStore } from "@/store/authStore";
 
 export const TrackAddDialog = () => {

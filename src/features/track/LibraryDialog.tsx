@@ -14,7 +14,7 @@ import {
 
 import { type Stack, type Track } from "@/types";
 import { createNewTrack } from "@/utils/track-utils";
-import useTracksStore from "../stores/tracks";
+import useTracksStore from "./useTracksStore";
 
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
