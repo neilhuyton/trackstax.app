@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
-import usePositionStore from "../stores/position";
-import useTransportStore from "../stores/transport";
-import { useGridPageStore } from "../stores/useGridPageStore";
+import usePositionStore from "../position/usePositionStore";
+import useTransportStore from "../transport/useTransportStore";
+import { useGridPageStore } from "./useGridPageStore";
 
 export const useGridAutoPage = (totalBars: number) => {
   const { currentPage, pageSize, goToNextPage } = useGridPageStore();
