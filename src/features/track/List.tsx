@@ -1,6 +1,6 @@
 import { type Track } from "@/types";
 import TrackDialog from "./Dialog";
-import useTracksStore from "../stores/tracks";
+import useTracksStore from "./useTracksStore";
 
 const TrackList = () => {
   const { tracks, trackErrors } = useTracksStore();
@@ -16,7 +16,7 @@ const TrackList = () => {
         >
           <div></div>
           <div></div>
-          
+
           {tracks?.map((track: Track) => {
             const trackError = trackErrors.some(
               (error) => error.trackId === track.id,

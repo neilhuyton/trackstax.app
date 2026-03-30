@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useAuthStore } from "@/store/authStore";
-import useStackIdStore from "@/features/stores/useStackIdStore";
+import useStackIdStore from "@/features/stacks/useStackIdStore";
 import { trpc } from "@/trpc";
 
 import GridContainer from "@/features/grid/GridContainer";

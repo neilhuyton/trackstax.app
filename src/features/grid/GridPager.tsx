@@ -5,9 +5,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useGridPageStore } from "../stores/useGridPageStore";
+import { useGridPageStore } from "./useGridPageStore";
 import { useScreen } from "../screen/useScreen";
-import useStackIdStore from "../stores/useStackIdStore";
+import useStackIdStore from "../stacks/useStackIdStore";
 import TransportPositionDialog from "../transport/PositionDialog";
 import { useGridEndStop } from "./useGridEndStop";
 import { useGridAutoPage } from "./useGridAutoPage";

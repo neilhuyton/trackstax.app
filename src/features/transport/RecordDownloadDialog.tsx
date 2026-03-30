@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useStackIdStore from "../stores/useStackIdStore";
+import useStackIdStore from "../stacks/useStackIdStore";
 import { useStack } from "../stacks/useStackRead";
 
 type TransportRecordDownloadDialogProps = {

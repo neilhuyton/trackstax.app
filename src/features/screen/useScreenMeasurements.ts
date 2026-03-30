@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import useScreenStore from "../stores/screen";
-
+import useScreenStore from "./useScreenStore";
 
 const debounce = (func: (...args: unknown[]) => void, wait: number) => {
   let timeout: NodeJS.Timeout;
@@ -145,7 +144,7 @@ export const useScreenMeasurements = () => {
       const targetLeftPosition = trackListWidth;
       const newScrollPosition = Math.max(
         0,
-        playheadPosition - targetLeftPosition
+        playheadPosition - targetLeftPosition,
       );
 
       if (newScrollPosition > scrollAreaRef.current.scrollLeft || isLoopReset) {
@@ -156,7 +155,19 @@ export const useScreenMeasurements = () => {
       setPlayheadPosition(newScrollPosition);
       setIsLoopReset(false);
     }
-  }, [gridWidth, isScrollGrid, trackListWidth, trackToolsWidth, playheadPosition, isUserScrolling, isBackwardsScroll, isLoopReset, setIsScrollGrid, setPlayheadPosition, setIsLoopReset]);
+  }, [
+    gridWidth,
+    isScrollGrid,
+    trackListWidth,
+    trackToolsWidth,
+    playheadPosition,
+    isUserScrolling,
+    isBackwardsScroll,
+    isLoopReset,
+    setIsScrollGrid,
+    setPlayheadPosition,
+    setIsLoopReset,
+  ]);
 
   const handleScroll = useCallback(() => {
     if (scrollAreaRef.current) {

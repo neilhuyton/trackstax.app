@@ -3,8 +3,8 @@ import { type RefObject, useEffect } from "react";
 import { PIXELS_PER_BAR } from "@/consts";
 
 import { useTransportRead } from "./useTransportRead";
-import useStackIdStore from "../stores/useStackIdStore";
-import useTransportStore from "../stores/transport";
+import useStackIdStore from "../stacks/useStackIdStore";
+import useTransportStore from "./useTransportStore";
 
 export const useTransportSync = (
   scrollAreaRef: RefObject<HTMLDivElement | null>,
