@@ -62,8 +62,6 @@ model Track {
 
   durations  Duration[]
   audioTrack AudioTrack?   @relation(name: "TrackToAudioTrack")
-  midiTrack  MidiTrack?    @relation(name: "TrackToMIDITrack")
-  samples    TrackSample[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,16 +76,12 @@ model AudioTrack {
 
   filename     String
   downloadUrl  String?
-  sample       String?
   loopLength   Int
   offset       Float   @default(0)
   duration     Float   @default(0)
   pitch        Float   @default(0)
   timestretch  Float   @default(1)
   fullDuration Float   @default(0)
-
-  fileMetadata   FileMetadata? @relation(fields: [fileMetadataId], references: [id])
-  fileMetadataId String?       @db.Uuid
 
   track   Track  @relation(name: "TrackToAudioTrack", fields: [trackId], references: [id], onDelete: Cascade)
   trackId String @unique
@@ -96,59 +90,17 @@ model AudioTrack {
   updatedAt DateTime @updatedAt
 
   @@index([trackId])
-  @@index([fileMetadataId])
   @@map("audio_track")
 }
 
-model MidiTrack {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  filename     String
-  duration     Float  @default(0)
-  fullDuration Float  @default(0)
-  envelope     Json
-
-  fileMetadata   FileMetadata? @relation(fields: [fileMetadataId], references: [id])
-  fileMetadataId String?       @db.Uuid
-
-  track   Track  @relation(name: "TrackToMIDITrack", fields: [trackId], references: [id], onDelete: Cascade)
-  trackId String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([trackId])
-  @@index([fileMetadataId])
-  @@map("midi_track")
-}
-
-model TrackSample {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  note String
-
-  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  trackId String
-
-  fileMetadata   FileMetadata @relation(fields: [fileMetadataId], references: [id], onDelete: Cascade)
-  fileMetadataId String       @db.Uuid
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([trackId])
-  @@index([fileMetadataId])
-  @@map("track_sample")
-}
-
 model Stack {
-  id String @id // Existing table - keep as text
+  id String @id
 
   title     String
   sortOrder Int
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.Uuid // ← THIS WAS MISSING
+  userId String @db.Uuid
 
   transport   Transport?
   tracks      Track[]
@@ -211,26 +163,4 @@ model Destination {
 
   @@index([stackId])
   @@map("destination")
-}
-
-model FileMetadata {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  uuidFilename     String   @unique
-  originalFilename String
-  url              String   @unique
-  pathname         String
-  size             Int
-  uploadedAt       DateTime
-
-  audioTracks  AudioTrack[]
-  midiTracks   MidiTrack[]
-  trackSamples TrackSample[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([uuidFilename])
-  @@index([originalFilename])
-  @@map("file_metadata")
 }

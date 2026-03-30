@@ -1,4 +1,15 @@
-import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  type SortingState,
+  type PaginationState,
+  useReactTable,
+  flexRender,
+} from "@tanstack/react-table";
+
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,11 +28,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type Props<TData> = {
-  table: TanstackTable<TData>;
+type DataTableProps<TData, TValue> = {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
 };
 
-export function DataTable<TData>({ table }: Props<TData>) {
+export default function DataTable<TData, TValue>({
+  columns,
+  data,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    state: {
+      sorting,
+      pagination,
+    },
+  });
+
   return (
     <div className="h-full flex flex-col">
       <div className="rounded-md border flex-1 overflow-hidden">
@@ -72,6 +107,7 @@ export function DataTable<TData>({ table }: Props<TData>) {
         </div>
       </div>
 
+      {/* Pagination Controls */}
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="flex items-center space-x-2">
           <span className="text-sm">Rows per page:</span>
