@@ -24,7 +24,7 @@ const calculateScrollAndPosition = (
   bar: string,
   gridWidth: number,
   trackListWidth: number,
-  trackToolsWidth: number
+  trackToolsWidth: number,
 ) => {
   const numValue = Number(bar);
   const validatedBar = isNaN(numValue) || numValue < 0 ? 0 : numValue;
@@ -63,7 +63,7 @@ export const TransportPositionDialog = () => {
     };
     const intervalId = Tone.getTransport().scheduleRepeat(
       updatePosition,
-      "0:0:1"
+      "0:0:1",
     );
     return () => {
       Tone.getTransport().clear(intervalId);
@@ -93,7 +93,7 @@ export const TransportPositionDialog = () => {
         String(submittedBar - 1),
         gridWidth,
         trackListWidth,
-        trackToolsWidth
+        trackToolsWidth,
       );
 
       Tone.getTransport().position = newPos;
@@ -113,43 +113,22 @@ export const TransportPositionDialog = () => {
       setStopPosition,
       setScrollToPixel,
       setIsScrollToPixel,
-    ]
+    ],
   );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          data-testid="position-button"
-          className="text-white font-semibold text-xl leading-7 flex cursor-pointer"
-          variant="outline"
-        >
-          <h3 className="text-white font-semibold text-xl leading-7 flex">
-            <span className="pr-3">POSITION:</span>
-            <span className="w-6 text-center text-right" data-testid="bars">
-              {pos.bars + 1}
-            </span>
-            <span className="w-6 text-center text-right">:</span>
-            <span className="w-6 text-center text-right" data-testid="beats">
-              {pos.beats}
-            </span>
-            <span className="w-6 text-center text-right">:</span>
-            <span
-              className="w-6 text-center text-right"
-              data-testid="sixteenths"
-            >
-              {pos.sixteenths}
-            </span>
-          </h3>
+        <Button variant="outline" className="text-sm font-medium h-7 px-3">
+          Pos: <span className="font-semibold ml-1">{pos.bars + 1}</span>
         </Button>
       </DialogTrigger>
       <DialogContent
-        data-testid="dialog-content"
         className="focus:outline-none sm:max-w-[350px]"
         aria-describedby="position-dialog-description"
       >
         <DialogHeader>
-          <DialogTitle data-testid="dialog-title">Move to Position</DialogTitle>
+          <DialogTitle>Move to Position</DialogTitle>
         </DialogHeader>
         <DialogDescription>
           Configure the position by setting the bar number.
@@ -170,15 +149,12 @@ export const TransportPositionDialog = () => {
                 value={newBar}
                 required
                 className="col-span-1"
-                data-testid="bar-input"
                 onChange={(e) => handleBarChange(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" data-testid="submit-button">
-              OK
-            </Button>
+            <Button type="submit">OK</Button>
           </DialogFooter>
         </form>
       </DialogContent>
