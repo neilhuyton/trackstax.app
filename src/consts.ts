@@ -1,4 +1,3 @@
-// consts.ts
 export const COLORS = [
   { label: "green", hex: "#3cf400" },
   { label: "blue", hex: "#00a2f4" },

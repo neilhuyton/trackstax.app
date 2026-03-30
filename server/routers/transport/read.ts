@@ -6,7 +6,7 @@ export const transportReadRouter = router({
   getByStackId: protectedProcedure
     .input(
       z.object({
-        stackId: z.string().min(1), // ← Changed from .uuid() to plain string
+        stackId: z.string().min(1),
       }),
     )
     .query(async ({ input, ctx }) => {
