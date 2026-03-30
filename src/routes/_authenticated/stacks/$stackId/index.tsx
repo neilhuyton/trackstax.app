@@ -1,8 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+
 import { useAuthStore } from "@/store/authStore";
 import { RouteError } from "@steel-cut/steel-lib";
-import { useStack } from "@/features/stacks/useStackRead"; // adjust path if needed
+import useStackIdStore from "@/features/stores/useStackIdStore";
+
+import TransportControls from "@/features/transport/Controls";
 import { trpc } from "@/trpc";
+import GridWrapper from "@/features/grid/Wrapper";
+import ClientStackPage from "@/features/stacks/ClientStackPage";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
   loader: async ({ params, context: { queryClient } }) => {
@@ -22,10 +27,9 @@ export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
       throw redirect({ to: "/login" });
     }
 
-    // Prefetch
     try {
       await queryClient.ensureQueryData(
-        trpc.stack.getById.queryOptions({ id: params.stackId }), // you may need to import trpc here if not already
+        trpc.stack.getById.queryOptions({ id: params.stackId }),
       );
     } catch {
       // leave this comment here
@@ -60,10 +64,21 @@ export const Route = createFileRoute("/_authenticated/stacks/$stackId/")({
 
 function StackDetailPage() {
   const { stackId } = Route.useParams();
-  const { data: stack, isLoading } = useStack(stackId);
 
-  if (isLoading) {
-    return <div>Loading stack details...</div>;
+  // This runs on every render, not just after mount
+  if (stackId) {
+    useStackIdStore.setState({ stackId });
+  }
+
+  if (!stackId) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+          <p className="text-muted-foreground">Loading stack ID...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -73,13 +88,13 @@ function StackDetailPage() {
         <p className="text-muted-foreground">ID: {stackId}</p>
       </div>
 
-      {stack ? (
-        <pre className="mt-6 p-6 bg-muted rounded-lg overflow-auto text-sm">
-          {JSON.stringify(stack, null, 2)}
-        </pre>
-      ) : (
-        <p className="text-destructive">Stack not found.</p>
-      )}
+      <main className="overflow-hidden h-full p-4 pt-0">
+        <GridWrapper />
+      </main>
+
+      <TransportControls />
+
+      <ClientStackPage stackId={stackId} />
     </div>
   );
 }
