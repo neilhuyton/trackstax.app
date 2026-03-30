@@ -1,4 +1,3 @@
-// src/routes/_authenticated/stacks/$stackId/index.tsx
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useAuthStore } from "@/store/authStore";
 import useStackIdStore from "@/features/stores/useStackIdStore";

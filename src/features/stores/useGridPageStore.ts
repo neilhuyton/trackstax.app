@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 type GridPageState = {
   currentPage: number;
@@ -16,7 +16,8 @@ export const useGridPageStore = create<GridPageState>((set, get) => ({
   pageSize: 8,
   setCurrentPage: (page) => set({ currentPage: Math.max(0, Math.floor(page)) }),
   goToNextPage: () => set((state) => ({ currentPage: state.currentPage + 1 })),
-  goToPrevPage: () => set((state) => ({ currentPage: Math.max(0, state.currentPage - 1) })),
+  goToPrevPage: () =>
+    set((state) => ({ currentPage: Math.max(0, state.currentPage - 1) })),
   goToFirstPage: () => set({ currentPage: 0 }),
   goToLastPage: (totalBars) => {
     const { pageSize } = get();
