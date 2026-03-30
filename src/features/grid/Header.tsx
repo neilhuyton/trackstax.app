@@ -5,27 +5,26 @@ import useStackIdStore from "../stores/useStackIdStore";
 import { useTransportRead } from "../transport/useTransportRead";
 import { useScreen } from "../screen/useScreen";
 import usePositionStore from "../stores/position";
+import { useGridPageStore } from "../stores/useGridPageStore";
 
 const GridHeader = () => {
   const stackId = useStackIdStore((state) => state.stackId);
+  const { currentPage, pageSize } = useGridPageStore();
+  const visibleStartBar = currentPage * pageSize;
 
   const { transport, isError: transportError } = useTransportRead(stackId);
-  const { screen, isError: screenError } = useScreen(stackId);
+  const { isError: screenError } = useScreen(stackId);
   const { position } = usePositionStore();
 
   const isError = screenError || transportError;
 
-  const { gridLengthInBars } = screen || { gridLengthInBars: 0 };
   const { isLoop, loopStart, loopEnd } = transport || {
     isLoop: false,
     loopStart: 0,
     loopEnd: 0,
   };
 
-  const bars = useMemo(
-    () => Array.from({ length: gridLengthInBars }),
-    [gridLengthInBars],
-  );
+  const bars = useMemo(() => Array.from({ length: pageSize }), [pageSize]);
 
   const currentBar = useMemo(() => {
     if (!position) return -1;
@@ -44,19 +43,19 @@ const GridHeader = () => {
       const bar = parseInt(bbs.split(":")[0], 10);
       return isNaN(bar) ? -1 : bar;
     } catch {
-      console.warn("Failed to parse current bar from position:", position);
       return -1;
     }
   }, [position]);
 
   const getBgColor = (i: number) => {
-    let bg = i % 8 === 0 ? "bg-neutral-800" : "bg-neutral-900";
+    const globalBar = visibleStartBar + i;
+    let bg = globalBar % 8 === 0 ? "bg-neutral-800" : "bg-neutral-900";
 
-    if (isLoop && i >= loopStart && i < loopEnd) {
+    if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
       bg = "bg-neutral-700";
     }
 
-    if (i === currentBar && currentBar >= 0) {
+    if (globalBar === currentBar && currentBar >= 0) {
       bg = "bg-neutral-500";
     }
 
@@ -64,10 +63,11 @@ const GridHeader = () => {
   };
 
   const getTextColor = (i: number) => {
-    if (i === currentBar && currentBar >= 0) {
+    const globalBar = visibleStartBar + i;
+    if (globalBar === currentBar && currentBar >= 0) {
       return "text-white font-extrabold";
     }
-    return i % 8 === 0
+    return globalBar % 8 === 0
       ? "text-white font-extrabold"
       : "text-neutral-300 font-light";
   };
@@ -76,20 +76,23 @@ const GridHeader = () => {
 
   return (
     <div className="grid grid-cols-8 gap-1.5 bg-[#2a2a2a] rounded-lg overflow-hidden">
-      {bars.map((_, i) => (
-        <div
-          key={`bar-${i}`}
-          className={`
-            flex items-center justify-center 
-            text-sm rounded 
-            transition-colors duration-75
-            ${getBgColor(i)}
-            ${getTextColor(i)}
-          `}
-        >
-          {i + 1}
-        </div>
-      ))}
+      {bars.map((_, i) => {
+        const globalBar = visibleStartBar + i;
+        return (
+          <div
+            key={`bar-${globalBar}`}
+            className={`
+              flex items-center justify-center 
+              text-sm rounded 
+              transition-colors duration-75
+              ${getBgColor(i)}
+              ${getTextColor(i)}
+            `}
+          >
+            {globalBar + 1}
+          </div>
+        );
+      })}
     </div>
   );
 };

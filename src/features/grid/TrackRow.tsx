@@ -4,15 +4,17 @@ import { getIsActive } from "@/utils/track-utils";
 
 type GridTrackRowProps = {
   track: Track;
-  gridLengthInBars: number;
+  visibleStartBar: number;
+  visibleBarCount: number;
   hasError: boolean;
-  onToggle: (bar: number, isActive: boolean) => void;
-  onShowMenu: (e: React.MouseEvent, trackId: string, bar: number) => void;
+  onToggle: (globalBar: number, isActive: boolean) => void;
+  onShowMenu: (e: React.MouseEvent, trackId: string, globalBar: number) => void;
 };
 
 export const GridTrackRow = ({
   track,
-  gridLengthInBars,
+  visibleStartBar,
+  visibleBarCount,
   hasError,
   onToggle,
   onShowMenu,
@@ -22,24 +24,22 @@ export const GridTrackRow = ({
 
   return (
     <div className="grid grid-cols-8 gap-1.5 bg-[#2a2a2a] rounded-lg overflow-hidden">
-      {Array.from({ length: gridLengthInBars }, (_, bar) => {
-        const active = getIsActive(bar, track);
+      {Array.from({ length: visibleBarCount }, (_, i) => {
+        const globalBar = visibleStartBar + i;
+        const active = getIsActive(globalBar, track);
 
         return (
           <button
-            key={`${track.id}-${bar}`}
+            key={`${track.id}-${globalBar}`}
             disabled={hasError}
             onClick={(e) => {
               e.stopPropagation();
-              console.log(
-                `Clicked:: Track ${track.id}, Bar ${bar}, wasActive: ${active}`,
-              );
-              onToggle(bar, active);
+              onToggle(globalBar, active);
             }}
             onContextMenu={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onShowMenu(e, track.id, bar);
+              onShowMenu(e, track.id, globalBar);
             }}
             className={`flex items-center justify-center text-white text-sm rounded-md 
                 hover:opacity-80 h-full transition-colors
