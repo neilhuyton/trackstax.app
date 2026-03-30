@@ -1,6 +1,3 @@
-import { memo } from "react";
-
-import { GridContextMenu } from "@/features/grid/ContextMenu";
 import { entryColors } from "@/consts";
 import { type Track } from "@/types";
 import { getIsActive } from "@/utils/track-utils";
@@ -11,51 +8,53 @@ type GridTrackRowProps = {
   hasError: boolean;
   onToggle: (bar: number, isActive: boolean) => void;
   onShowMenu: (e: React.MouseEvent, trackId: string, bar: number) => void;
-  menu: { x: number; y: number; trackId: string; bar: number } | null;
-  onMenuItemClick: (label: string) => void;
-  closeMenu: () => void;
 };
 
-export const GridTrackRow = memo(
-  ({
-    track,
-    gridLengthInBars,
-    hasError,
-    onToggle,
-    onShowMenu,
-    menu,
-    onMenuItemClick,
-    closeMenu,
-  }: GridTrackRowProps) => {
-    const color =
-      entryColors[track.color as keyof typeof entryColors] ?? "bg-neutral-700";
+export const GridTrackRow = ({
+  track,
+  gridLengthInBars,
+  hasError,
+  onToggle,
+  onShowMenu,
+}: GridTrackRowProps) => {
+  const color =
+    entryColors[track.color as keyof typeof entryColors] ?? "bg-neutral-700";
 
-    return (
-      <div className="flex">
-        {Array.from({ length: gridLengthInBars }, (_, bar) => {
-          const active = getIsActive(bar, track);
-          return (
-            <button
-              key={`${track.id}-${bar}`}
-              disabled={hasError}
-              onClick={() => onToggle(bar, active)}
-              onContextMenu={(e) => onShowMenu(e, track.id, bar)}
-              className={`hover:opacity-80 h-[42px] shrink-0 mt-[6px] ml-[6px] rounded-md w-[78px] ${
-                active ? color : "bg-neutral-700"
-              }`}
-              tabIndex={0}
-            />
-          );
-        })}
-        <GridContextMenu
-          menu={menu}
-          closeMenu={closeMenu}
-          trackId={track.id}
-          onItemClick={onMenuItemClick}
-        />
-      </div>
-    );
-  },
-);
+  return (
+    <div className="grid grid-cols-8 gap-1.5 bg-[#2a2a2a] rounded-lg overflow-hidden">
+      {Array.from({ length: gridLengthInBars }, (_, bar) => {
+        const active = getIsActive(bar, track);
+
+        return (
+          <button
+            key={`${track.id}-${bar}`}
+            disabled={hasError}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log(
+                `Clicked:: Track ${track.id}, Bar ${bar}, wasActive: ${active}`,
+              );
+              onToggle(bar, active);
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onShowMenu(e, track.id, bar);
+            }}
+            className={`flex items-center justify-center text-white text-sm rounded-md 
+                hover:opacity-80 h-full transition-colors
+                ${active ? color : "bg-neutral-700"}
+                ${hasError ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+              `}
+            tabIndex={0}
+            type="button"
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 GridTrackRow.displayName = "GridTrackRow";
+
+export default GridTrackRow;
