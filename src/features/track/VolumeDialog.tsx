@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 
 import { FaVolumeHigh } from "react-icons/fa6";
 
@@ -18,13 +18,13 @@ import { Slider } from "@/components/ui/slider";
 import { useMutation } from "@tanstack/react-query";
 import { trpc } from "@/trpc";
 import { type Track } from "@/types";
-import useTracksStore from "./hooks/useTracksStore"; // ← adjust path if needed
+import useTracksStore from "./hooks/useTracksStore";
 
 export const TrackVolumeDialog = ({ track }: { track: Track }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [currentVolumePercent, setCurrentVolumePercent] = useState<number>(
-    track.volumePercent ?? 100,
-  );
+  const [tempVolumePercent, setTempVolumePercent] = useState<number>(100);
+
+  const originalVolumeRef = useRef<number>(100);
 
   const { storeUpdateTrack } = useTracksStore();
 
@@ -32,7 +32,6 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
     trpc.track.update.mutationOptions({
       onError: (error) => {
         console.error("Failed to update track volume:", error);
-        // TODO: show toast
       },
     }),
   );
@@ -40,7 +39,9 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
-        setCurrentVolumePercent(track.volumePercent ?? 100);
+        const initialVolume = track.volumePercent ?? 100;
+        setTempVolumePercent(initialVolume);
+        originalVolumeRef.current = initialVolume;
       }
       setIsOpen(open);
     },
@@ -50,7 +51,7 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
   const handleVolumeChange = useCallback(
     (volumePercent: number) => {
       const validated = Math.max(0, Math.min(100, volumePercent));
-      setCurrentVolumePercent(validated);
+      setTempVolumePercent(validated);
 
       storeUpdateTrack({
         ...track,
@@ -61,19 +62,21 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
   );
 
   const handleSave = useCallback(async () => {
-    setIsOpen(false);
+    const hasChanged = tempVolumePercent !== originalVolumeRef.current;
 
-    if (currentVolumePercent !== track.volumePercent) {
+    if (hasChanged) {
       try {
         await updateTrackMutation.mutateAsync({
           id: track.id,
-          volumePercent: currentVolumePercent,
+          volumePercent: tempVolumePercent,
         });
       } catch (error) {
         console.error("Failed to save volume:", error);
       }
     }
-  }, [track, currentVolumePercent, updateTrackMutation]);
+
+    setIsOpen(false);
+  }, [tempVolumePercent, track.id, updateTrackMutation]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -98,12 +101,10 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
         <div className="grid gap-4 py-4">
           <h3 data-testid="volume-label">Volume</h3>
           <div className="grid items-center gap-4">
-            <Label htmlFor="volumePercent-range">
-              {currentVolumePercent} %
-            </Label>
+            <Label htmlFor="volumePercent-range">{tempVolumePercent} %</Label>
             <Slider
               id="volumePercent-range"
-              value={[currentVolumePercent]}
+              value={[tempVolumePercent]}
               min={0}
               max={100}
               step={1}
