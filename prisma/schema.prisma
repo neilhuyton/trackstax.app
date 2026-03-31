@@ -83,7 +83,6 @@ model AudioTrack {
   timestretch  Float   @default(1)
   fullDuration Float   @default(0)
 
-  // Optional link back to the original library sample
   sampleId String? @db.Uuid 
   sample   Sample? @relation(fields: [sampleId], references: [id], onDelete: SetNull)
 
