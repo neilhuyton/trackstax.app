@@ -15,9 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { getLastBar } from "@/utils";
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "./useTransportRead";
-import useTracksStore from "../track/useTracksStore";
+import useTracksStore from "../track/hooks/useTracksStore";
 import useTransportStore from "./useTransportStore";
 import useRecord from "./useRecord";
 

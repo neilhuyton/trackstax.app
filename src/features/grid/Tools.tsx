@@ -8,7 +8,7 @@ import { TrackVolumeDialog } from "@/features/track/VolumeDialog";
 
 import { borderColors } from "@/consts";
 import { type Track } from "@/types";
-import useTracksStore from "../track/useTracksStore";
+import useTracksStore from "../track/hooks/useTracksStore";
 
 type TrackToolsProps = {
   ref?: RefObject<HTMLDivElement | null>;

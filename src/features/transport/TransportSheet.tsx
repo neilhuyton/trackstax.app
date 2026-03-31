@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 import TransportControls from "./Controls";
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
 export function TransportSheet() {
   const [open, setOpen] = useState(false);

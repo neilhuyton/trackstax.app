@@ -4,8 +4,8 @@ import * as Tone from "tone";
 import type { Track } from "@/types";
 import { useTransportRead } from "./useTransportRead";
 import useTransportStore from "./useTransportStore";
-import useTracksStore from "../track/useTracksStore";
-import useStackIdStore from "../stacks/useStackIdStore";
+import useTracksStore from "../track/hooks/useTracksStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
 import { useTRPC } from "@/trpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

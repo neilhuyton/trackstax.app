@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import useStackIdStore from "./useStackIdStore";
-import useTracksStore from "../track/useTracksStore";
-import { useTrackRead } from "../track/useTrackRead";
+import useStackIdStore from "./hooks/useStackIdStore";
+import useTracksStore from "../track/hooks/useTracksStore";
+import { useTrackRead } from "../track/hooks/useTrackRead";
 
 interface ClientStackPageProps {
   stackId: string;

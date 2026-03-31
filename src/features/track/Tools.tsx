@@ -5,7 +5,7 @@ import TrackVolumeDialog from "@/features/track/VolumeDialog";
 import { borderColors } from "@/consts";
 import { type Track } from "@/types";
 
-import useTracksStore from "./useTracksStore";
+import useTracksStore from "./hooks/useTracksStore";
 
 export const TrackTools = () => {
   const { tracks } = useTracksStore();
@@ -13,12 +13,7 @@ export const TrackTools = () => {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 min-h-0 overflow-hidden p-1.5">
-        <div
-          className="h-full grid gap-1.5"
-          style={{
-            gridTemplateRows: `repeat(${(tracks?.length || 0) + 2}, minmax(0, 1fr))`,
-          }}
-        >
+        <div className="h-full grid gap-1.5 grid-rows-[repeat(10,minmax(0,1fr))]">
           <div></div>
           <div></div>
 
@@ -48,6 +43,15 @@ export const TrackTools = () => {
               </div>
             );
           })}
+
+          {Array.from({ length: Math.max(0, 8 - (tracks?.length || 0)) }).map(
+            (_, i) => (
+              <div
+                key={`placeholder-${i}`}
+                className="bg-neutral-900 rounded-md"
+              />
+            ),
+          )}
         </div>
       </div>
     </div>
