@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "./useTransportRead";
 import { useTRPC } from "@/trpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

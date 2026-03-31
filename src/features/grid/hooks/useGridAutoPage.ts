@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
-import usePositionStore from "../position/usePositionStore";
-import useTransportStore from "../transport/useTransportStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
+import useTransportStore from "@/features/transport/useTransportStore";
 import { useGridPageStore } from "./useGridPageStore";
 
 export const useGridAutoPage = (totalBars: number) => {

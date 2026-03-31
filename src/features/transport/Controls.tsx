@@ -5,7 +5,7 @@ import TransportPlay from "@/features/transport/Play";
 import TransportRecordConfirmDialog from "@/features/transport/RecordConfirmDialog";
 import TransportRecordDownloadDialog from "@/features/transport/RecordDownloadDialog";
 import TransportReset from "@/features/transport/Reset";
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./useTransportStore";
 import useRecord from "./useRecord";
 

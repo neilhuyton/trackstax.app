@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
 import DataTable from "./DataTable";
 
-import type { Stack } from "./useStackRead";
+import type { Stack } from "./hooks/useStackRead";
 
 type Props = {
   stacks: Stack[];

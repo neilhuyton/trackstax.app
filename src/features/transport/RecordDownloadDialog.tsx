@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useStackIdStore from "../stacks/useStackIdStore";
-import { useStack } from "../stacks/useStackRead";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import { useStack } from "../stacks/hooks/useStackRead";
 
 type TransportRecordDownloadDialogProps = {
   recording: Blob | null;

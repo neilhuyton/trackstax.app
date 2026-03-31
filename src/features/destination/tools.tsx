@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaHeartCrack } from "react-icons/fa6";
 
-import useTracksStore from "../track/useTracksStore";
+import useTracksStore from "../track/hooks/useTracksStore";
 import { ConfirmDialog } from "../track/ConfirmDialog"; // ← using the merged ConfirmDialog
 
 export const DestinationTools = () => {

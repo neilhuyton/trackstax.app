@@ -3,7 +3,7 @@ import { type RefObject, useEffect } from "react";
 import { PIXELS_PER_BAR } from "@/consts";
 
 import { useTransportRead } from "./useTransportRead";
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./useTransportStore";
 
 export const useTransportSync = (

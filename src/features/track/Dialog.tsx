@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 
 import { borderColors } from "@/consts";
 import { type Track } from "@/types";
-import useTracksStore from "./useTracksStore";
+import useTracksStore from "./hooks/useTracksStore";
 
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useStackCreate } from "@/features/stacks/useStackCreate";
+import { useStackCreate } from "@/features/stacks/hooks/useStackCreate";
 import { trpc } from "@/trpc";
 
 export const Route = createFileRoute("/_authenticated/stacks/new")({
