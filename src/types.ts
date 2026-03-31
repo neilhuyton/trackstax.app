@@ -43,3 +43,11 @@ export type Eq = {
   isBypass: boolean;
   track: Track;
 };
+
+export type SampleLibraryNavigation = {
+  currentCollection: string | null;
+  currentSubcategory: string | null;
+  goToCollection: (collection: string) => void;
+  goToSubcategory: (subcategory: string) => void;
+  goBack: () => void;
+};

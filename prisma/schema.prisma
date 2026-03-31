@@ -8,7 +8,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")   // uncomment later if needed
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -40,7 +40,7 @@ model Duration {
 }
 
 model Track {
-  id String @id // Existing table - keep as text
+  id String @id
 
   type          String
   label         String
@@ -61,7 +61,7 @@ model Track {
   stackId String
 
   durations  Duration[]
-  audioTrack AudioTrack?   @relation(name: "TrackToAudioTrack")
+  audioTrack AudioTrack? @relation(name: "TrackToAudioTrack")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,6 +83,10 @@ model AudioTrack {
   timestretch  Float   @default(1)
   fullDuration Float   @default(0)
 
+  // Optional link back to the original library sample
+  sampleId String? @db.Uuid 
+  sample   Sample? @relation(fields: [sampleId], references: [id], onDelete: SetNull)
+
   track   Track  @relation(name: "TrackToAudioTrack", fields: [trackId], references: [id], onDelete: Cascade)
   trackId String @unique
 
@@ -90,6 +94,7 @@ model AudioTrack {
   updatedAt DateTime @updatedAt
 
   @@index([trackId])
+  @@index([sampleId])
   @@map("audio_track")
 }
 
@@ -163,4 +168,29 @@ model Destination {
 
   @@index([stackId])
   @@map("destination")
+}
+
+model Sample {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  filename    String
+  downloadUrl String   @unique
+
+  duration    Float    @default(0)
+  bpm         Int?
+  key         String?
+
+  collection  String
+  subcategory String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  audioTracks AudioTrack[]
+
+  @@unique([filename, collection, subcategory])
+  @@index([collection])
+  @@index([collection, subcategory])
+
+  @@map("sample")
 }

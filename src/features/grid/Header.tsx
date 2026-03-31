@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import * as Tone from "tone";
 
-import useStackIdStore from "../stacks/useStackIdStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "../transport/useTransportRead";
-import { useScreen } from "../screen/useScreen";
-import usePositionStore from "../position/usePositionStore";
-import { useGridPageStore } from "./useGridPageStore";
+import { useScreen } from "../screen/hooks/useScreen";
+import usePositionStore from "../position/hooks/usePositionStore";
+import { useGridPageStore } from "./hooks/useGridPageStore";
 
 const GridHeader = () => {
   const stackId = useStackIdStore((state) => state.stackId);

@@ -5,15 +5,16 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
 import { TrackLibraryDialog } from "./LibraryDialog";
-import useStackIdStore from "../stacks/useStackIdStore";
-import { useStack } from "../stacks/useStackRead";
-import useTracksStore from "./useTracksStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import { useStack } from "../stacks/hooks/useStackRead";
+import useTracksStore from "./hooks/useTracksStore";
 import { useAuthStore } from "@/store/authStore";
 
 export const TrackAddDialog = () => {
@@ -33,39 +34,29 @@ export const TrackAddDialog = () => {
       <DialogTrigger asChild>
         <Button
           type="button"
-          className="bg-neutral-900 hover:bg-neutral-800 w-full pl-4 rounded-md cursor-pointer h-[42px] mt-[6px] border-2 border-neutral-700"
+          className="focus:outline-none focus-visible:ring-2 focus-visible:border-neutral-700 focus:bg-neutral-900 bg-neutral-900 hover:bg-neutral-800 w-full h-full pl-4 rounded-md cursor-pointer border-2 border-neutral-700 flex items-center text-left transition-colors"
           aria-label="+ Add Track"
           data-slot="dialog-trigger"
           data-testid="open-dialog-button"
         >
-          <div className="text-left w-full text-white flex items-center justify-between">
-            + Add Track
-          </div>
+          <div className="text-white flex-1">+ Add Track</div>
         </Button>
       </DialogTrigger>
 
-      <DialogContent
-        className="focus:outline-none"
-        data-testid="track-add-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>Add Track</DialogTitle>
-          <DialogDescription>
-            Add a new track by selecting from your library.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[920px] h-[100vh] p-0 overflow-hidden">
+        <VisuallyHidden>
+          <DialogTitle>Add Track from Library</DialogTitle>
+          <DialogDescription>Browse and choose your sample</DialogDescription>
+        </VisuallyHidden>
 
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Choose from Library</h3>
-            {stack && (
-              <TrackLibraryDialog
-                userId={userId ?? null}
-                tracks={tracks}
-                stack={stack}
-              />
-            )}
-          </div>
+        <div className="flex-1 overflow-hidden">
+          {stack && (
+            <TrackLibraryDialog
+              userId={userId ?? null}
+              tracks={tracks}
+              stack={stack}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>

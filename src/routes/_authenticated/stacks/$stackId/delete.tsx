@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { trpc } from "@/trpc";
 import { RouteError } from "@steel-cut/steel-lib";
 import { useQuery } from "@tanstack/react-query";
-import { useStackDelete } from "@/features/stacks/useStackDelete";
+import { useStackDelete } from "@/features/stacks/hooks/useStackDelete";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId/delete")({

@@ -4,6 +4,7 @@ import { stackRouter } from "./routers/stacks";
 import { transportRouter } from "./routers/transport";
 import { screenRouter } from "./routers/screen";
 import { trackRouter } from "./routers/tracks";
+import { sampleRouter } from "./routers/samples";
 
 export const appRouter = router({
   user: userRouter,
@@ -12,6 +13,7 @@ export const appRouter = router({
   transport: transportRouter,
   screen: screenRouter,
   track: trackRouter,
+  sample: sampleRouter,
 });
 
 export type AppRouter = typeof appRouter;

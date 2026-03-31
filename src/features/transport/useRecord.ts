@@ -3,8 +3,8 @@ import * as Tone from "tone";
 
 import { toPosition } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
-import usePositionStore from "../position/usePositionStore";
-import useStackIdStore from "../stacks/useStackIdStore";
+import usePositionStore from "../position/hooks/usePositionStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./useTransportStore";
 
 const useRecord = (isRecording: boolean) => {

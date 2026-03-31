@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import type { ViteDevServer } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -25,6 +26,20 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: false,
+
+      fs: {
+        allow: [".."],
+      },
+
+      configureServer(server: ViteDevServer) {
+        server.middlewares.use((req, res, next) => {
+          // Force static serving for audio files to prevent SPA fallback
+          if (req.url?.match(/\.(wav|mp3|ogg|aiff|flac)$/i)) {
+            return next();
+          }
+          next();
+        });
+      },
     },
     test: {
       silent: false,

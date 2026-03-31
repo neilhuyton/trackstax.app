@@ -1,10 +1,10 @@
 import { useTransportRead } from "./useTransportRead";
 import { useTransportControls } from "./useTransportControls";
 
-import useStackIdStore from "../stacks/useStackIdStore";
-import usePositionStore from "../position/usePositionStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import usePositionStore from "../position/hooks/usePositionStore";
 import useTransportStore from "./useTransportStore";
-import useTracksStore from "../track/useTracksStore";
+import useTracksStore from "../track/hooks/useTracksStore";
 
 import { Button } from "@/components/ui/button";
 import { TransportButtonIcon } from "./ButtonIcon";
