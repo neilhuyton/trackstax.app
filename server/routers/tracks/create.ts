@@ -9,7 +9,16 @@ export const trackCreateRouter = router({
         type: z.enum(["audio", "midi"]),
         label: z.string().min(1).max(100),
         color: z.string().min(1).max(50),
-        downloadUrl: z.string().url().optional(),
+        filename: z.string().min(1),
+        downloadUrl: z
+          .string()
+          .min(1)
+          .refine(
+            (val) =>
+              val.startsWith("/") || z.string().url().safeParse(val).success,
+            { message: "Must be a valid URL or a local path starting with /" },
+          )
+          .optional(),
         duration: z.number().optional(),
         fullDuration: z.number().optional(),
         loopLength: z.number().int().min(1).optional(),
@@ -53,8 +62,8 @@ export const trackCreateRouter = router({
               ? {
                   create: {
                     id: crypto.randomUUID(),
-                    filename: input.label,
-                    downloadUrl: input.downloadUrl || "",
+                    filename: input.filename,
+                    downloadUrl: input.downloadUrl ?? "",
                     loopLength: input.loopLength ?? 4,
                     offset: input.offset ?? 0,
                     duration: input.duration ?? 0,
@@ -64,20 +73,15 @@ export const trackCreateRouter = router({
                   },
                 }
               : undefined,
-
-          durations: {
-            create: [
-              {
-                id: crypto.randomUUID(),
-                start: 0,
-                stop: input.loopLength ?? 4,
-              },
-            ],
-          },
         },
         include: {
-          durations: true,
-          audioTrack: true,
+          durations: {
+            omit: { trackId: true },
+            orderBy: { start: "asc" },
+          },
+          audioTrack: {
+            omit: { trackId: true },
+          },
         },
       });
 

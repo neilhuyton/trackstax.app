@@ -1,4 +1,3 @@
-// src/routes/_authenticated/route.tsx
 import {
   createFileRoute,
   redirect,

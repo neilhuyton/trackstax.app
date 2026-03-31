@@ -5,12 +5,12 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useGridPageStore } from "./useGridPageStore";
-import { useScreen } from "../screen/useScreen";
-import useStackIdStore from "../stacks/useStackIdStore";
+import { useScreen } from "../screen/hooks/useScreen";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import TransportPositionDialog from "../transport/PositionDialog";
-import { useGridEndStop } from "./useGridEndStop";
-import { useGridAutoPage } from "./useGridAutoPage";
+import { useGridAutoPage } from "./hooks/useGridAutoPage";
+import { useGridPageStore } from "./hooks/useGridPageStore";
+import { useGridEndStop } from "./hooks/useGridEndStop";
 
 const GridPager = () => {
   const stackId = useStackIdStore((state) => state.stackId);

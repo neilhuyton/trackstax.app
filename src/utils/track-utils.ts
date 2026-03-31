@@ -154,3 +154,41 @@ export const updateTrackDurations = (
   ...track,
   durations: sanitiseDurations(track.durations, currentBar, isActive),
 });
+
+type CreatedTrack = RouterOutput["track"]["create"];
+
+export const buildClientTrackFromServer = (
+  baseTrack: Track,
+  createdTrack: CreatedTrack,
+  filename: string,
+  downloadUrl: string,
+  duration: number,
+  loopLength: number,
+): Track => ({
+  ...baseTrack,
+  id: createdTrack.id,
+  audioTrack: createdTrack.audioTrack ?? {
+    id: crypto.randomUUID(),
+    filename,
+    downloadUrl,
+    loopLength,
+    offset: 0,
+    duration,
+    pitch: 0,
+    timestretch: 1,
+    fullDuration: duration,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  durations: createdTrack.durations ?? [],
+  isMute: createdTrack.isMute ?? false,
+  isSolo: createdTrack.isSolo ?? false,
+  isFavourite: createdTrack.isFavourite ?? false,
+  volumePercent: createdTrack.volumePercent ?? 100,
+  low: createdTrack.low ?? 0,
+  mid: createdTrack.mid ?? 0,
+  high: createdTrack.high ?? 0,
+  lowFrequency: createdTrack.lowFrequency ?? 0,
+  highFrequency: createdTrack.highFrequency ?? 0,
+  isBypass: createdTrack.isBypass ?? false,
+});

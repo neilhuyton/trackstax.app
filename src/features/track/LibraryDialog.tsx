@@ -1,23 +1,19 @@
 import { useState } from "react";
-import * as Tone from "tone";
-import { FaFile, FaSpinner } from "react-icons/fa6";
 
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  useSampleCollections,
+  useSampleSubcategories,
+  useSamples,
+  type Sample,
+} from "./hooks/useSampleLibrary";
+import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
+import { useAudioPreview } from "./hooks/useAudioPreview";
+import { useLoadTrack } from "./hooks/useLoadTrack";
 
-import { type Stack, type Track } from "@/types";
-import { createNewTrack } from "@/utils/track-utils";
-import useTracksStore from "./useTracksStore";
-
-import { trpc } from "@/trpc";
-import { useMutation } from "@tanstack/react-query";
+import type { Track, Stack } from "@/types";
+import { LibraryCollectionsView } from "./LibraryCollectionsView";
+import { LibraryHeader } from "./LibraryHeader";
+import { LibraryContent } from "./LibraryContent";
 
 type TrackLibraryDialogProps = {
   userId: string | null;
@@ -30,151 +26,71 @@ export const TrackLibraryDialog = ({
   tracks,
   stack,
 }: TrackLibraryDialogProps) => {
-  const { storeAddTrack } = useTracksStore();
+  const navigation = useSampleLibraryNavigation();
+  const preview = useAudioPreview();
+  const { loadTrack } = useLoadTrack(tracks, stack);
 
-  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({});
+  const [bpmFilter, setBpmFilter] = useState<number | null>(null);
+  const [search, setSearch] = useState<string>("");
 
-  const files: string[] = [
-    "http://localhost:3000/bass-132.wav",
-    "http://localhost:8888/breaks-132.wav",
-    "http://localhost:8888/donk-132.wav",
-  ];
-
-  const createTrackMutation = useMutation(
-    trpc.track.create.mutationOptions({
-      onSuccess: () => {
-        setIsOpen(false);
-      },
-      onError: (error) => {
-        console.error("Failed to create track:", error);
-      },
-    }),
+  const { data: collections = [] } = useSampleCollections();
+  const { data: subcategories = [] } = useSampleSubcategories(
+    navigation.currentCollection,
   );
-
-  const handleLoadTrack = async (url: string) => {
-    const file = files.find((f) => f === url);
-    if (!file) return;
-
-    setLoadingFiles((prev) => ({ ...prev, [url]: true }));
-
-    try {
-      const player = new Tone.Player();
-      await player.load(url);
-
-      const duration = player.buffer.duration;
-      const barDuration = Tone.TransportTime("1m").toSeconds();
-      const loopLength = Math.max(1, Math.round(duration / barDuration));
-      const filename = url.split("/").pop() || "Untitled";
-
-      const baseTrack = createNewTrack(null, url, tracks, stack);
-
-      const trackId = crypto.randomUUID();
-
-      const newTrack: Track = {
-        ...baseTrack,
-        id: trackId,
-        audioTrack: {
-          id: crypto.randomUUID(),
-          filename,
-          downloadUrl: url,
-          loopLength,
-          offset: 0,
-          duration,
-          pitch: 0,
-          timestretch: 1,
-          fullDuration: duration,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      };
-
-      await createTrackMutation.mutateAsync({
-        stackId: stack.id,
-        type: "audio",
-        label: filename,
-        color: newTrack.color,
-        downloadUrl: url,
-        duration,
-        fullDuration: duration,
-        loopLength,
-        offset: 0,
-        pitch: 0,
-        timestretch: 1,
-      });
-
-      storeAddTrack(newTrack);
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to load track:", error);
-    } finally {
-      setLoadingFiles((prev) => ({ ...prev, [url]: false }));
-    }
-  };
+  const { data: samples = [] } = useSamples(
+    navigation.currentCollection,
+    navigation.currentSubcategory,
+    bpmFilter,
+    search,
+  );
 
   if (!userId) return null;
 
+  const handleLoadTrack = async (sample: Sample) => {
+    const sampleId = sample.id;
+    setLoadingFiles((prev) => ({ ...prev, [sampleId]: true }));
+
+    try {
+      await loadTrack(sample);
+    } catch (error) {
+      console.error("Failed to load track:", error);
+    } finally {
+      setLoadingFiles((prev) => ({ ...prev, [sampleId]: false }));
+    }
+  };
+
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full">Open Track Library</Button>
-        </DialogTrigger>
+    <div className="flex flex-col h-full overflow-hidden">
+      {!navigation.currentCollection ? (
+        <LibraryCollectionsView
+          collections={collections}
+          onSelectCollection={navigation.goToCollection}
+        />
+      ) : (
+        <div className="flex flex-col h-full overflow-hidden">
+          <LibraryHeader
+            navigation={navigation}
+            search={search}
+            onSearchChange={setSearch}
+            bpmFilter={bpmFilter}
+            onBpmFilterChange={setBpmFilter}
+          />
 
-        <DialogContent
-          className="focus:outline-none sm:max-w-[800px] max-h-[80vh] overflow-y-auto"
-          aria-describedby="track-library-description"
-        >
-          <DialogHeader>
-            <DialogTitle>Your Track Library</DialogTitle>
-            <DialogDescription>
-              A list of your audio tracks, allowing you to select or delete
-              them.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-2">
-            {files?.map((file) => (
-              <div
-                key={file}
-                className="flex items-center justify-between p-2 hover:bg-neutral-900 rounded transition-colors w-full overflow-hidden"
-              >
-                <div className="flex items-center gap-2 min-w-0 basis-2/3">
-                  <FaFile className="text-gray-500 flex-shrink-0" />
-                  <span
-                    className="text-ellipsis whitespace-nowrap overflow-hidden"
-                    title={file}
-                  >
-                    {file}
-                  </span>
-                </div>
-
-                <div className="flex gap-2 flex-shrink-0 basis-1/3 justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleLoadTrack(file)}
-                    disabled={loadingFiles[file]}
-                  >
-                    {loadingFiles[file] && (
-                      <FaSpinner
-                        data-testid="spinner"
-                        className="animate-spin mr-2"
-                      />
-                    )}
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="flex-1 overflow-auto">
+            <LibraryContent
+              subcategories={subcategories}
+              samples={samples}
+              currentSubcategory={navigation.currentSubcategory}
+              onSelectSubcategory={navigation.goToSubcategory}
+              preview={preview}
+              loadingFiles={loadingFiles}
+              onLoadTrack={handleLoadTrack}
+            />
           </div>
-
-          <div className="mt-4 text-sm text-gray-500">
-            Total tracks: {files?.length || 0}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 import { TbCircleLetterMFilled } from "react-icons/tb";
 import { type Track } from "@/types";
-import useTracksStore from "./useTracksStore";
+import useTracksStore from "./hooks/useTracksStore";
 
 import { useMutation } from "@tanstack/react-query";
 import { trpc } from "@/trpc";

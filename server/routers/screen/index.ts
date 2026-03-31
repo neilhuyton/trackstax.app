@@ -8,4 +8,4 @@ export const screenRouter = router({
   update: screenUpdateRouter.update,
 });
 
-export type TransportRouter = typeof screenRouter;
+export type ScreenRouter = typeof screenRouter;

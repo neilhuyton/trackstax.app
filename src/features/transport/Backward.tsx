@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 
 import { backwardPosition } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
-import usePositionStore from "../position/usePositionStore";
-import useStackIdStore from "../stacks/useStackIdStore";
+import usePositionStore from "../position/hooks/usePositionStore";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./useTransportStore";
 
 export const TransportBackward = () => {

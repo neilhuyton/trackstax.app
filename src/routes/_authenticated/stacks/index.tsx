@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useStackRead } from "@/features/stacks/useStackRead";
+import { useStackRead } from "@/features/stacks/hooks/useStackRead";
 import { StackList } from "@/features/stacks/List";
 import { columns } from "@/features/stacks/Columns";
 import { FabButton, RouteError } from "@steel-cut/steel-lib";

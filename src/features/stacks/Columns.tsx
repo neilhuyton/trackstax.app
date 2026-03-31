@@ -3,7 +3,7 @@ import { ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import type { Stack } from "./useStackRead";
+import type { Stack } from "./hooks/useStackRead";
 
 export const columns: ColumnDef<Stack>[] = [
   {

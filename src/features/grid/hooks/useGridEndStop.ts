@@ -1,7 +1,7 @@
+import usePositionStore from "@/features/position/hooks/usePositionStore";
+import useTransportStore from "@/features/transport/useTransportStore";
 import { useEffect } from "react";
 import * as Tone from "tone";
-import usePositionStore from "../position/usePositionStore";
-import useTransportStore from "../transport/useTransportStore";
 
 export const useGridEndStop = (totalBars: number) => {
   const { position } = usePositionStore();
