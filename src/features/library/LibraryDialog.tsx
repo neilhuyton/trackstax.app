@@ -6,17 +6,17 @@ import {
   useSamples,
   useAvailableBpms,
   type Sample,
-} from "./hooks/useSampleLibrary";
+} from "../track/hooks/useSampleLibrary";
 
 import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
-import { useAudioPreview } from "./hooks/useAudioPreview";
-import { useLoadTrack } from "./hooks/useLoadTrack";
+import { useAudioPreview } from "../track/hooks/useAudioPreview";
+import { useLoadTrack } from "../track/hooks/useLoadTrack";
 
 import type { Track, Stack } from "@/types";
 import { LibraryCollectionsView } from "./LibraryCollectionsView";
 import { LibraryHeader } from "./LibraryHeader";
-import { LibraryContent } from "./LibraryContent";
-import { LibrarySubcategoriesView } from "./LibrarySubcategoriesView";
+import { LibraryContent } from "../track/LibraryContent";
+import { LibrarySubcategoriesView } from "../track/LibrarySubcategoriesView";
 
 type TrackLibraryDialogProps = {
   userId: string | null;

@@ -11,7 +11,7 @@ import {
 
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
-import { TrackLibraryDialog } from "./LibraryDialog";
+import { TrackLibraryDialog } from "../library/LibraryDialog";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useStack } from "../stacks/hooks/useStackRead";
 import useTracksStore from "./hooks/useTracksStore";

@@ -1,5 +1,4 @@
 import { useTransportRead } from "./useTransportRead";
-import { useTransportControls } from "./useTransportControls";
 
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import usePositionStore from "../position/hooks/usePositionStore";
@@ -8,6 +7,7 @@ import useTracksStore from "../track/hooks/useTracksStore";
 
 import { Button } from "@/components/ui/button";
 import { TransportButtonIcon } from "./ButtonIcon";
+import { useTransportControls } from "./hooks/useTransportControls";
 
 const TransportPlay = () => {
   const stackId = useStackIdStore((state) => state.stackId);

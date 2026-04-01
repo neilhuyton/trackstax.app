@@ -6,8 +6,8 @@ import {
 } from "@/features/utils/track-utils";
 import { trpc } from "@/trpc";
 import type { Track, Stack } from "@/types";
+import type { Sample } from "@/features/library/hooks/useSampleLibrary";
 import useTracksStore from "./useTracksStore";
-import type { Sample } from "./useSampleLibrary";
 
 export function useLoadTrack(tracks: Track[], stack: Stack) {
   const { storeAddTrack } = useTracksStore();
