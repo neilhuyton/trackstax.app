@@ -9,6 +9,32 @@ export type Duration =
 export type Track = RouterOutput["track"]["getByStackId"][number];
 export type Stack = RouterOutput["stack"]["getById"];
 
+// Helper to create a properly typed client-side AudioTrack
+const createClientAudioTrack = (
+  filename: string,
+  downloadUrl: string | null,
+  duration: number = 0,
+  loopLength: number = 1,
+  sampleId: string | null = null,
+) => {
+  const now = new Date().toISOString();
+
+  return {
+    id: uuid(),
+    filename,
+    downloadUrl,
+    loopLength,
+    offset: 0,
+    duration,
+    pitch: 0,
+    timestretch: 1,
+    fullDuration: duration,
+    sampleId,
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
 const sortDurations = (durations: Duration[]): Duration[] =>
   [...durations].sort((a, b) => a.start - b.start);
 
@@ -88,6 +114,15 @@ export const getIsActive = (bar: number, track: Track): boolean =>
     (item: Duration) => item.start <= bar && item.stop > bar,
   );
 
+export const updateTrackDurations = (
+  track: Track,
+  currentBar: number,
+  isActive: boolean,
+): Track => ({
+  ...track,
+  durations: sanitiseDurations(track.durations, currentBar, isActive),
+});
+
 export const createNewTrack = (
   file: File | null,
   downloadUrl: string | null,
@@ -100,16 +135,19 @@ export const createNewTrack = (
     lastTrack?.color && COLORS.some((c) => c.label === lastTrack.color)
       ? COLORS.findIndex((c) => c.label === lastTrack.color)
       : Math.floor(Math.random() * COLORS.length);
+
   const color = COLORS[(lastColorIdx + 1) % COLORS.length];
   const sortOrder = (lastTrack?.sortOrder || 0) + 1;
   const barDuration = Tone.TransportTime("1m").toSeconds();
   const loopLength = result
     ? Math.max(1, Math.round(result.duration / barDuration))
     : 1;
-  const id = uuid();
+
+  const now = new Date().toISOString();
+  const trackId = uuid();
 
   return {
-    id,
+    id: trackId,
     type: "audio",
     label: `Track ${sortOrder}`,
     durations: [],
@@ -126,34 +164,18 @@ export const createNewTrack = (
     highFrequency: 0,
     isBypass: true,
     stackId: stack.id,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     audioTrack: file
-      ? {
-          id: uuid(),
-          filename: file.name,
-          downloadUrl: downloadUrl ?? null,
+      ? createClientAudioTrack(
+          file.name,
+          downloadUrl ?? null,
+          result?.duration ?? 0,
           loopLength,
-          offset: 0,
-          duration: result?.duration ?? 0,
-          pitch: 0,
-          timestretch: 1,
-          fullDuration: result?.duration ?? 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
+        )
       : null,
   };
 };
-
-export const updateTrackDurations = (
-  track: Track,
-  currentBar: number,
-  isActive: boolean,
-): Track => ({
-  ...track,
-  durations: sanitiseDurations(track.durations, currentBar, isActive),
-});
 
 type CreatedTrack = RouterOutput["track"]["create"];
 
@@ -167,24 +189,14 @@ export const buildClientTrackFromServer = (
 ): Track => ({
   ...baseTrack,
   id: createdTrack.id,
-  audioTrack: createdTrack.audioTrack ?? {
-    id: crypto.randomUUID(),
-    filename,
-    downloadUrl,
-    loopLength,
-    offset: 0,
-    duration,
-    pitch: 0,
-    timestretch: 1,
-    fullDuration: duration,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
+  audioTrack:
+    createdTrack.audioTrack ??
+    createClientAudioTrack(filename, downloadUrl, duration, loopLength),
   durations: createdTrack.durations ?? [],
   isMute: createdTrack.isMute ?? false,
   isSolo: createdTrack.isSolo ?? false,
   isFavourite: createdTrack.isFavourite ?? false,
-  volumePercent: createdTrack.volumePercent ?? 100,
+  volumePercent: createdTrack.volumePercent ?? 75,
   low: createdTrack.low ?? 0,
   mid: createdTrack.mid ?? 0,
   high: createdTrack.high ?? 0,

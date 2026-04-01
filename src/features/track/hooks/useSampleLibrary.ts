@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { RouterOutput } from "@/types";
 
 export type Sample = RouterOutput["sample"]["getSamples"][number];
+export type Collection = RouterOutput["sample"]["getCollections"][number];
 
 export function useSampleCollections() {
   const trpc = useTRPC();
@@ -28,11 +29,31 @@ export function useSampleSubcategories(collection: string | null) {
   );
 }
 
+export function useAvailableBpms(
+  collection: string | null,
+  subcategory: string | null,
+) {
+  const trpc = useTRPC();
+
+  return useQuery(
+    trpc.sample.getAvailableBpms.queryOptions(
+      {
+        collection: collection ?? "",
+        subcategory: subcategory ?? undefined,
+      },
+      {
+        enabled: !!collection,
+        staleTime: 1000 * 60 * 5,
+      },
+    ),
+  );
+}
+
 export function useSamples(
   collection: string | null,
   subcategory: string | null,
   bpmFilter: number | null = null,
-  search: string = "", // ← new
+  search: string = "",
 ) {
   const trpc = useTRPC();
 

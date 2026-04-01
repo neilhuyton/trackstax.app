@@ -23,7 +23,30 @@ export const stackCreateRouter = router({
           title: input.title,
           sortOrder: newSortOrder,
           userId: ctx.userId,
+
+          transport: {
+            create: {
+              tempo: 132,
+              isLoop: false,
+              loopStart: 0,
+              loopEnd: 0,
+            },
+          },
+
+          screen: {
+            create: {
+              gridLengthInBars: 32,
+            },
+          },
+
+          destination: {
+            create: {
+              volumePercent: 75,
+              isMute: false,
+            },
+          },
         },
+
         include: {
           transport: true,
           screen: true,

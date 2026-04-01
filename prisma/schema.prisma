@@ -8,40 +8,93 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email     String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   stacks Stack[]
 
   @@index([createdAt])
-  @@map("user")
+  @@map("users")
 }
 
-model Duration {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+model Stack {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String
+  sortOrder Int
 
-  start Int
-  stop  Int
+  userId String @db.Uuid
 
-  track   Track?  @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  trackId String?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transport   Transport?
+  tracks      Track[]
+  screen      Screen?
+  destination Destination?
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
-  @@index([trackId])
-  @@map("duration")
+  @@index([userId, sortOrder])
+  @@index([userId])
+  @@index([sortOrder])
+  @@map("stacks")
+}
+
+model Transport {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tempo     Float   @default(132)
+  isLoop    Boolean @default(false)
+  loopStart Int     @default(0)
+  loopEnd   Int     @default(0)
+
+  stackId String @unique @db.Uuid
+
+  stack Stack @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([stackId])
+  @@map("transports")
+}
+
+model Screen {
+  id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gridLengthInBars Int    @default(32)
+
+  stackId String @unique @db.Uuid
+
+  stack Stack @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([stackId])
+  @@map("screens")
+}
+
+model Destination {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  volumePercent Int     @default(75)
+  isMute        Boolean @default(false)
+
+  stackId String @unique @db.Uuid
+
+  stack Stack @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([stackId])
+  @@map("destinations")
 }
 
 model Track {
-  id String @id
-
+  id            String  @id @db.Uuid
   type          String
   label         String
   color         String
@@ -49,7 +102,7 @@ model Track {
   isMute        Boolean
   isSolo        Boolean
   isFavourite   Boolean
-  volumePercent Int
+  volumePercent Int     @default(75)
   low           Int
   mid           Int
   high          Int
@@ -57,23 +110,37 @@ model Track {
   highFrequency Int
   isBypass      Boolean
 
-  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  stackId String
+  stackId String @db.Uuid
 
+  stack      Stack       @relation(fields: [stackId], references: [id], onDelete: Cascade)
   durations  Duration[]
-  audioTrack AudioTrack? @relation(name: "TrackToAudioTrack")
+  audioTrack AudioTrack? @relation("TrackToAudioTrack")
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([stackId, sortOrder])
   @@index([stackId])
-  @@map("track")
+  @@map("tracks")
+}
+
+model Duration {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  start Int
+  stop  Int
+
+  trackId String? @db.Uuid
+  track   Track?  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([trackId])
+  @@map("durations")
 }
 
 model AudioTrack {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String
   downloadUrl  String?
   loopLength   Int
@@ -83,113 +150,54 @@ model AudioTrack {
   timestretch  Float   @default(1)
   fullDuration Float   @default(0)
 
-  sampleId String? @db.Uuid 
-  sample   Sample? @relation(fields: [sampleId], references: [id], onDelete: SetNull)
+  sampleId String? @db.Uuid
+  trackId  String  @unique @db.Uuid
 
-  track   Track  @relation(name: "TrackToAudioTrack", fields: [trackId], references: [id], onDelete: Cascade)
-  trackId String @unique
+  sample Sample? @relation(fields: [sampleId], references: [id], onDelete: SetNull)
+  track  Track   @relation("TrackToAudioTrack", fields: [trackId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([trackId])
   @@index([sampleId])
-  @@map("audio_track")
+  @@map("audio_tracks")
 }
 
-model Stack {
-  id String @id
-
-  title     String
-  sortOrder Int
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.Uuid
-
-  transport   Transport?
-  tracks      Track[]
-  screen      Screen?
-  destination Destination?
+model Collection {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String  @unique
+  slug        String  @unique
+  coverImage  String?
+  description String?
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
-  @@index([userId, sortOrder])
-  @@index([userId])
-  @@index([sortOrder])
-  @@map("stack")
-}
+  samples Sample[]
 
-model Transport {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  tempo     Float
-  isLoop    Boolean
-  loopStart Int
-  loopEnd   Int
-
-  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  stackId String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([stackId])
-  @@map("transport")
-}
-
-model Screen {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  gridLengthInBars Int
-
-  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  stackId String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([stackId])
-  @@map("screen")
-}
-
-model Destination {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
-  volumePercent Int
-  isMute        Boolean
-
-  stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  stackId String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([stackId])
-  @@map("destination")
+  @@map("collections")
 }
 
 model Sample {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename    String
-  downloadUrl String   @unique
+  downloadUrl String @unique
 
-  duration    Float    @default(0)
-  bpm         Int?
-  key         String?
+  duration Float   @default(0)
+  bpm      Int?
+  key      String?
 
-  collection  String
-  subcategory String?
+  collectionName String
+  subcategory    String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  collection  Collection   @relation(fields: [collectionName], references: [name], onDelete: Cascade)
   audioTracks AudioTrack[]
 
-  @@unique([filename, collection, subcategory])
-  @@index([collection])
-  @@index([collection, subcategory])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-  @@map("sample")
+  @@unique([filename, collectionName, subcategory])
+  @@index([collectionName, subcategory, bpm])
+  @@map("samples")
 }
