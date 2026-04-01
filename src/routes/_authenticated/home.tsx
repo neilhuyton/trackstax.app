@@ -8,10 +8,9 @@ function HomePage() {
   return (
     <h1>
       <Link
-        to="/stacks/$stackId"
-        params={{ stackId: "7b1ee88b-0202-4eb4-a321-df3c5a58ff18" }}
+        to="/stacks"
       >
-        Link to Stack
+        Link to Stacks
       </Link>
     </h1>
   );
