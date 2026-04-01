@@ -4,8 +4,10 @@ import {
   useSampleCollections,
   useSampleSubcategories,
   useSamples,
+  useAvailableBpms,
   type Sample,
 } from "./hooks/useSampleLibrary";
+
 import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
 import { useAudioPreview } from "./hooks/useAudioPreview";
 import { useLoadTrack } from "./hooks/useLoadTrack";
@@ -14,6 +16,7 @@ import type { Track, Stack } from "@/types";
 import { LibraryCollectionsView } from "./LibraryCollectionsView";
 import { LibraryHeader } from "./LibraryHeader";
 import { LibraryContent } from "./LibraryContent";
+import { LibrarySubcategoriesView } from "./LibrarySubcategoriesView";
 
 type TrackLibraryDialogProps = {
   userId: string | null;
@@ -34,11 +37,16 @@ export const TrackLibraryDialog = ({
   const [bpmFilter, setBpmFilter] = useState<number | null>(null);
   const [search, setSearch] = useState<string>("");
 
-  const { data: collections = [] } = useSampleCollections();
-  const { data: subcategories = [] } = useSampleSubcategories(
+  // Queries
+  const collectionsQuery = useSampleCollections();
+  const subcategoriesQuery = useSampleSubcategories(
     navigation.currentCollection,
   );
-  const { data: samples = [] } = useSamples(
+  const availableBpmsQuery = useAvailableBpms(
+    navigation.currentCollection,
+    navigation.currentSubcategory,
+  );
+  const samplesQuery = useSamples(
     navigation.currentCollection,
     navigation.currentSubcategory,
     bpmFilter,
@@ -60,11 +68,22 @@ export const TrackLibraryDialog = ({
     }
   };
 
+  // Show global loading state while initial collections are fetching
+  if (collectionsQuery.isLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-neutral-950">
+        <div className="animate-spin h-8 w-8 border-4 border-neutral-700 border-t-white rounded-full mb-4" />
+        <p className="text-neutral-400">Loading sample library...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {!navigation.currentCollection ? (
+        // Collections Grid
         <LibraryCollectionsView
-          collections={collections}
+          collections={collectionsQuery.data ?? []}
           onSelectCollection={navigation.goToCollection}
         />
       ) : (
@@ -75,18 +94,36 @@ export const TrackLibraryDialog = ({
             onSearchChange={setSearch}
             bpmFilter={bpmFilter}
             onBpmFilterChange={setBpmFilter}
+            availableBpms={availableBpmsQuery.data ?? []}
           />
 
           <div className="flex-1 overflow-auto">
-            <LibraryContent
-              subcategories={subcategories}
-              samples={samples}
-              currentSubcategory={navigation.currentSubcategory}
-              onSelectSubcategory={navigation.goToSubcategory}
-              preview={preview}
-              loadingFiles={loadingFiles}
-              onLoadTrack={handleLoadTrack}
-            />
+            {subcategoriesQuery.isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="animate-spin h-6 w-6 border-4 border-neutral-700 border-t-white rounded-full" />
+              </div>
+            ) : subcategoriesQuery.data &&
+              subcategoriesQuery.data.length > 0 &&
+              !navigation.currentSubcategory ? (
+              <LibrarySubcategoriesView
+                subcategories={subcategoriesQuery.data}
+                onSelectSubcategory={navigation.goToSubcategory}
+              />
+            ) : samplesQuery.isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="animate-spin h-6 w-6 border-4 border-neutral-700 border-t-white rounded-full" />
+              </div>
+            ) : (
+              <LibraryContent
+                subcategories={subcategoriesQuery.data ?? []}
+                samples={samplesQuery.data ?? []}
+                currentSubcategory={navigation.currentSubcategory}
+                onSelectSubcategory={navigation.goToSubcategory}
+                preview={preview}
+                loadingFiles={loadingFiles}
+                onLoadTrack={handleLoadTrack}
+              />
+            )}
           </div>
         </div>
       )}

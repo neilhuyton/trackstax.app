@@ -3,7 +3,7 @@ import * as Tone from "tone";
 import {
   buildClientTrackFromServer,
   createNewTrack,
-} from "@/utils/track-utils";
+} from "@/features/utils/track-utils";
 import { trpc } from "@/trpc";
 import type { Track, Stack } from "@/types";
 import useTracksStore from "./useTracksStore";

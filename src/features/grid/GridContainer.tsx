@@ -5,7 +5,7 @@ import useTracksStore from "../track/hooks/useTracksStore";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
-import { updateTrackDurations } from "@/utils/track-utils";
+import { updateTrackDurations } from "@/features/utils/track-utils";
 import { useGridPageStore } from "./hooks/useGridPageStore";
 
 const GridContainer = () => {

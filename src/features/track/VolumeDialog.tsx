@@ -39,7 +39,7 @@ export const TrackVolumeDialog = ({ track }: { track: Track }) => {
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
-        const initialVolume = track.volumePercent ?? 100;
+        const initialVolume = track.volumePercent ?? 75;
         setTempVolumePercent(initialVolume);
         originalVolumeRef.current = initialVolume;
       }

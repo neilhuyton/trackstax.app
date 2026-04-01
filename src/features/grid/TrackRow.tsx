@@ -1,6 +1,6 @@
 import { entryColors } from "@/consts";
 import { type Track } from "@/types";
-import { getIsActive } from "@/utils/track-utils";
+import { getIsActive } from "@/features/utils/track-utils";
 
 type GridTrackRowProps = {
   track: Track;
@@ -19,7 +19,8 @@ export const GridTrackRow = ({
   onToggle,
   onShowMenu,
 }: GridTrackRowProps) => {
-  const color = entryColors[track.color as keyof typeof entryColors] ?? "bg-neutral-700";
+  const color =
+    entryColors[track.color as keyof typeof entryColors] ?? "bg-neutral-700";
 
   return (
     <div className="h-full grid grid-cols-8 gap-1.5 bg-[#2a2a2a] rounded-lg overflow-hidden">

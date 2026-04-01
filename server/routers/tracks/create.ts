@@ -49,7 +49,7 @@ export const trackCreateRouter = router({
           isMute: false,
           isSolo: false,
           isFavourite: false,
-          volumePercent: 100,
+          volumePercent: 75,
           low: 0,
           mid: 0,
           high: 0,

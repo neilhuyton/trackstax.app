@@ -6,6 +6,7 @@ export const sampleRouter = router({
   getCollections: sampleReadRouter.getCollections,
   getSubcategories: sampleReadRouter.getSubcategories,
   getSamples: sampleReadRouter.getSamples,
+  getAvailableBpms: sampleReadRouter.getAvailableBpms,
 });
 
 export type SampletRouter = typeof sampleRouter;

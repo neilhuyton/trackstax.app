@@ -38,11 +38,11 @@ export const SampleTableRow = ({
     </td>
 
     <td className="px-3 py-2 text-center text-gray-400 tabular-nums text-xs">
-      {sample.bpm || "—"}
+      {sample.bpm ?? "—"}
     </td>
 
     <td className="px-3 py-2 text-center text-gray-400 font-medium text-xs">
-      {sample.key || "—"}
+      {sample.key ?? "—"}
     </td>
 
     <td className="px-3 py-2 text-right">
