@@ -1,45 +1,51 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
+import useStackIdStore from "../../stacks/hooks/useStackIdStore";
+import { useSamplerPatternRead } from "./useSamplerPatternRead";
 
-type SamplerEvent = {
-  time: string;
-  note: string;
-  duration?: string;
-};
-
-export function useSamplerPattern(pattern: SamplerEvent[]) {
+export function useSamplerPattern() {
+  const stackId = useStackIdStore((state) => state.stackId);
+  const { pattern } = useSamplerPatternRead(stackId);
   const { trigger, isLoaded } = useSampler("/samples/43.wav");
+
   const eventIdsRef = useRef<number[]>([]);
 
-  const schedulePattern = () => {
-    eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
+  const schedulePattern = useCallback(() => {
+    const transport = Tone.getTransport();
+
+    eventIdsRef.current.forEach((id) => transport.clear(id));
     eventIdsRef.current = [];
 
-    if (!pattern) return;
+    if (!pattern || pattern.length === 0) return;
 
     pattern.forEach((event) => {
-      const id = Tone.getTransport().schedule((time: number) => {
+      const id = transport.schedule((time: number) => {
         trigger(event.note, event.duration || "16n", time);
       }, event.time);
+
       eventIdsRef.current.push(id);
     });
-  };
+  }, [pattern, trigger]);
 
   useEffect(() => {
-    if (!isLoaded || !pattern || pattern.length === 0) return;
+    if (!isLoaded) return;
+
     schedulePattern();
-  }, [isLoaded, trigger, pattern]);
+  }, [isLoaded, schedulePattern]);
 
   useEffect(() => {
-    const handleStart = () => schedulePattern();
+    const transport = Tone.getTransport();
+
+    const handleStart = () => {
+      schedulePattern();
+    };
 
     const handleStopOrPause = () => {
-      eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
+      eventIdsRef.current.forEach((id) => transport.clear(id));
       eventIdsRef.current = [];
     };
 
-    const transport = Tone.getTransport();
     transport.on("start", handleStart);
     transport.on("stop", handleStopOrPause);
     transport.on("pause", handleStopOrPause);
@@ -50,7 +56,7 @@ export function useSamplerPattern(pattern: SamplerEvent[]) {
       transport.off("pause", handleStopOrPause);
       handleStopOrPause();
     };
-  }, [isLoaded, trigger, pattern]);
+  }, [schedulePattern]);
 
   return { isLoaded };
 }
