@@ -6,8 +6,8 @@ import TransportRecordConfirmDialog from "@/features/transport/RecordConfirmDial
 import TransportRecordDownloadDialog from "@/features/transport/RecordDownloadDialog";
 import TransportReset from "@/features/transport/Reset";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import useTransportStore from "./useTransportStore";
-import useRecord from "./useRecord";
+import useTransportStore from "./hooks/useTransportStore";
+import useRecord from "./hooks/useRecord";
 
 const TransportControls = () => {
   const stackId = useStackIdStore((state) => state.stackId);

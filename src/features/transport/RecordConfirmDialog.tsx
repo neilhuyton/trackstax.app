@@ -16,10 +16,11 @@ import { Label } from "@/components/ui/label";
 
 import { getLastBar } from "@/utils";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import { useTransportRead } from "./useTransportRead";
 import useTracksStore from "../track/hooks/useTracksStore";
-import useTransportStore from "./useTransportStore";
-import useRecord from "./useRecord";
+import { useTransportRead } from "./hooks/useTransportRead";
+import useTransportStore from "./hooks/useTransportStore";
+import useRecord from "./hooks/useRecord";
+
 
 export const TransportRecordConfirmDialog = () => {
   const stackId = useStackIdStore((state) => state.stackId);

@@ -1,22 +1,22 @@
 import { useState } from "react";
 
-import {
-  useSampleCollections,
-  useSampleSubcategories,
-  useSamples,
-  useAvailableBpms,
-  type Sample,
-} from "./hooks/useSampleLibrary";
-
 import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
-import { useAudioPreview } from "./hooks/useAudioPreview";
-import { useLoadTrack } from "./hooks/useLoadTrack";
+
+import { useLoadTrack } from "../track/hooks/useLoadTrack";
 
 import type { Track, Stack } from "@/types";
 import { LibraryCollectionsView } from "./LibraryCollectionsView";
 import { LibraryHeader } from "./LibraryHeader";
-import { LibraryContent } from "./LibraryContent";
+import { useAudioPreview } from "./hooks/useAudioPreview";
+import {
+  useAvailableBpms,
+  useSampleCollections,
+  useSamples,
+  useSampleSubcategories,
+  type Sample,
+} from "./hooks/useSampleLibrary";
 import { LibrarySubcategoriesView } from "./LibrarySubcategoriesView";
+import { LibraryContent } from "./LibraryContent";
 
 type TrackLibraryDialogProps = {
   userId: string | null;
@@ -82,10 +82,22 @@ export const TrackLibraryDialog = ({
     <div className="flex flex-col h-full overflow-hidden">
       {!navigation.currentCollection ? (
         // Collections Grid
-        <LibraryCollectionsView
-          collections={collectionsQuery.data ?? []}
-          onSelectCollection={navigation.goToCollection}
-        />
+        <div className="flex flex-col h-full overflow-hidden">
+          <LibraryHeader
+            navigation={navigation}
+            search={search}
+            onSearchChange={setSearch}
+            bpmFilter={bpmFilter}
+            onBpmFilterChange={setBpmFilter}
+            availableBpms={availableBpmsQuery.data ?? []}
+            showSearchAndBpm={false} // hide search + BPM on collections view
+          />
+
+          <LibraryCollectionsView
+            collections={collectionsQuery.data ?? []}
+            onSelectCollection={navigation.goToCollection}
+          />
+        </div>
       ) : (
         <div className="flex flex-col h-full overflow-hidden">
           <LibraryHeader

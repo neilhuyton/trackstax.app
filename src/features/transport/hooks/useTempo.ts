@@ -4,11 +4,11 @@ import * as Tone from "tone";
 import type { Track } from "@/types";
 import { useTransportRead } from "./useTransportRead";
 import useTransportStore from "./useTransportStore";
-import useTracksStore from "../track/hooks/useTracksStore";
-import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
 import { useTRPC } from "@/trpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
+import useTracksStore from "@/features/track/hooks/useTracksStore";
 
 const useTempo = (players: Tone.Players | null, tracks: Track[]) => {
   const stackId = useStackIdStore((state) => state.stackId);

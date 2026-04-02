@@ -3,9 +3,9 @@ import * as Tone from "tone";
 
 import { toPosition } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
-import usePositionStore from "../position/hooks/usePositionStore";
-import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./useTransportStore";
+import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 const useRecord = (isRecording: boolean) => {
   const stackId = useStackIdStore((state) => state.stackId);

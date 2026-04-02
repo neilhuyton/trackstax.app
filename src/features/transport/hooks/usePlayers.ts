@@ -17,9 +17,9 @@ import {
   toPosition,
 } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
-import usePositionStore from "../position/hooks/usePositionStore";
-import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import useTracksStore from "../track/hooks/useTracksStore";
+import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
+import useTracksStore from "@/features/track/hooks/useTracksStore";
 
 const usePlayers = (tracks: Track[]) => {
   const stackId = useStackIdStore((state) => state.stackId);
