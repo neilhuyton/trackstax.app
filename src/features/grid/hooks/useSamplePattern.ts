@@ -9,14 +9,14 @@ type SamplerEvent = {
 };
 
 export function useSamplerPattern(pattern: SamplerEvent[]) {
-  const { trigger, isLoaded, error } = useSampler("/samples/43.wav");
+  const { trigger, isLoaded } = useSampler("/samples/43.wav");
   const eventIdsRef = useRef<number[]>([]);
 
   const schedulePattern = () => {
-    // Super aggressive cleanup to prevent overlaps/duplicates
-    Tone.getTransport().cancel(0);
     eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
     eventIdsRef.current = [];
+
+    if (!pattern) return;
 
     pattern.forEach((event) => {
       const id = Tone.getTransport().schedule((time: number) => {
@@ -26,35 +26,31 @@ export function useSamplerPattern(pattern: SamplerEvent[]) {
     });
   };
 
-  // Schedule when sampler is ready
   useEffect(() => {
-    if (!isLoaded || pattern.length === 0) return;
+    if (!isLoaded || !pattern || pattern.length === 0) return;
     schedulePattern();
   }, [isLoaded, trigger, pattern]);
 
-  // Handle Transport lifecycle (Play / Stop / Pause)
   useEffect(() => {
-    const handleStart = () => {
-      schedulePattern();
-    };
+    const handleStart = () => schedulePattern();
 
     const handleStopOrPause = () => {
-      Tone.getTransport().cancel(0);
       eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
       eventIdsRef.current = [];
     };
 
-    Tone.getTransport().on("start", handleStart);
-    Tone.getTransport().on("stop", handleStopOrPause);
-    Tone.getTransport().on("pause", handleStopOrPause);
+    const transport = Tone.getTransport();
+    transport.on("start", handleStart);
+    transport.on("stop", handleStopOrPause);
+    transport.on("pause", handleStopOrPause);
 
     return () => {
-      Tone.getTransport().off("start", handleStart);
-      Tone.getTransport().off("stop", handleStopOrPause);
-      Tone.getTransport().off("pause", handleStopOrPause);
+      transport.off("start", handleStart);
+      transport.off("stop", handleStopOrPause);
+      transport.off("pause", handleStopOrPause);
       handleStopOrPause();
     };
   }, [isLoaded, trigger, pattern]);
 
-  return { isLoaded, error, patternLength: pattern.length };
+  return { isLoaded };
 }
