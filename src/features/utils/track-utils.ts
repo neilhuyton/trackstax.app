@@ -74,7 +74,6 @@ export const modifyDurations = (
         stop,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        trackId: null,
       });
     }
   } else if (spanIndex !== -1) {
@@ -95,7 +94,6 @@ export const modifyDurations = (
         stop: span.stop,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        trackId: null,
       });
     }
   }

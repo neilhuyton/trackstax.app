@@ -1,4 +1,3 @@
-import TrackFavourite from "@/features/track/Favourite";
 import TrackMuteButton from "@/features/track/MuteButton";
 import TrackSoloButton from "@/features/track/SoloButton";
 import TrackVolumeDialog from "@/features/track/VolumeDialog";
@@ -25,9 +24,6 @@ export const TrackTools = () => {
                 key={track.id}
                 className={`w-full h-full flex items-center justify-between rounded-md gap-4 px-4 border-2 ${color}`}
               >
-                <div className="flex items-center">
-                  <TrackFavourite track={track} />
-                </div>
 
                 <div className="flex items-center">
                   <TrackVolumeDialog track={track} />

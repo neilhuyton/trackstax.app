@@ -1,5 +1,8 @@
+// src/features/transport/PositionDialog.tsx
+
 import { useCallback, useEffect, useState } from "react";
 import * as Tone from "tone";
+import { useNavigate } from "@tanstack/react-router"; // ← Added
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,38 +17,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { PIXELS_PER_SIXTEENTH } from "@/consts";
-
 import { formatPosition, isPositionZero, toPosition } from "@/utils";
 import usePositionStore from "../position/hooks/usePositionStore";
-import useScreenStore from "../screen/hooks/useScreenStore";
 
-const calculateScrollAndPosition = (
-  bar: string,
-  gridWidth: number,
-  trackListWidth: number,
-  trackToolsWidth: number,
-) => {
+const calculateScrollAndPosition = (bar: string) => {
   const numValue = Number(bar);
   const validatedBar = isNaN(numValue) || numValue < 0 ? 0 : numValue;
   const newPos = toPosition(validatedBar);
-  const playheadPixel = validatedBar * PIXELS_PER_SIXTEENTH * 16;
-  const halfGridWidth = (gridWidth - (trackListWidth + trackToolsWidth)) / 2;
-  const scrollToPixel = Math.max(0, playheadPixel - halfGridWidth);
-  return { newPos, scrollToPixel, validatedBar };
+  return { newPos, validatedBar };
 };
 
 export const TransportPositionDialog = () => {
+  const navigate = useNavigate(); // ← Added
+
   const { position, setPosition, setStopPosition } = usePositionStore();
-  const {
-    isScrollToPixel,
-    gridWidth,
-    trackListWidth,
-    trackToolsWidth,
-    scrollToPixel,
-    setScrollToPixel,
-    setIsScrollToPixel,
-  } = useScreenStore();
 
   const pos = formatPosition(position);
   const [isOpen, setIsOpen] = useState(false);
@@ -70,50 +55,39 @@ export const TransportPositionDialog = () => {
     };
   }, [setPosition, setStopPosition]);
 
-  useEffect(() => {
-    if (isScrollToPixel) {
-      setScrollToPixel(scrollToPixel);
-      setIsScrollToPixel(false);
-    }
-  }, [isScrollToPixel, scrollToPixel, setIsScrollToPixel, setScrollToPixel]);
-
   const handleBarChange = useCallback((value: string) => {
     setNewBar(value);
   }, []);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    (e: React.SubmitEvent) => {
       e.preventDefault();
+
       let submittedBar = Number(newBar);
       if (isNaN(submittedBar) || submittedBar < 1) {
         submittedBar = 1;
         setNewBar("1");
       }
-      const { newPos, scrollToPixel } = calculateScrollAndPosition(
-        String(submittedBar - 1),
-        gridWidth,
-        trackListWidth,
-        trackToolsWidth,
-      );
+
+      const { newPos } = calculateScrollAndPosition(String(submittedBar - 1));
 
       Tone.getTransport().position = newPos;
       setPosition(newPos);
       setStopPosition(newPos);
-      setScrollToPixel(scrollToPixel);
-      setIsScrollToPixel(true);
+
+      const pageSize = 8;
+      const targetPage = Math.floor((submittedBar - 1) / pageSize);
+
+      navigate({
+        to: ".",
+        search: { page: targetPage },
+        replace: true,
+      });
+
       setNewBar(String(submittedBar));
       setIsOpen(false);
     },
-    [
-      newBar,
-      gridWidth,
-      trackListWidth,
-      trackToolsWidth,
-      setPosition,
-      setStopPosition,
-      setScrollToPixel,
-      setIsScrollToPixel,
-    ],
+    [newBar, setPosition, setStopPosition, navigate],
   );
 
   return (
