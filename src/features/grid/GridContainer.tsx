@@ -6,12 +6,14 @@ import { type Track } from "@/types";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/features/utils/track-utils";
-import { useGridPageStore } from "./hooks/useGridPageStore";
+import { useSearch } from "@tanstack/react-router";
 
 const GridContainer = () => {
+  const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
+  const pageSize = 8;
+
   const { tracks, trackErrors, storeUpdateTrack } = useTracksStore();
-  const { currentPage, pageSize } = useGridPageStore();
-  const visibleStartBar = currentPage * pageSize;
+  const visibleStartBar = page * pageSize;
 
   const updateDurationsMutation = useMutation(
     trpc.track.updateDurations.mutationOptions({

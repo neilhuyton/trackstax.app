@@ -16,11 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import useTransportStore from "./useTransportStore";
-import { useTransportRead } from "./useTransportRead";
 
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
+import { useTransportRead } from "./hooks/useTransportRead";
+import useTransportStore from "./hooks/useTransportStore";
 
 export function TransportTempoDialog() {
   const stackId = useStackIdStore((state) => state.stackId);

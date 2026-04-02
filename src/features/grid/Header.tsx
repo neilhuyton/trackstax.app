@@ -1,17 +1,18 @@
 import { useMemo } from "react";
 import * as Tone from "tone";
+import { useSearch } from "@tanstack/react-router";
 
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import { useTransportRead } from "../transport/useTransportRead";
 import { useScreen } from "../screen/hooks/useScreen";
 import usePositionStore from "../position/hooks/usePositionStore";
-import { useGridPageStore } from "./hooks/useGridPageStore";
+import { useTransportRead } from "../transport/hooks/useTransportRead";
 
 const GridHeader = () => {
-  const stackId = useStackIdStore((state) => state.stackId);
-  const { currentPage, pageSize } = useGridPageStore();
-  const visibleStartBar = currentPage * pageSize;
+  const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
+  const pageSize = 8;
+  const visibleStartBar = page * pageSize;
 
+  const stackId = useStackIdStore((state) => state.stackId);
   const { transport, isError: transportError } = useTransportRead(stackId);
   const { isError: screenError } = useScreen(stackId);
   const { position } = usePositionStore();

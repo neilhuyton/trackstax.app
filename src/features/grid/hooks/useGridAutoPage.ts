@@ -1,15 +1,20 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
-import useTransportStore from "@/features/transport/useTransportStore";
-import { useGridPageStore } from "./useGridPageStore";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export const useGridAutoPage = (totalBars: number) => {
-  const { currentPage, pageSize, goToNextPage } = useGridPageStore();
+  const navigate = useNavigate();
+  const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
+
   const { position } = usePositionStore();
   const { isPlay, isRecord } = useTransportStore();
 
-  const canGoNext = currentPage < Math.ceil(totalBars / pageSize) - 1;
+  const pageSize = 8;
+  const totalPages = Math.ceil(totalBars / pageSize);
+  const currentPage = Math.max(0, Math.min(page, totalPages - 1));
+  const canGoNext = currentPage < totalPages - 1;
 
   useEffect(() => {
     if (!position || (!isPlay && !isRecord)) return;
@@ -34,15 +39,12 @@ export const useGridAutoPage = (totalBars: number) => {
     const nextPageStartBar = (currentPage + 1) * pageSize;
 
     if (currentBar >= nextPageStartBar && canGoNext) {
-      goToNextPage();
+      const newPage = currentPage + 1;
+      navigate({
+        to: ".",
+        search: { page: newPage },
+        replace: true,
+      });
     }
-  }, [
-    position,
-    currentPage,
-    pageSize,
-    canGoNext,
-    goToNextPage,
-    isPlay,
-    isRecord,
-  ]);
+  }, [position, currentPage, canGoNext, isPlay, isRecord, navigate]);
 };

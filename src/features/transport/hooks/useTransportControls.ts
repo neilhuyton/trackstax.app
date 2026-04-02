@@ -5,11 +5,11 @@ import { PIXELS_PER_SIXTEENTH } from "@/consts";
 
 import { type Track } from "@/types";
 import { positionToSixteenths, toPosition } from "@/utils";
-import usePositionStore from "../position/hooks/usePositionStore";
 import useTransportStore from "./useTransportStore";
 import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
-import useScreenStore from "../screen/hooks/useScreenStore";
+import useScreenStore from "@/features/screen/hooks/useScreenStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 interface TransportControlsProps {
   tracks: Track[];
