@@ -27,17 +27,14 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
 
       const isActive = pattern.some((p) => p.time === time && p.note === note);
 
-      if (isActive) {
-        onRemoveNote(time, note);
-      } else {
-        onAddNote(time, note, "16n");
-      }
+      if (isActive) onRemoveNote(time, note);
+      else onAddNote(time, note, "16n");
     };
 
     return (
       <div ref={ref} className="flex-1 overflow-auto">
         <div
-          className="grid"
+          className="grid bg-neutral-800 select-none"
           style={{
             gridTemplateColumns: `repeat(${totalSteps}, 28px)`,
             gridTemplateRows: `repeat(${notes.length}, 28px)`,
@@ -45,7 +42,7 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
           onClick={handleClick}
         >
           {notes.flatMap((note, noteIndex) =>
-            Array.from({ length: totalSteps }).map((_, step) => {
+            Array.from({ length: totalSteps }, (_, step) => {
               const bar = Math.floor(step / 16);
               const positionInBar = step % 16;
               const beat = Math.floor(positionInBar / 4);
@@ -61,15 +58,12 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
                   key={`${note}-${step}`}
                   data-step={step}
                   data-note-index={noteIndex}
-                  className={`
-                    border border-gray-800 
-                    transition-colors
+                  className={`w-[28px] h-[28px] border border-gray-800 transition-colors
                     ${
                       isActive
                         ? "bg-violet-500 border-violet-400"
                         : "bg-zinc-900 hover:bg-zinc-700"
-                    }
-                  `}
+                    }`}
                 />
               );
             }),

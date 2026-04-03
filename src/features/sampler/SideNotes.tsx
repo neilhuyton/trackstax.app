@@ -28,16 +28,16 @@ export default function SideNotes({ notes, scrollRef, trigger }: Props) {
   }, [scrollRef]);
 
   return (
-    <div className="w-16 bg-black flex-shrink-0 overflow-hidden">
+    <div className="w-16 bg-black flex-shrink-0 overflow-hidden border-r border-neutral-800">
       <div ref={keyboardRef} className="h-full overflow-hidden">
         {notes.map((note) => (
-          <div
+          <button
             key={note}
-            className="h-[28px] border-b border-gray-800 flex items-center pl-2 text-sm cursor-pointer hover:bg-zinc-800 active:bg-violet-600 transition-colors"
+            className="h-[28px] w-full border border-gray-800 flex items-center pl-3 text-sm cursor-pointer hover:bg-zinc-800 active:bg-violet-600 transition-colors select-none"
             onClick={() => playNote(note)}
           >
             {note}
-          </div>
+          </button>
         ))}
       </div>
     </div>
