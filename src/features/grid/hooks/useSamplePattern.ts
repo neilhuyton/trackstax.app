@@ -2,17 +2,16 @@ import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
 import useTracksStore from "../../track/hooks/useTracksStore";
+import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
 import type { SamplerEvent, Track } from "@/types";
 
 type SamplerTrackMinimal = Track & {
   type: "sampler";
-  samplerTrack: {
-    pattern: SamplerEvent[] | null | undefined;
-  } | null;
 };
 
 export function useSamplerPattern() {
   const { tracks } = useTracksStore();
+  const { patterns } = useSamplerPatternStore();
 
   const samplerTracks = tracks.filter(
     (t): t is SamplerTrackMinimal => t.type === "sampler",
@@ -27,7 +26,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // ignore errors if event already cleared
+        // ignore if already cleared
       }
     });
     eventIdsRef.current = [];
@@ -39,9 +38,9 @@ export function useSamplerPattern() {
     if (!isLoaded || samplerTracks.length === 0) return;
 
     samplerTracks.forEach((track) => {
-      const pattern = track.samplerTrack?.pattern ?? [];
+      const localPattern = patterns[track.id] ?? [];
 
-      pattern.forEach((event) => {
+      localPattern.forEach((event: SamplerEvent) => {
         const id = Tone.getTransport().schedule((time: number) => {
           trigger(event.note, event.duration || "16n", time);
         }, event.time);
@@ -49,9 +48,9 @@ export function useSamplerPattern() {
         eventIdsRef.current.push(id);
       });
     });
-  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
+  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents, patterns]);
 
-  // Re-schedule when pattern data or sampler loading state changes
+  // Re-schedule when local patterns change or sampler becomes loaded
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -65,7 +64,6 @@ export function useSamplerPattern() {
     const transport = Tone.getTransport();
 
     const handleStart = () => {
-      // Only re-schedule if we don't already have events (prevents duplicates)
       if (eventIdsRef.current.length === 0) {
         scheduleAllPatterns();
       }

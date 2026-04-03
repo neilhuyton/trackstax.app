@@ -189,6 +189,7 @@ export const createNewTrack = (
   };
 };
 
+// Define the exact shape we expect from the server (Prisma output)
 type RawServerTrack = {
   id: string;
   type: string;
@@ -234,6 +235,38 @@ type RawServerTrack = {
   } | null;
 };
 
+export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
+  id: serverTrack.id,
+  type: serverTrack.type as "audio" | "sampler",
+  label: serverTrack.label,
+  color: serverTrack.color,
+  sortOrder: serverTrack.sortOrder,
+  isMute: serverTrack.isMute,
+  isSolo: serverTrack.isSolo,
+  isFavourite: serverTrack.isFavourite,
+  volumePercent: serverTrack.volumePercent,
+  low: serverTrack.low,
+  mid: serverTrack.mid,
+  high: serverTrack.high,
+  lowFrequency: serverTrack.lowFrequency,
+  highFrequency: serverTrack.highFrequency,
+  isBypass: serverTrack.isBypass,
+  stackId: serverTrack.stackId,
+  createdAt: serverTrack.createdAt,
+  updatedAt: serverTrack.updatedAt,
+  durations: serverTrack.durations ?? [],
+  audioTrack: serverTrack.audioTrack ?? null,
+  samplerTrack: {
+    pattern: Array.isArray(serverTrack.samplerTrack?.pattern)
+      ? (serverTrack.samplerTrack.pattern as SamplerPattern)
+      : [],
+  },
+});
+
+export const toClientTracks = (serverTracks: RawServerTrack[]): Track[] =>
+  serverTracks.map(toClientTrack);
+
+// Legacy function (kept for compatibility - you can remove later if not used)
 export const buildClientTrackFromServer = (
   baseTrack: CreateNewTrackInput,
   createdTrack: RawServerTrack,
@@ -270,31 +303,3 @@ export const buildClientTrackFromServer = (
     isBypass: createdTrack.isBypass ?? false,
   };
 };
-
-export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
-  id: serverTrack.id,
-  type: serverTrack.type as "audio" | "sampler",
-  label: serverTrack.label,
-  color: serverTrack.color,
-  sortOrder: serverTrack.sortOrder,
-  isMute: serverTrack.isMute,
-  isSolo: serverTrack.isSolo,
-  isFavourite: serverTrack.isFavourite,
-  volumePercent: serverTrack.volumePercent,
-  low: serverTrack.low,
-  mid: serverTrack.mid,
-  high: serverTrack.high,
-  lowFrequency: serverTrack.lowFrequency,
-  highFrequency: serverTrack.highFrequency,
-  isBypass: serverTrack.isBypass,
-  stackId: serverTrack.stackId,
-  createdAt: serverTrack.createdAt,
-  updatedAt: serverTrack.updatedAt,
-  durations: serverTrack.durations ?? [],
-  audioTrack: serverTrack.audioTrack ?? null,
-  samplerTrack: {
-    pattern: Array.isArray(serverTrack.samplerTrack?.pattern)
-      ? (serverTrack.samplerTrack.pattern as SamplerPattern)
-      : [],
-  },
-});

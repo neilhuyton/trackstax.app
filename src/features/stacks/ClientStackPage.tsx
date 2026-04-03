@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import useStackIdStore from "./hooks/useStackIdStore";
 import useTracksStore from "../track/hooks/useTracksStore";
 import { useTrackRead } from "../track/hooks/useTrackRead";
+import { toClientTracks } from "../utils/track-utils";
 
 interface ClientStackPageProps {
   stackId: string;
@@ -9,16 +10,19 @@ interface ClientStackPageProps {
 
 const ClientStackPage = ({ stackId }: ClientStackPageProps) => {
   const setStackId = useStackIdStore((state) => state.setStackId);
-  const { tracks } = useTrackRead(stackId);
+  const { tracks: serverTracks } = useTrackRead(stackId);
   const { setTracks } = useTracksStore();
   const hasSynced = useRef(false);
 
   useEffect(() => {
     setStackId(stackId);
-    if (!hasSynced.current && tracks && tracks.length > 0) {
-      setTracks(tracks);
+
+    if (!hasSynced.current && serverTracks && serverTracks.length > 0) {
+      const typedTracks = toClientTracks(serverTracks);
+      setTracks(typedTracks);
+      hasSynced.current = true;
     }
-  }, [stackId, setStackId, setTracks, tracks]);
+  }, [stackId, setStackId, setTracks, serverTracks]);
 
   return null;
 };

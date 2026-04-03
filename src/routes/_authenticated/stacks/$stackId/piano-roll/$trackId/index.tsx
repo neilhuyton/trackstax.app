@@ -5,6 +5,9 @@ import { useSamplerPatternRead } from "@/features/grid/hooks/useSamplerPatternRe
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { useSampler } from "@/features/grid/hooks/useSampler";
+import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
+import { useEffect } from "react";
+import type { SamplerEvent } from "@/types";
 
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
@@ -14,24 +17,42 @@ const PianoRollPage = () => {
     (t) => t.id === trackId && t.type === "sampler",
   );
 
-  const { pattern } = useSamplerPatternRead(trackId);
-
+  const { pattern: serverPattern } = useSamplerPatternRead(trackId);
   const { trigger } = useSampler("/samples/43.wav");
+
+  const { patterns, addNote, removeNote, setPattern } =
+    useSamplerPatternStore();
+
+  const currentPattern: SamplerEvent[] =
+    patterns[trackId] ?? serverPattern ?? [];
 
   const updatePatternMutation = useMutation(
     trpc.sampler.updatePattern.mutationOptions(),
   );
 
+  // Sync server data into local store
+  useEffect(() => {
+    if (serverPattern) {
+      setPattern(trackId, serverPattern);
+    }
+  }, [serverPattern, trackId, setPattern]);
+
   const handleAddNote = (time: string, note: string, duration = "16n") => {
-    const newPattern = [...pattern, { time, note, duration }];
-    updatePatternMutation.mutate({ trackId, pattern: newPattern });
+    addNote(trackId, time, note, duration);
+
+    const latestPattern =
+      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+
+    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
   };
 
   const handleRemoveNote = (time: string, note: string) => {
-    const newPattern = pattern.filter(
-      (p) => !(p.time === time && p.note === note),
-    );
-    updatePatternMutation.mutate({ trackId, pattern: newPattern });
+    removeNote(trackId, time, note);
+
+    const latestPattern =
+      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+
+    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
   };
 
   if (!samplerTrack) {
@@ -44,7 +65,7 @@ const PianoRollPage = () => {
 
   return (
     <PianoRollViewer
-      pattern={pattern}
+      pattern={currentPattern}
       onAddNote={handleAddNote}
       onRemoveNote={handleRemoveNote}
       trigger={trigger}

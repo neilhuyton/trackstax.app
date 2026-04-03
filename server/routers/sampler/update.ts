@@ -1,5 +1,6 @@
 import { protectedProcedure } from "../../trpc-base";
 import { z } from "zod";
+import type { SamplerEvent } from "@/types";
 
 export const samplerUpdateRouter = {
   updatePattern: protectedProcedure
@@ -21,15 +22,21 @@ export const samplerUpdateRouter = {
       });
 
       if (!samplerTrack) {
-        console.warn("No sampler track found for trackId", input.trackId);
+        console.warn("No samplerTrack found for trackId:", input.trackId);
         return { success: false };
       }
 
-      await ctx.prisma.samplerTrack.update({
+      const updated = await ctx.prisma.samplerTrack.update({
         where: { id: samplerTrack.id },
-        data: { pattern: input.pattern },
+        data: {
+          pattern: input.pattern,
+        },
       });
 
-      return { success: true };
+      const savedPattern = updated.pattern as SamplerEvent[];
+      return {
+        success: true,
+        savedLength: savedPattern.length,
+      };
     }),
 };
