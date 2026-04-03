@@ -1,5 +1,6 @@
 import type { SamplerEvent, NoteName } from "@/types";
 import { forwardRef } from "react";
+import { durationToSteps } from "./utils/durationToSteps";
 
 type Props = {
   pattern: SamplerEvent[];
@@ -11,6 +12,43 @@ type Props = {
 
 const NoteGrid = forwardRef<HTMLDivElement, Props>(
   ({ pattern, notes, totalSteps, onAddNote, onRemoveNote }, ref) => {
+    const isNoteActiveAtStep = (step: number, note: NoteName): boolean => {
+      return pattern.some((event) => {
+        if (event.note !== note) return false;
+
+        const steps = durationToSteps(event.duration || "16n");
+        const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
+        const startStep = eBar * 16 + eBeat * 4 + eSixteenth;
+        const endStep = startStep + steps;
+
+        return step >= startStep && step < endStep;
+      });
+    };
+
+    const isNoteStart = (step: number, note: NoteName): boolean => {
+      const timeStr = stepToTime(step);
+      return pattern.some((p) => p.time === timeStr && p.note === note);
+    };
+
+    const isNoteEnd = (step: number, note: NoteName): boolean => {
+      return pattern.some((event) => {
+        if (event.note !== note) return false;
+        const steps = durationToSteps(event.duration || "16n");
+        const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
+        const startStep = eBar * 16 + eBeat * 4 + eSixteenth;
+        const endStep = Math.floor(startStep + steps - 0.01);
+        return step === endStep;
+      });
+    };
+
+    const stepToTime = (step: number): string => {
+      const bar = Math.floor(step / 16);
+      const pos = step % 16;
+      const beat = Math.floor(pos / 4);
+      const sixteenth = pos % 4;
+      return `${bar}:${beat}:${sixteenth}`;
+    };
+
     const handleClick = (e: React.MouseEvent) => {
       const btn = (e.target as HTMLElement).closest("button");
       if (!btn) return;
@@ -19,16 +57,26 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
       const noteIndex = Number(btn.dataset.noteIndex);
       const note = notes[noteIndex];
 
-      const bar = Math.floor(step / 16);
-      const positionInBar = step % 16;
-      const beat = Math.floor(positionInBar / 4);
-      const sixteenth = positionInBar % 4;
-      const time = `${bar}:${beat}:${sixteenth}`;
+      const isActive = isNoteActiveAtStep(step, note);
 
-      const isActive = pattern.some((p) => p.time === time && p.note === note);
+      if (isActive) {
+        // Find original event to remove the whole note
+        const originalEvent = pattern.find((event) => {
+          if (event.note !== note) return false;
+          const steps = durationToSteps(event.duration || "16n");
+          const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
+          const start = eBar * 16 + eBeat * 4 + eSixteenth;
+          const end = start + steps;
+          return step >= start && step < end;
+        });
 
-      if (isActive) onRemoveNote(time, note);
-      else onAddNote(time, note, "16n");
+        if (originalEvent) {
+          onRemoveNote(originalEvent.time, note);
+        }
+      } else {
+        const time = stepToTime(step);
+        onAddNote(time, note, "16n"); // default new notes to 16n
+      }
     };
 
     return (
@@ -43,28 +91,32 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
         >
           {notes.flatMap((note, noteIndex) =>
             Array.from({ length: totalSteps }, (_, step) => {
-              const bar = Math.floor(step / 16);
-              const positionInBar = step % 16;
-              const beat = Math.floor(positionInBar / 4);
-              const sixteenth = positionInBar % 4;
-              const time = `${bar}:${beat}:${sixteenth}`;
-
-              const isActive = pattern.some(
-                (p) => p.time === time && p.note === note,
-              );
+              const isActive = isNoteActiveAtStep(step, note);
+              const isStart = isNoteStart(step, note);
+              const isEnd = isNoteEnd(step, note);
 
               return (
                 <button
                   key={`${note}-${step}`}
                   data-step={step}
                   data-note-index={noteIndex}
-                  className={`w-[28px] h-[28px] border border-gray-800 transition-colors
+                  className={`
+                    w-[28px] h-[28px] border border-gray-800 transition-all relative overflow-hidden
                     ${
                       isActive
                         ? "bg-violet-500 border-violet-400"
                         : "bg-zinc-900 hover:bg-zinc-700"
-                    }`}
-                />
+                    }
+                    ${isStart ? "border-l-2 border-violet-300" : ""}
+                    ${isEnd ? "border-r-2 border-violet-300" : ""}
+                    ${isActive && !isStart ? "border-l-0" : ""}
+                    ${isActive && !isEnd ? "border-r-0" : ""}
+                  `}
+                >
+                  {isStart && isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/60" />
+                  )}
+                </button>
               );
             }),
           )}
