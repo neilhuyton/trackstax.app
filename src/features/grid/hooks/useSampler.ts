@@ -18,7 +18,7 @@ export function useSampler(sampleUrl: string) {
         console.log("✅ Sampler loaded:", sampleUrl);
         setIsLoaded(true);
       },
-      onerror: (err: any) => {
+      onerror: (err: unknown) => {
         console.error("❌ Sampler load error:", err);
         setError("Failed to load sample");
       },
