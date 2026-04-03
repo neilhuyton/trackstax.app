@@ -1,9 +1,10 @@
 import { router } from "@steel-cut/trpc-shared/server";
-
 import { samplerReadRouter } from "./read";
+import { samplerUpdateRouter } from "./update";
 
 export const samplerRouter = router({
-  getByStackId: samplerReadRouter.getByStackId,
+  getByTrackId: samplerReadRouter.getByTrackId,
+  updatePattern: samplerUpdateRouter.updatePattern,
 });
 
 export type SampleRRouter = typeof samplerRouter;

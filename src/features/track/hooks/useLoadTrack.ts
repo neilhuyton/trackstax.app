@@ -54,7 +54,7 @@ export function useLoadTrack(tracks: Track[], stack: Stack) {
       loopLength,
     );
 
-    storeAddTrack(newTrack);
+    storeAddTrack(newTrack as Track);
     return newTrack;
   };
 

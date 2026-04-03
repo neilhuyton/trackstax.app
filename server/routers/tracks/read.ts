@@ -18,12 +18,15 @@ export const trackReadRouter = router({
         include: {
           durations: {
             omit: { trackId: true },
-            orderBy: {
-              start: "asc",
-            },
+            orderBy: { start: "asc" },
           },
           audioTrack: {
             omit: { trackId: true },
+          },
+          samplerTrack: {
+            select: {
+              pattern: true,
+            },
           },
         },
       });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaCircleExclamation, FaSpinner } from "react-icons/fa6";
+import { FaCircleExclamation, FaSpinner, FaMusic } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +22,16 @@ import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import ConfirmDialog from "./ConfirmDialog";
 
+import { useNavigate } from "@tanstack/react-router";
+import { toClientTrack } from "../utils/track-utils";
+
 type TrackDialogProps = {
   track: Track;
   trackError: boolean;
 };
 
 export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
+  const navigate = useNavigate();
   const { storeUpdateTrack, storeDeleteTrack } = useTracksStore();
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -40,19 +44,14 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
   });
 
   useEffect(() => {
-    setFormValues({
-      label: track?.label ?? "",
-    });
+    setFormValues({ label: track?.label ?? "" });
   }, [track]);
 
   const updateTrackMutation = useMutation(
     trpc.track.update.mutationOptions({
       onSuccess: (updatedTrack) => {
-        storeUpdateTrack(updatedTrack);
+        storeUpdateTrack(toClientTrack(updatedTrack));
         setIsOpen(false);
-      },
-      onError: (error) => {
-        console.error("Failed to update track:", error);
       },
     }),
   );
@@ -60,24 +59,16 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
   const deleteTrackMutation = useMutation(
     trpc.track.delete.mutationOptions({
       onSuccess: () => {
-        if (track?.id) {
-          storeDeleteTrack(track.id);
-        }
+        if (track?.id) storeDeleteTrack(track.id);
         setIsDeleteConfirmOpen(false);
         setIsOpen(false);
-      },
-      onError: (error) => {
-        console.error("Failed to delete track:", error);
       },
     }),
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDelete = async () => {
@@ -93,8 +84,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
         id: track.id,
         label: formValues.label,
       });
-    } catch (error) {
-      console.error("Update track error:", error);
     } finally {
       setIsSaving(false);
     }
@@ -105,7 +94,22 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     handleSubmit();
   };
 
+  const openPianoRoll = () => {
+    if (track.type === "sampler" && track.stackId) {
+      navigate({
+        to: "/stacks/$stackId/piano-roll/$trackId",
+        params: {
+          stackId: track.stackId,
+          trackId: track.id,
+        },
+        replace: true,
+      });
+      setIsOpen(false);
+    }
+  };
+
   const color = borderColors[track.color as keyof typeof borderColors];
+  const isSampler = track.type === "sampler";
 
   return (
     <>
@@ -113,15 +117,38 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
         <DialogTrigger asChild data-testid="dialog-trigger">
           <Button
             type="button"
-            className={`focus:outline-none focus-visible:ring-2 focus-visible:${color} focus:bg-neutral-900 bg-neutral-900 hover:bg-neutral-800 w-full h-full pl-4 rounded-md cursor-pointer border-2 ${color} flex items-center text-left transition-colors`}
+            className={`focus:outline-none focus-visible:ring-2 focus-visible:${color} focus:bg-neutral-900 bg-neutral-900 hover:bg-neutral-800 w-full h-full pl-4 rounded-md cursor-pointer border-2 ${color} flex items-center text-left transition-colors relative`}
           >
-            <div className="text-white flex-1 truncate">{track.label}</div>
-            {trackError ? (
+            <div className="text-white flex-1 truncate pr-2">{track.label}</div>
+
+            {trackError && (
               <FaCircleExclamation
                 className="text-red-500 ml-2 flex-shrink-0"
                 title="There is an error with this track"
               />
-            ) : null}
+            )}
+
+            {/* Piano Roll Icon - Plain div to avoid nested button */}
+            {isSampler && (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent opening the main dialog
+                  openPianoRoll();
+                }}
+                className="ml-2 h-7 w-7 flex items-center justify-center text-violet-400 hover:text-violet-300 hover:bg-violet-950/50 rounded-md transition-colors cursor-pointer flex-shrink-0"
+                title="Edit Piano Roll"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openPianoRoll();
+                  }
+                }}
+              >
+                <FaMusic className="h-4 w-4" />
+              </div>
+            )}
           </Button>
         </DialogTrigger>
 
@@ -163,6 +190,21 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                   className="col-span-3"
                 />
               </div>
+
+              {isSampler && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Piano Roll</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={openPianoRoll}
+                    className="col-span-3"
+                  >
+                    <FaMusic className="mr-2" />
+                    Open Piano Roll Editor
+                  </Button>
+                </div>
+              )}
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label

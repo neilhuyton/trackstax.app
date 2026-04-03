@@ -1,15 +1,138 @@
 import * as Tone from "tone";
-
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "server/trpc";
+import type { AppRouter } from "../server/trpc";
 
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 
+export const NOTE_NAMES = [
+  "B5",
+  "A#5",
+  "A5",
+  "G#5",
+  "G5",
+  "F#5",
+  "F5",
+  "E5",
+  "D#5",
+  "D5",
+  "C#5",
+  "C5",
+  "B4",
+  "A#4",
+  "A4",
+  "G#4",
+  "G4",
+  "F#4",
+  "F4",
+  "E4",
+  "D#4",
+  "D4",
+  "C#4",
+  "C4",
+  "B3",
+  "A#3",
+  "A3",
+  "G#3",
+  "G3",
+  "F#3",
+  "F3",
+  "E3",
+  "D#3",
+  "D3",
+  "C#3",
+  "C3",
+  "B2",
+  "A#2",
+  "A2",
+  "G#2",
+  "G2",
+  "F#2",
+  "F2",
+  "E2",
+  "D#2",
+  "D2",
+  "C#2",
+  "C2",
+  "B1",
+  "A#1",
+  "A1",
+  "G#1",
+  "G1",
+  "F#1",
+  "F1",
+  "E1",
+  "D#1",
+  "D1",
+  "C#1",
+  "C1",
+] as const;
+
+export type NoteName = (typeof NOTE_NAMES)[number];
+
+export type SamplerEvent = {
+  time: string;
+  note: NoteName;
+  duration?: string;
+};
+
+export type SamplerPattern = SamplerEvent[];
+
+export type Track = {
+  id: string;
+  type: "audio" | "sampler";
+  label: string;
+  color: string;
+  sortOrder: number;
+  isMute: boolean;
+  isSolo: boolean;
+  isFavourite: boolean;
+  volumePercent: number;
+  low: number;
+  mid: number;
+  high: number;
+  lowFrequency: number;
+  highFrequency: number;
+  isBypass: boolean;
+  stackId: string;
+  createdAt: string;
+  updatedAt: string;
+
+  durations: Array<{
+    id: string;
+    start: number;
+    stop: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+
+  audioTrack: {
+    id: string;
+    filename: string;
+    downloadUrl: string | null;
+    loopLength: number;
+    offset: number;
+    duration: number;
+    pitch: number;
+    timestretch: number;
+    fullDuration: number;
+    sampleId: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+
+  samplerTrack: {
+    pattern: SamplerPattern;
+  } | null;
+};
+
+export type Duration = Track["durations"][number];
+
 export type Screen = RouterOutput["screen"]["getByStackId"];
-export type Track = RouterOutput["track"]["getByStackId"][number];
 export type Stack = RouterOutput["stack"]["getById"];
-export type Duration =
-  RouterOutput["track"]["getByStackId"][number]["durations"][number];
+
+export type CreatedTrack = RouterOutput["track"]["create"];
+export type UpdatedTrack = RouterOutput["track"]["update"];
+
 export type DurationInput = Omit<
   Duration,
   "track" | "trackId" | "createdAt" | "updatedAt"
@@ -25,7 +148,6 @@ export interface AudioTrack {
   pitch: number;
   timestretch: number;
   fullDuration: number;
-  track?: Track;
 }
 
 export type PlayerChannel = {
@@ -55,11 +177,3 @@ export type SampleLibraryNavigation = {
   goToSubcategory: (subcategory: string) => void;
   goBack: () => void;
 };
-
-export type SamplerEvent = {
-  time: string;
-  note: string;
-  duration?: string;
-};
-
-export type SamplerPattern = SamplerEvent[];

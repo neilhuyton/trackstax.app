@@ -2,14 +2,8 @@ import * as Tone from "tone";
 import { v4 as uuid } from "uuid";
 
 import { COLORS } from "@/consts";
-import type { RouterOutput } from "@/types";
+import type { Track, Duration, SamplerPattern } from "@/types";
 
-export type Duration =
-  RouterOutput["track"]["getByStackId"][number]["durations"][number];
-export type Track = RouterOutput["track"]["getByStackId"][number];
-export type Stack = RouterOutput["stack"]["getById"];
-
-// Helper to create a properly typed client-side AudioTrack
 const createClientAudioTrack = (
   filename: string,
   downloadUrl: string | null,
@@ -108,9 +102,7 @@ export const sanitiseDurations = (
 ): Duration[] => modifyDurations(durations, selectedBar, !isActive);
 
 export const getIsActive = (bar: number, track: Track): boolean =>
-  track.durations.some(
-    (item: Duration) => item.start <= bar && item.stop > bar,
-  );
+  track.durations.some((item) => item.start <= bar && item.stop > bar);
 
 export const updateTrackDurations = (
   track: Track,
@@ -121,13 +113,36 @@ export const updateTrackDurations = (
   durations: sanitiseDurations(track.durations, currentBar, isActive),
 });
 
+export type CreateNewTrackInput = {
+  type: "audio" | "sampler";
+  label: string;
+  color: string;
+  sortOrder: number;
+  isMute: boolean;
+  isSolo: boolean;
+  isFavourite: boolean;
+  volumePercent: number;
+  low: number;
+  mid: number;
+  high: number;
+  lowFrequency: number;
+  highFrequency: number;
+  isBypass: boolean;
+  stackId: string;
+  createdAt: string;
+  updatedAt: string;
+  durations: Duration[];
+  audioTrack: ReturnType<typeof createClientAudioTrack> | null;
+  samplerTrack: { pattern: SamplerPattern } | null;
+};
+
 export const createNewTrack = (
   file: File | null,
   downloadUrl: string | null,
   tracks: Track[],
-  stack: Stack,
+  stack: { id: string },
   result?: AudioBuffer,
-): Track => {
+): CreateNewTrackInput => {
   const [lastTrack] = tracks.slice(-1);
   const lastColorIdx =
     lastTrack?.color && COLORS.some((c) => c.label === lastTrack.color)
@@ -142,15 +157,12 @@ export const createNewTrack = (
     : 1;
 
   const now = new Date().toISOString();
-  const trackId = uuid();
 
   return {
-    id: trackId,
     type: "audio",
     label: `Track ${sortOrder}`,
-    durations: [],
-    sortOrder,
     color: color.label,
+    sortOrder,
     isMute: false,
     isSolo: false,
     isFavourite: false,
@@ -164,6 +176,7 @@ export const createNewTrack = (
     stackId: stack.id,
     createdAt: now,
     updatedAt: now,
+    durations: [],
     audioTrack: file
       ? createClientAudioTrack(
           file.name,
@@ -172,33 +185,121 @@ export const createNewTrack = (
           loopLength,
         )
       : null,
+    samplerTrack: null,
   };
 };
 
-type CreatedTrack = RouterOutput["track"]["create"];
+// Define the exact shape we expect from the server (Prisma output)
+type RawServerTrack = {
+  id: string;
+  type: string;
+  label: string;
+  color: string;
+  sortOrder: number;
+  isMute: boolean;
+  isSolo: boolean;
+  isFavourite: boolean;
+  volumePercent: number;
+  low: number;
+  mid: number;
+  high: number;
+  lowFrequency: number;
+  highFrequency: number;
+  isBypass: boolean;
+  stackId: string;
+  createdAt: string;
+  updatedAt: string;
+  durations?: Array<{
+    id: string;
+    start: number;
+    stop: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  audioTrack?: {
+    id: string;
+    filename: string;
+    downloadUrl: string | null;
+    loopLength: number;
+    offset: number;
+    duration: number;
+    pitch: number;
+    timestretch: number;
+    fullDuration: number;
+    sampleId: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  samplerTrack?: {
+    pattern?: unknown;
+  } | null;
+};
 
+export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
+  id: serverTrack.id,
+  type: serverTrack.type as "audio" | "sampler",
+  label: serverTrack.label,
+  color: serverTrack.color,
+  sortOrder: serverTrack.sortOrder,
+  isMute: serverTrack.isMute,
+  isSolo: serverTrack.isSolo,
+  isFavourite: serverTrack.isFavourite,
+  volumePercent: serverTrack.volumePercent,
+  low: serverTrack.low,
+  mid: serverTrack.mid,
+  high: serverTrack.high,
+  lowFrequency: serverTrack.lowFrequency,
+  highFrequency: serverTrack.highFrequency,
+  isBypass: serverTrack.isBypass,
+  stackId: serverTrack.stackId,
+  createdAt: serverTrack.createdAt,
+  updatedAt: serverTrack.updatedAt,
+  durations: serverTrack.durations ?? [],
+  audioTrack: serverTrack.audioTrack ?? null,
+  samplerTrack: {
+    pattern: Array.isArray(serverTrack.samplerTrack?.pattern)
+      ? (serverTrack.samplerTrack.pattern as SamplerPattern)
+      : [],
+  },
+});
+
+export const toClientTracks = (serverTracks: RawServerTrack[]): Track[] =>
+  serverTracks.map(toClientTrack);
+
+// Legacy function (kept for compatibility - you can remove later if not used)
 export const buildClientTrackFromServer = (
-  baseTrack: Track,
-  createdTrack: CreatedTrack,
+  baseTrack: CreateNewTrackInput,
+  createdTrack: RawServerTrack,
   filename: string,
   downloadUrl: string,
   duration: number,
   loopLength: number,
-): Track => ({
-  ...baseTrack,
-  id: createdTrack.id,
-  audioTrack:
+): Track => {
+  const audioTrack =
     createdTrack.audioTrack ??
-    createClientAudioTrack(filename, downloadUrl, duration, loopLength),
-  durations: createdTrack.durations ?? [],
-  isMute: createdTrack.isMute ?? false,
-  isSolo: createdTrack.isSolo ?? false,
-  isFavourite: createdTrack.isFavourite ?? false,
-  volumePercent: createdTrack.volumePercent ?? 75,
-  low: createdTrack.low ?? 0,
-  mid: createdTrack.mid ?? 0,
-  high: createdTrack.high ?? 0,
-  lowFrequency: createdTrack.lowFrequency ?? 0,
-  highFrequency: createdTrack.highFrequency ?? 0,
-  isBypass: createdTrack.isBypass ?? false,
-});
+    createClientAudioTrack(filename, downloadUrl, duration, loopLength);
+
+  return {
+    id: createdTrack.id,
+    type: baseTrack.type,
+    label: baseTrack.label,
+    color: baseTrack.color,
+    sortOrder: baseTrack.sortOrder,
+    stackId: baseTrack.stackId,
+    createdAt: baseTrack.createdAt,
+    updatedAt: baseTrack.updatedAt,
+    durations: createdTrack.durations ?? [],
+    audioTrack,
+    samplerTrack: baseTrack.samplerTrack ?? { pattern: [] },
+    isMute: createdTrack.isMute ?? false,
+    isSolo: createdTrack.isSolo ?? false,
+    isFavourite: createdTrack.isFavourite ?? false,
+    volumePercent: createdTrack.volumePercent ?? 75,
+    low: createdTrack.low ?? 0,
+    mid: createdTrack.mid ?? 0,
+    high: createdTrack.high ?? 0,
+    lowFrequency: createdTrack.lowFrequency ?? 0,
+    highFrequency: createdTrack.highFrequency ?? 0,
+    isBypass: createdTrack.isBypass ?? false,
+  };
+};
