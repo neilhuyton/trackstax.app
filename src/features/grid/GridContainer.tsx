@@ -16,9 +16,7 @@ const GridContainer = () => {
   const visibleStartBar = page * pageSize;
 
   const updateDurationsMutation = useMutation(
-    trpc.track.updateDurations.mutationOptions({
-      onSuccess: () => {},
-    }),
+    trpc.track.updateDurations.mutationOptions({ onSuccess: () => {} }),
   );
 
   const handleToggle = (trackId: string, bar: number, wasActive: boolean) => {
@@ -26,7 +24,6 @@ const GridContainer = () => {
     if (!track) return;
 
     const updatedTrack = updateTrackDurations(track, bar, wasActive);
-
     storeUpdateTrack(updatedTrack);
 
     updateDurationsMutation.mutate({
@@ -43,35 +40,33 @@ const GridContainer = () => {
       <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
         <GridPager />
         <GridHeader />
+
         {tracks && tracks.length > 0 ? (
-          <>
-            {tracks.map((track: Track) => {
-              const hasError = trackErrors.some(
-                (error) => error.trackId === track.id,
-              );
-              return (
-                <GridTrackRow
-                  key={track.id}
-                  track={track}
-                  visibleStartBar={visibleStartBar}
-                  visibleBarCount={pageSize}
-                  hasError={hasError}
-                  onToggle={(bar, wasActive) =>
-                    handleToggle(track.id, bar, wasActive)
-                  }
-                  onShowMenu={() => {}}
-                />
-              );
-            })}
-            {Array.from({ length: placeholderCount }).map((_, i) => (
-              <div key={`ph-${i}`} className="bg-[#2a2a2a] rounded-lg" />
-            ))}
-          </>
+          tracks.map((track: Track) => {
+            const hasError = trackErrors.some((e) => e.trackId === track.id);
+            return (
+              <GridTrackRow
+                key={track.id}
+                track={track}
+                visibleStartBar={visibleStartBar}
+                visibleBarCount={pageSize}
+                hasError={hasError}
+                onToggle={(bar, wasActive) =>
+                  handleToggle(track.id, bar, wasActive)
+                }
+                onShowMenu={() => {}}
+              />
+            );
+          })
         ) : (
           <div className="bg-[#2a2a2a] rounded-lg row-span-8 flex items-center justify-center text-neutral-400">
             No tracks yet
           </div>
         )}
+
+        {Array.from({ length: placeholderCount }).map((_, i) => (
+          <div key={`ph-${i}`} className="bg-[#2a2a2a] rounded-lg" />
+        ))}
       </div>
     </div>
   );

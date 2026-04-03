@@ -7,6 +7,13 @@ import useTransportStore from "./useTransportStore";
 import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
+import { useSamplerPattern } from "@/features/grid/hooks/useSamplePattern";
+
+type SamplerEvent = {
+  time: string;
+  note: string;
+  duration?: string;
+};
 
 interface TransportControlsProps {
   tracks: Track[];
@@ -17,6 +24,7 @@ interface TransportControlsProps {
   isPlay: boolean;
   isForward: boolean;
   isBackward: boolean;
+  samplerPattern: SamplerEvent[];
 }
 
 export const useTransportControls = ({
@@ -34,17 +42,21 @@ export const useTransportControls = ({
   const { setPosition, setStopPosition } = usePositionStore();
   const { setIsPlay } = useTransportStore();
   const { players, stopAndClearAll } = usePlayers(tracks);
+
   useTempo(players, tracks);
+  useSamplerPattern();
 
   const handleStop = useCallback(() => {
     if (!players) return;
 
     const pos = isLoop ? toPosition(loopStart) : Tone.getTransport().position;
+
     Tone.getTransport().stop();
     setIsPlay(false);
     setPosition(pos);
     setStopPosition(pos);
     Tone.getTransport().position = pos;
+
     stopAndClearAll();
   }, [
     players,
@@ -62,7 +74,6 @@ export const useTransportControls = ({
       setStarted(true);
     }
 
-    // Set transport position
     if (isLoop) {
       if (
         (stopPosition ?? 0) < toPosition(loopStart) ||
@@ -78,15 +89,14 @@ export const useTransportControls = ({
     }
 
     Tone.getTransport().start();
-
     setIsPlay(true);
   }, [
     started,
     stopPosition,
     isLoop,
     loopStart,
-    setIsPlay,
     loopEnd,
+    setIsPlay,
     setPosition,
     setStopPosition,
   ]);

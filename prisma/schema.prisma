@@ -79,7 +79,7 @@ model Screen {
 
 model Destination {
   id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  volumePercent Int     @default(75)
+  volumePercent Int     @default(100)
   isMute        Boolean @default(false)
 
   stackId String @unique @db.Uuid
@@ -115,6 +115,7 @@ model Track {
   stack      Stack       @relation(fields: [stackId], references: [id], onDelete: Cascade)
   durations  Duration[]
   audioTrack AudioTrack? @relation("TrackToAudioTrack")
+  samplerTrack SamplerTrack? @relation("TrackToSamplerTrack")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -162,6 +163,20 @@ model AudioTrack {
   @@index([trackId])
   @@index([sampleId])
   @@map("audio_tracks")
+}
+
+model SamplerTrack {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pattern        Json
+
+  trackId        String @unique @db.Uuid
+
+  track          Track  @relation("TrackToSamplerTrack", fields: [trackId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("sampler_tracks")
 }
 
 model Collection {

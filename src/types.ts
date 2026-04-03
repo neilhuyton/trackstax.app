@@ -8,8 +8,12 @@ export type RouterOutput = inferRouterOutputs<AppRouter>;
 export type Screen = RouterOutput["screen"]["getByStackId"];
 export type Track = RouterOutput["track"]["getByStackId"][number];
 export type Stack = RouterOutput["stack"]["getById"];
-export type Duration = RouterOutput["track"]["getByStackId"][number]["durations"][number];
-export type DurationInput = Omit<Duration, "track" | "trackId" | "createdAt" | "updatedAt">;
+export type Duration =
+  RouterOutput["track"]["getByStackId"][number]["durations"][number];
+export type DurationInput = Omit<
+  Duration,
+  "track" | "trackId" | "createdAt" | "updatedAt"
+>;
 
 export interface AudioTrack {
   id: string;
@@ -51,3 +55,11 @@ export type SampleLibraryNavigation = {
   goToSubcategory: (subcategory: string) => void;
   goBack: () => void;
 };
+
+export type SamplerEvent = {
+  time: string;
+  note: string;
+  duration?: string;
+};
+
+export type SamplerPattern = SamplerEvent[];

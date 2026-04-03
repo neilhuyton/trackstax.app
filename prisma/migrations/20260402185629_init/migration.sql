@@ -48,7 +48,7 @@ CREATE TABLE "screens" (
 -- CreateTable
 CREATE TABLE "destinations" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "volumePercent" INTEGER NOT NULL DEFAULT 75,
+    "volumePercent" INTEGER NOT NULL DEFAULT 100,
     "isMute" BOOLEAN NOT NULL DEFAULT false,
     "stackId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -110,6 +110,17 @@ CREATE TABLE "audio_tracks" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "audio_tracks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sampler_tracks" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "pattern" JSONB NOT NULL,
+    "trackId" UUID NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "sampler_tracks_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -193,6 +204,9 @@ CREATE INDEX "audio_tracks_trackId_idx" ON "audio_tracks"("trackId");
 CREATE INDEX "audio_tracks_sampleId_idx" ON "audio_tracks"("sampleId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "sampler_tracks_trackId_key" ON "sampler_tracks"("trackId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "collections_name_key" ON "collections"("name");
 
 -- CreateIndex
@@ -230,6 +244,9 @@ ALTER TABLE "audio_tracks" ADD CONSTRAINT "audio_tracks_sampleId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "audio_tracks" ADD CONSTRAINT "audio_tracks_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "tracks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sampler_tracks" ADD CONSTRAINT "sampler_tracks_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "tracks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "samples" ADD CONSTRAINT "samples_collectionName_fkey" FOREIGN KEY ("collectionName") REFERENCES "collections"("name") ON DELETE CASCADE ON UPDATE CASCADE;
