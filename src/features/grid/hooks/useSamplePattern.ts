@@ -1,49 +1,78 @@
 import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
-import useStackIdStore from "../../stacks/hooks/useStackIdStore";
-import { useSamplerPatternRead } from "./useSamplerPatternRead";
+import useTracksStore from "../../track/hooks/useTracksStore";
+import type { SamplerEvent, Track } from "@/types";
+
+type SamplerTrackMinimal = Track & {
+  type: "sampler";
+  samplerTrack: {
+    pattern: SamplerEvent[] | null | undefined;
+  } | null;
+};
 
 export function useSamplerPattern() {
-  const stackId = useStackIdStore((state) => state.stackId);
-  const { pattern } = useSamplerPatternRead(stackId);
-  const { trigger, isLoaded } = useSampler("/samples/43.wav");
+  const { tracks } = useTracksStore();
 
+  const samplerTracks = tracks.filter(
+    (t): t is SamplerTrackMinimal => t.type === "sampler",
+  );
+
+  const { trigger, isLoaded } = useSampler("/samples/43.wav");
   const eventIdsRef = useRef<number[]>([]);
 
-  const schedulePattern = useCallback(() => {
+  const clearAllScheduledEvents = useCallback(() => {
     const transport = Tone.getTransport();
-
-    eventIdsRef.current.forEach((id) => transport.clear(id));
-    eventIdsRef.current = [];
-
-    if (!pattern || pattern.length === 0) return;
-
-    pattern.forEach((event) => {
-      const id = transport.schedule((time: number) => {
-        trigger(event.note, event.duration || "16n", time);
-      }, event.time);
-
-      eventIdsRef.current.push(id);
+    eventIdsRef.current.forEach((id) => {
+      try {
+        transport.clear(id);
+      } catch {
+        // ignore errors if event already cleared
+      }
     });
-  }, [pattern, trigger]);
+    eventIdsRef.current = [];
+  }, []);
 
+  const scheduleAllPatterns = useCallback(() => {
+    clearAllScheduledEvents();
+
+    if (!isLoaded || samplerTracks.length === 0) return;
+
+    samplerTracks.forEach((track) => {
+      const pattern = track.samplerTrack?.pattern ?? [];
+
+      pattern.forEach((event) => {
+        const id = Tone.getTransport().schedule((time: number) => {
+          trigger(event.note, event.duration || "16n", time);
+        }, event.time);
+
+        eventIdsRef.current.push(id);
+      });
+    });
+  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
+
+  // Re-schedule when pattern data or sampler loading state changes
   useEffect(() => {
-    if (!isLoaded) return;
+    if (isLoaded) {
+      scheduleAllPatterns();
+    } else {
+      clearAllScheduledEvents();
+    }
+  }, [isLoaded, scheduleAllPatterns, clearAllScheduledEvents]);
 
-    schedulePattern();
-  }, [isLoaded, schedulePattern]);
-
+  // Transport event listeners
   useEffect(() => {
     const transport = Tone.getTransport();
 
     const handleStart = () => {
-      schedulePattern();
+      // Only re-schedule if we don't already have events (prevents duplicates)
+      if (eventIdsRef.current.length === 0) {
+        scheduleAllPatterns();
+      }
     };
 
     const handleStopOrPause = () => {
-      eventIdsRef.current.forEach((id) => transport.clear(id));
-      eventIdsRef.current = [];
+      clearAllScheduledEvents();
     };
 
     transport.on("start", handleStart);
@@ -54,9 +83,16 @@ export function useSamplerPattern() {
       transport.off("start", handleStart);
       transport.off("stop", handleStopOrPause);
       transport.off("pause", handleStopOrPause);
-      handleStopOrPause();
+      clearAllScheduledEvents();
     };
-  }, [schedulePattern]);
+  }, [scheduleAllPatterns, clearAllScheduledEvents]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearAllScheduledEvents();
+    };
+  }, [clearAllScheduledEvents]);
 
   return { isLoaded };
 }

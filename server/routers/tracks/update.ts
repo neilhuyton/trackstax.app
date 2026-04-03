@@ -1,6 +1,21 @@
 import { protectedProcedure, router } from "../../trpc-base";
 import { z } from "zod";
 
+const trackInclude = {
+  durations: {
+    omit: { trackId: true },
+    orderBy: { start: "asc" },
+  },
+  audioTrack: {
+    omit: { trackId: true },
+  },
+  samplerTrack: {
+    select: {
+      pattern: true,
+    },
+  },
+} as const;
+
 export const trackUpdateRouter = router({
   update: protectedProcedure
     .input(
@@ -37,15 +52,7 @@ export const trackUpdateRouter = router({
           highFrequency: input.highFrequency,
           isBypass: input.isBypass,
         },
-        include: {
-          durations: {
-            omit: { trackId: true },
-            orderBy: { start: "asc" },
-          },
-          audioTrack: {
-            omit: { trackId: true },
-          },
-        },
+        include: trackInclude,
       });
 
       return updatedTrack;

@@ -1,10 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc";
-import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "@/../server/trpc";
-
-type RouterOutput = inferRouterOutputs<AppRouter>;
-export type Track = RouterOutput["track"]["getByStackId"];
 
 export function useTrackRead(stackId: string) {
   const trpc = useTRPC();

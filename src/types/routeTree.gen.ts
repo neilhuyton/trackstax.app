@@ -24,6 +24,7 @@ import { Route as AuthenticatedStacksStackIdRouteRouteImport } from './../routes
 import { Route as AuthenticatedStacksStackIdIndexRouteImport } from './../routes/_authenticated/stacks/$stackId/index'
 import { Route as AuthenticatedStacksStackIdLibraryRouteImport } from './../routes/_authenticated/stacks/$stackId/library'
 import { Route as AuthenticatedStacksStackIdDeleteRouteImport } from './../routes/_authenticated/stacks/$stackId/delete'
+import { Route as AuthenticatedStacksStackIdPianoRollTrackIdIndexRouteImport } from './../routes/_authenticated/stacks/$stackId/piano-roll/$trackId/index'
 
 const UpdatePasswordRoute = UpdatePasswordRouteImport.update({
   id: '/update-password',
@@ -104,6 +105,12 @@ const AuthenticatedStacksStackIdDeleteRoute =
     path: '/delete',
     getParentRoute: () => AuthenticatedStacksStackIdRouteRoute,
   } as any)
+const AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute =
+  AuthenticatedStacksStackIdPianoRollTrackIdIndexRouteImport.update({
+    id: '/piano-roll/$trackId/',
+    path: '/piano-roll/$trackId/',
+    getParentRoute: () => AuthenticatedStacksStackIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
   '/stacks/$stackId/library': typeof AuthenticatedStacksStackIdLibraryRoute
   '/stacks/$stackId/': typeof AuthenticatedStacksStackIdIndexRoute
+  '/stacks/$stackId/piano-roll/$trackId/': typeof AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
   '/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
   '/stacks/$stackId/library': typeof AuthenticatedStacksStackIdLibraryRoute
   '/stacks/$stackId': typeof AuthenticatedStacksStackIdIndexRoute
+  '/stacks/$stackId/piano-roll/$trackId': typeof AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -153,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/stacks/$stackId/delete': typeof AuthenticatedStacksStackIdDeleteRoute
   '/_authenticated/stacks/$stackId/library': typeof AuthenticatedStacksStackIdLibraryRoute
   '/_authenticated/stacks/$stackId/': typeof AuthenticatedStacksStackIdIndexRoute
+  '/_authenticated/stacks/$stackId/piano-roll/$trackId/': typeof AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/stacks/$stackId/delete'
     | '/stacks/$stackId/library'
     | '/stacks/$stackId/'
+    | '/stacks/$stackId/piano-roll/$trackId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/stacks/$stackId/delete'
     | '/stacks/$stackId/library'
     | '/stacks/$stackId'
+    | '/stacks/$stackId/piano-roll/$trackId'
   id:
     | '__root__'
     | '/'
@@ -203,6 +215,7 @@ export interface FileRouteTypes {
     | '/_authenticated/stacks/$stackId/delete'
     | '/_authenticated/stacks/$stackId/library'
     | '/_authenticated/stacks/$stackId/'
+    | '/_authenticated/stacks/$stackId/piano-roll/$trackId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStacksStackIdDeleteRouteImport
       parentRoute: typeof AuthenticatedStacksStackIdRouteRoute
     }
+    '/_authenticated/stacks/$stackId/piano-roll/$trackId/': {
+      id: '/_authenticated/stacks/$stackId/piano-roll/$trackId/'
+      path: '/piano-roll/$trackId'
+      fullPath: '/stacks/$stackId/piano-roll/$trackId/'
+      preLoaderRoute: typeof AuthenticatedStacksStackIdPianoRollTrackIdIndexRouteImport
+      parentRoute: typeof AuthenticatedStacksStackIdRouteRoute
+    }
   }
 }
 
@@ -329,6 +349,7 @@ interface AuthenticatedStacksStackIdRouteRouteChildren {
   AuthenticatedStacksStackIdDeleteRoute: typeof AuthenticatedStacksStackIdDeleteRoute
   AuthenticatedStacksStackIdLibraryRoute: typeof AuthenticatedStacksStackIdLibraryRoute
   AuthenticatedStacksStackIdIndexRoute: typeof AuthenticatedStacksStackIdIndexRoute
+  AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute: typeof AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute
 }
 
 const AuthenticatedStacksStackIdRouteRouteChildren: AuthenticatedStacksStackIdRouteRouteChildren =
@@ -338,6 +359,8 @@ const AuthenticatedStacksStackIdRouteRouteChildren: AuthenticatedStacksStackIdRo
     AuthenticatedStacksStackIdLibraryRoute:
       AuthenticatedStacksStackIdLibraryRoute,
     AuthenticatedStacksStackIdIndexRoute: AuthenticatedStacksStackIdIndexRoute,
+    AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute:
+      AuthenticatedStacksStackIdPianoRollTrackIdIndexRoute,
   }
 
 const AuthenticatedStacksStackIdRouteRouteWithChildren =
