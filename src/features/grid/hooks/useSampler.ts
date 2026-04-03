@@ -1,4 +1,3 @@
-// src/hooks/useSampler.ts
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 
@@ -33,13 +32,15 @@ export function useSampler(sampleUrl: string) {
     };
   }, [sampleUrl]);
 
-  // Simple trigger - accepts optional time for scheduling
-  const trigger = useCallback((note: string = "D3", duration: string = "16n", time?: number) => {
-    const sampler = samplerRef.current;
-    if (!sampler || !sampler.loaded) return;
+  const trigger = useCallback(
+    (note: string = "D3", duration: string = "16n", time?: number) => {
+      const sampler = samplerRef.current;
+      if (!sampler || !sampler.loaded) return;
 
-    sampler.triggerAttackRelease(note, duration, time);
-  }, []);
+      sampler.triggerAttackRelease(note, duration, time);
+    },
+    [],
+  );
 
   return { trigger, isLoaded, error };
 }

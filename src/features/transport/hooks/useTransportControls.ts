@@ -36,7 +36,6 @@ export const useTransportControls = ({
   isPlay,
   isForward,
   isBackward,
-  samplerPattern,
 }: TransportControlsProps) => {
   const [started, setStarted] = useState(false);
 
@@ -45,7 +44,7 @@ export const useTransportControls = ({
   const { players, stopAndClearAll } = usePlayers(tracks);
 
   useTempo(players, tracks);
-  useSamplerPattern(samplerPattern);
+  useSamplerPattern();
 
   const handleStop = useCallback(() => {
     if (!players) return;
