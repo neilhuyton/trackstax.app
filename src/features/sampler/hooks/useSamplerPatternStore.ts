@@ -7,7 +7,7 @@ interface SamplerPatternStore {
   addNote: (
     trackId: string,
     time: string,
-    note: string, // we accept string here for flexibility
+    note: string,
     duration?: string,
   ) => void;
   removeNote: (trackId: string, time: string, note: string) => void;
@@ -31,10 +31,9 @@ export const useSamplerPatternStore = create<SamplerPatternStore>((set) => ({
 
       if (alreadyExists) return state;
 
-      // Create properly typed event
       const newEvent: SamplerEvent = {
         time,
-        note: note as SamplerEvent["note"], // cast to the literal union
+        note: note as SamplerEvent["note"],
         duration,
       };
 
