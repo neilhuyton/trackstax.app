@@ -8,6 +8,9 @@ import { useSampler } from "@/features/grid/hooks/useSampler";
 import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
 import { useEffect } from "react";
 import type { SamplerEvent } from "@/types";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
+import * as Tone from "tone";
+import { useMemo } from "react";
 
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
@@ -20,8 +23,7 @@ const PianoRollPage = () => {
   const { pattern: serverPattern } = useSamplerPatternRead(trackId);
   const { trigger } = useSampler("/samples/43.wav");
 
-  const { patterns, addNote, removeNote, setPattern } =
-    useSamplerPatternStore();
+  const { patterns, setPattern } = useSamplerPatternStore();
 
   const currentPattern: SamplerEvent[] =
     patterns[trackId] ?? serverPattern ?? [];
@@ -30,7 +32,6 @@ const PianoRollPage = () => {
     trpc.sampler.updatePattern.mutationOptions(),
   );
 
-  // Sync server data into local store
   useEffect(() => {
     if (serverPattern) {
       setPattern(trackId, serverPattern);
@@ -38,22 +39,61 @@ const PianoRollPage = () => {
   }, [serverPattern, trackId, setPattern]);
 
   const handleAddNote = (time: string, note: string, duration = "16n") => {
-    addNote(trackId, time, note, duration);
+    const newEvent: SamplerEvent = {
+      time,
+      note: note as SamplerEvent["note"],
+      duration,
+    };
 
-    const latestPattern =
-      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+    const latestPattern = [...currentPattern, newEvent].sort((a, b) => {
+      const [barA, beatA, sixteenthA] = a.time.split(":").map(Number);
+      const [barB, beatB, sixteenthB] = b.time.split(":").map(Number);
+      return barA - barB || beatA - beatB || sixteenthA - sixteenthB;
+    });
 
-    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
+    setPattern(trackId, latestPattern);
+
+    updatePatternMutation.mutate({
+      trackId,
+      pattern: latestPattern,
+    });
   };
 
   const handleRemoveNote = (time: string, note: string) => {
-    removeNote(trackId, time, note);
+    const latestPattern = currentPattern.filter(
+      (p) => !(p.time === time && p.note === note),
+    );
 
-    const latestPattern =
-      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+    setPattern(trackId, latestPattern);
 
-    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
+    updatePatternMutation.mutate({
+      trackId,
+      pattern: latestPattern,
+    });
   };
+
+  const { position } = usePositionStore();
+
+  const currentBar = useMemo(() => {
+    if (!position) return -1;
+
+    try {
+      const pos = Tone.getTransport().position as string;
+
+      if (typeof pos === "string" && pos.includes(":")) {
+        const [barsStr] = pos.split(":");
+        const bar = parseInt(barsStr, 10);
+        return isNaN(bar) ? -1 : bar;
+      }
+
+      const transportTime = Tone.TransportTime(position);
+      const bbs = transportTime.toBarsBeatsSixteenths();
+      const bar = parseInt(bbs.split(":")[0], 10);
+      return isNaN(bar) ? -1 : bar;
+    } catch {
+      return -1;
+    }
+  }, [position]);
 
   if (!samplerTrack) {
     return (
@@ -69,6 +109,7 @@ const PianoRollPage = () => {
       onAddNote={handleAddNote}
       onRemoveNote={handleRemoveNote}
       trigger={trigger}
+      currentBar={currentBar}
     />
   );
 };

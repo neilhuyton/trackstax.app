@@ -14,12 +14,14 @@ export function useSampler(sampleUrl: string) {
       urls: {
         C3: sampleUrl,
       },
+      attack: 0,
+      release: 1.2,
+      curve: "linear",
+
       onload: () => {
-        console.log("✅ Sampler loaded:", sampleUrl);
         setIsLoaded(true);
       },
-      onerror: (err: unknown) => {
-        console.error("❌ Sampler load error:", err);
+      onerror: () => {
         setError("Failed to load sample");
       },
     }).toDestination();
@@ -33,11 +35,19 @@ export function useSampler(sampleUrl: string) {
   }, [sampleUrl]);
 
   const trigger = useCallback(
-    (note: string = "D3", duration: string = "16n", time?: number) => {
+    (note: string = "C3", duration: string = "8n", time?: number) => {
       const sampler = samplerRef.current;
       if (!sampler || !sampler.loaded) return;
 
-      sampler.triggerAttackRelease(note, duration, time);
+      try {
+        sampler.triggerAttackRelease(note, duration, time);
+      } catch (err) {
+        console.error(
+          `Trigger failed - note: ${note}, duration: ${duration}`,
+          err,
+        );
+        sampler.triggerAttackRelease(note, "4n", time);
+      }
     },
     [],
   );
