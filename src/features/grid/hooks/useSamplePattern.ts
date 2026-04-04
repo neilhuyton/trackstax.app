@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
 import useTracksStore from "../../track/hooks/useTracksStore";
-import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
 import type { SamplerEvent, Track } from "@/types";
 
 type SamplerTrackMinimal = Track & {
@@ -11,7 +10,6 @@ type SamplerTrackMinimal = Track & {
 
 export function useSamplerPattern() {
   const { tracks } = useTracksStore();
-  const { patterns } = useSamplerPatternStore();
 
   const samplerTracks = tracks.filter(
     (t): t is SamplerTrackMinimal => t.type === "sampler",
@@ -38,9 +36,9 @@ export function useSamplerPattern() {
     if (!isLoaded || samplerTracks.length === 0) return;
 
     samplerTracks.forEach((track) => {
-      const localPattern = patterns[track.id] ?? [];
+      const pattern = track.samplerTrack?.pattern ?? [];
 
-      localPattern.forEach((event: SamplerEvent) => {
+      pattern.forEach((event: SamplerEvent) => {
         const id = Tone.getTransport().schedule((time: number) => {
           trigger(event.note, event.duration || "16n", time);
         }, event.time);
@@ -48,9 +46,9 @@ export function useSamplerPattern() {
         eventIdsRef.current.push(id);
       });
     });
-  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents, patterns]);
+  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Re-schedule when local patterns change or sampler becomes loaded
+  // Re-schedule when patterns change or sampler is loaded
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();

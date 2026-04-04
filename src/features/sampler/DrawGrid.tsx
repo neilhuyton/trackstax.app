@@ -30,17 +30,20 @@ const DrawGrid = forwardRef<HTMLDivElement, Props>(
       onLineComplete,
     });
 
+    const canvasWidth = totalSteps * pixelSize;
+    const canvasHeight = notes.length * pixelSize;
+
     return (
       <div ref={ref} className="flex-1 overflow-auto bg-zinc-950">
         <div className="inline-block p-0 min-w-max">
           <div className="border border-zinc-700 shadow-xl overflow-hidden bg-zinc-900">
             <canvas
               ref={canvasRef}
-              className="block image-rendering-pixelated cursor-crosshair"
+              className="block cursor-crosshair"
               style={{
                 imageRendering: "pixelated",
-                width: `${totalSteps * pixelSize}px`,
-                height: `${notes.length * pixelSize}px`,
+                width: `${canvasWidth}px`,
+                height: `${canvasHeight}px`,
                 touchAction: "auto",
               }}
             />
