@@ -8,6 +8,9 @@ import { useSampler } from "@/features/grid/hooks/useSampler";
 import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
 import { useEffect } from "react";
 import type { SamplerEvent } from "@/types";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
+import * as Tone from "tone";
+import { useMemo } from "react";
 
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
@@ -29,7 +32,6 @@ const PianoRollPage = () => {
     trpc.sampler.updatePattern.mutationOptions(),
   );
 
-  // Sync server data into local store
   useEffect(() => {
     if (serverPattern) {
       setPattern(trackId, serverPattern);
@@ -70,25 +72,28 @@ const PianoRollPage = () => {
     });
   };
 
-  // New: Handle duration resize
-  const handleUpdateDuration = (
-    originalTime: string,
-    note: string,
-    newDuration: string,
-  ) => {
-    const updatedPattern = currentPattern.map((event) =>
-      event.time === originalTime && event.note === note
-        ? { ...event, duration: newDuration }
-        : event,
-    );
+  const { position } = usePositionStore();
 
-    setPattern(trackId, updatedPattern);
+  const currentBar = useMemo(() => {
+    if (!position) return -1;
 
-    updatePatternMutation.mutate({
-      trackId,
-      pattern: updatedPattern,
-    });
-  };
+    try {
+      const pos = Tone.getTransport().position as string;
+
+      if (typeof pos === "string" && pos.includes(":")) {
+        const [barsStr] = pos.split(":");
+        const bar = parseInt(barsStr, 10);
+        return isNaN(bar) ? -1 : bar;
+      }
+
+      const transportTime = Tone.TransportTime(position);
+      const bbs = transportTime.toBarsBeatsSixteenths();
+      const bar = parseInt(bbs.split(":")[0], 10);
+      return isNaN(bar) ? -1 : bar;
+    } catch {
+      return -1;
+    }
+  }, [position]);
 
   if (!samplerTrack) {
     return (
@@ -103,8 +108,8 @@ const PianoRollPage = () => {
       pattern={currentPattern}
       onAddNote={handleAddNote}
       onRemoveNote={handleRemoveNote}
-      onUpdateDuration={handleUpdateDuration}
       trigger={trigger}
+      currentBar={currentBar}
     />
   );
 };

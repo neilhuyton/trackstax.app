@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import SideNotes from "./SideNotes";
 import type { SamplerEvent, NoteName } from "@/types";
 import { NOTE_NAMES } from "@/types";
 import DrawGrid from "./DrawGrid";
+import PianoRollHeader from "./PianoRollHeader";
 
 const BAR_COUNT = 8;
 
@@ -10,12 +11,8 @@ type Props = {
   pattern: SamplerEvent[];
   onAddNote: (time: string, note: string, duration?: string) => void;
   onRemoveNote: (time: string, note: string) => void;
-  onUpdateDuration: (
-    originalTime: string,
-    note: string,
-    newDuration: string,
-  ) => void;
   trigger?: (note: string, duration?: string) => void;
+  currentBar: number;
 };
 
 export default function PianoRollViewer({
@@ -23,8 +20,10 @@ export default function PianoRollViewer({
   onAddNote,
   onRemoveNote,
   trigger,
+  currentBar,
 }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const gridScrollRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
   const totalSteps = BAR_COUNT * 16;
 
   const lines = pattern.map((event) => {
@@ -75,16 +74,32 @@ export default function PianoRollViewer({
     onAddNote(time, note, duration);
   };
 
+  useEffect(() => {
+    const grid = gridScrollRef.current;
+    const header = headerScrollRef.current;
+
+    if (!grid || !header) return;
+
+    const syncHeader = () => {
+      header.scrollLeft = grid.scrollLeft;
+    };
+
+    grid.addEventListener("scroll", syncHeader, { passive: true });
+
+    return () => grid.removeEventListener("scroll", syncHeader);
+  }, []);
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <PianoRollHeader currentBar={currentBar} ref={headerScrollRef} />
       <div className="flex flex-1 overflow-hidden">
-        <SideNotes notes={NOTE_NAMES} scrollRef={scrollRef} trigger={trigger} />
+        <SideNotes notes={NOTE_NAMES} scrollRef={gridScrollRef} trigger={trigger} />
         <DrawGrid
           notes={NOTE_NAMES}
           totalSteps={totalSteps}
           lines={lines}
           onLineComplete={handleLineComplete}
-          ref={scrollRef}
+          ref={gridScrollRef}
         />
       </div>
     </div>

@@ -8,7 +8,7 @@ import {
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useScreen } from "../screen/hooks/useScreen";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import TransportPositionDialog from "../transport/PositionDialog";
+// import TransportPositionDialog from "../transport/PositionDialog";
 import { useGridAutoPage } from "./hooks/useGridAutoPage";
 import { useGridEndStop } from "./hooks/useGridEndStop";
 
@@ -95,7 +95,7 @@ const GridPager = () => {
         </Button>
       </div>
 
-      <TransportPositionDialog />
+      {/* <TransportPositionDialog /> */}
     </div>
   );
 };
