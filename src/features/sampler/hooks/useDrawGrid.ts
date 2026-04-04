@@ -89,7 +89,7 @@ export function useDrawGrid({
 
       ctx.fillRect(startX + 1, y + 1, width - 2, pixelSize - 2);
     });
-  }, [lines, cols, rows, pixelSize]);
+  }, [lines, cols, rows, pixelSize, canvasHeight, canvasWidth]);
 
   const drawPixel = useCallback(
     (step: number, rowIndex: number) => {
