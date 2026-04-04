@@ -53,9 +53,17 @@ export function useDrawGrid({
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    ctx.fillStyle = "#18181b";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Background with alternating bar colors
+    for (let bar = 0; bar < Math.ceil(cols / 16); bar++) {
+      const isEvenBar = bar % 2 === 0;
+      const barStartX = bar * 16 * pixelSize;
+      const barWidth = Math.min(16 * pixelSize, canvasWidth - barStartX);
 
+      ctx.fillStyle = isEvenBar ? "#18181b" : "#1f1f23";
+      ctx.fillRect(barStartX, 0, barWidth, canvasHeight);
+    }
+
+    // Grid lines
     ctx.strokeStyle = "#3f3f46";
     ctx.lineWidth = 1;
 
@@ -72,6 +80,7 @@ export function useDrawGrid({
       ctx.stroke();
     }
 
+    // Notes
     ctx.fillStyle = "#8b5cf6";
     lines.forEach((line) => {
       const startX = line.startStep * pixelSize;
