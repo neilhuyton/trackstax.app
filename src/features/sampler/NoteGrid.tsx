@@ -1,45 +1,20 @@
+// src/features/sampler/NoteGrid.tsx
 import type { SamplerEvent, NoteName } from "@/types";
-import { forwardRef } from "react";
-import { durationToSteps } from "./utils/durationToSteps";
+import { forwardRef, useRef } from "react";
 
 type Props = {
   pattern: SamplerEvent[];
   notes: readonly NoteName[];
   totalSteps: number;
-  onAddNote: (time: string, note: string, duration?: string) => void;
-  onRemoveNote: (time: string, note: string) => void;
+  onAddNote: (time: string, note: string) => void;   // purely local
 };
 
 const NoteGrid = forwardRef<HTMLDivElement, Props>(
-  ({ pattern, notes, totalSteps, onAddNote, onRemoveNote }, ref) => {
-    const isNoteActiveAtStep = (step: number, note: NoteName): boolean => {
-      return pattern.some((event) => {
-        if (event.note !== note) return false;
+  ({ pattern, notes, totalSteps, onAddNote }, ref) => {
 
-        const steps = durationToSteps(event.duration || "16n");
-        const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
-        const startStep = eBar * 16 + eBeat * 4 + eSixteenth;
-        const endStep = startStep + steps;
-
-        return step >= startStep && step < endStep;
-      });
-    };
-
-    const isNoteStart = (step: number, note: NoteName): boolean => {
-      const timeStr = stepToTime(step);
-      return pattern.some((p) => p.time === timeStr && p.note === note);
-    };
-
-    const isNoteEnd = (step: number, note: NoteName): boolean => {
-      return pattern.some((event) => {
-        if (event.note !== note) return false;
-        const steps = durationToSteps(event.duration || "16n");
-        const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
-        const startStep = eBar * 16 + eBeat * 4 + eSixteenth;
-        const endStep = Math.floor(startStep + steps - 0.01);
-        return step === endStep;
-      });
-    };
+    const isDragging = useRef(false);
+    const lastStepRef = useRef<number | null>(null);
+    const lastNoteRef = useRef<NoteName | null>(null);
 
     const stepToTime = (step: number): string => {
       const bar = Math.floor(step / 16);
@@ -49,81 +24,100 @@ const NoteGrid = forwardRef<HTMLDivElement, Props>(
       return `${bar}:${beat}:${sixteenth}`;
     };
 
-    const handleClick = (e: React.MouseEvent) => {
-      const btn = (e.target as HTMLElement).closest("button");
-      if (!btn) return;
+    const isFilled = (step: number, note: NoteName): boolean => {
+      return pattern.some(event => 
+        event.note === note && event.time === stepToTime(step)
+      );
+    };
 
-      const step = Number(btn.dataset.step);
-      const noteIndex = Number(btn.dataset.noteIndex);
-      const note = notes[noteIndex];
+    const getPosition = (e: React.PointerEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-      const isActive = isNoteActiveAtStep(step, note);
+      const cellWidth = rect.width / totalSteps;
+      const cellHeight = rect.height / notes.length;
 
-      if (isActive) {
-        // Find original event to remove the whole note
-        const originalEvent = pattern.find((event) => {
-          if (event.note !== note) return false;
-          const steps = durationToSteps(event.duration || "16n");
-          const [eBar, eBeat, eSixteenth] = event.time.split(":").map(Number);
-          const start = eBar * 16 + eBeat * 4 + eSixteenth;
-          const end = start + steps;
-          return step >= start && step < end;
-        });
+      return {
+        step: Math.max(0, Math.min(totalSteps - 1, Math.floor(x / cellWidth))),
+        note: notes[Math.max(0, Math.min(notes.length - 1, Math.floor(y / cellHeight)))],
+      };
+    };
 
-        if (originalEvent) {
-          onRemoveNote(originalEvent.time, note);
-        }
-      } else {
-        const time = stepToTime(step);
-        onAddNote(time, note, "16n"); // default new notes to 16n
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      isDragging.current = true;
+
+      const { step, note } = getPosition(e);
+      lastStepRef.current = step;
+      lastNoteRef.current = note;
+
+      if (!isFilled(step, note)) {
+        onAddNote(stepToTime(step), note);
       }
     };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging.current) return;
+
+      const { step, note } = getPosition(e);
+
+      if (step === lastStepRef.current && note === lastNoteRef.current) return;
+
+      if (!isFilled(step, note)) {
+        onAddNote(stepToTime(step), note);
+      }
+
+      lastStepRef.current = step;
+      lastNoteRef.current = note;
+    };
+
+    const handlePointerUp = () => {
+      isDragging.current = false;
+      lastStepRef.current = null;
+      lastNoteRef.current = null;
+    };
+
+    const preventContextMenu = (e: React.MouseEvent) => e.preventDefault();
 
     return (
       <div ref={ref} className="flex-1 overflow-auto">
         <div
-          className="grid bg-neutral-800 select-none"
+          className="grid bg-neutral-800 select-none touch-none relative"
           style={{
             gridTemplateColumns: `repeat(${totalSteps}, 28px)`,
             gridTemplateRows: `repeat(${notes.length}, 28px)`,
           }}
-          onClick={handleClick}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          onContextMenu={preventContextMenu}
         >
           {notes.flatMap((note, noteIndex) =>
             Array.from({ length: totalSteps }, (_, step) => {
-              const isActive = isNoteActiveAtStep(step, note);
-              const isStart = isNoteStart(step, note);
-              const isEnd = isNoteEnd(step, note);
+              const isActive = isFilled(step, note);
+              const isStart = pattern.some(p => p.time === stepToTime(step) && p.note === note);
 
               return (
-                <button
+                <div
                   key={`${note}-${step}`}
-                  data-step={step}
-                  data-note-index={noteIndex}
                   className={`
-                    w-[28px] h-[28px] border border-gray-800 transition-all relative overflow-hidden
-                    ${
-                      isActive
-                        ? "bg-violet-500 border-violet-400"
-                        : "bg-zinc-900 hover:bg-zinc-700"
-                    }
+                    w-[28px] h-[28px] border border-gray-800 transition-all pointer-events-none
+                    ${isActive ? "bg-violet-500 border-violet-400" : "bg-zinc-900"}
                     ${isStart ? "border-l-2 border-violet-300" : ""}
-                    ${isEnd ? "border-r-2 border-violet-300" : ""}
                     ${isActive && !isStart ? "border-l-0" : ""}
-                    ${isActive && !isEnd ? "border-r-0" : ""}
                   `}
                 >
-                  {isStart && isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/60" />
-                  )}
-                </button>
+                  {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/60" />}
+                </div>
               );
-            }),
+            })
           )}
         </div>
       </div>
     );
-  },
+  }
 );
 
 NoteGrid.displayName = "NoteGrid";

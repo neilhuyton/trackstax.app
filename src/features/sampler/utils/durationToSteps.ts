@@ -1,26 +1,20 @@
-// src/features/sampler/utils/durationToSteps.ts
-
 export function durationToSteps(duration: string = "16n"): number {
   if (!duration) return 1;
 
-  // Dotted notes
   if (duration.endsWith(".")) {
     const base = duration.slice(0, -1);
     return (getBaseSteps(base) ?? 1) * 1.5;
   }
 
-  // Triplet notes - VISUAL SPAN (what you want on the grid)
   if (duration.endsWith("t")) {
     const base = duration.slice(0, -1);
-
-    if (base === "8") return 3; // 8t  = 3 × 16th notes  ← This is what you want
-    if (base === "4") return 8; // 4t  = 8 steps (approx)
-    if (base === "16") return 2; // 16t = 2 steps (approx)
-
-    return 2; // fallback
+    if (base === "8") return 3;
+    if (base === "4") return 8;
+    if (base === "16") return 2;
+    if (base === "2") return 12;
+    return 3;
   }
 
-  // Normal notes
   return getBaseSteps(duration);
 }
 

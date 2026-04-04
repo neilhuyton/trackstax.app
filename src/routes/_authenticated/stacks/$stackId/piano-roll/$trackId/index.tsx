@@ -20,8 +20,7 @@ const PianoRollPage = () => {
   const { pattern: serverPattern } = useSamplerPatternRead(trackId);
   const { trigger } = useSampler("/samples/43.wav");
 
-  const { patterns, addNote, removeNote, setPattern } =
-    useSamplerPatternStore();
+  const { patterns, setPattern } = useSamplerPatternStore();
 
   const currentPattern: SamplerEvent[] =
     patterns[trackId] ?? serverPattern ?? [];
@@ -38,21 +37,57 @@ const PianoRollPage = () => {
   }, [serverPattern, trackId, setPattern]);
 
   const handleAddNote = (time: string, note: string, duration = "16n") => {
-    addNote(trackId, time, note, duration);
+    const newEvent: SamplerEvent = {
+      time,
+      note: note as SamplerEvent["note"],
+      duration,
+    };
 
-    const latestPattern =
-      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+    const latestPattern = [...currentPattern, newEvent].sort((a, b) => {
+      const [barA, beatA, sixteenthA] = a.time.split(":").map(Number);
+      const [barB, beatB, sixteenthB] = b.time.split(":").map(Number);
+      return barA - barB || beatA - beatB || sixteenthA - sixteenthB;
+    });
 
-    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
+    setPattern(trackId, latestPattern);
+
+    updatePatternMutation.mutate({
+      trackId,
+      pattern: latestPattern,
+    });
   };
 
   const handleRemoveNote = (time: string, note: string) => {
-    removeNote(trackId, time, note);
+    const latestPattern = currentPattern.filter(
+      (p) => !(p.time === time && p.note === note),
+    );
 
-    const latestPattern =
-      useSamplerPatternStore.getState().patterns[trackId] ?? [];
+    setPattern(trackId, latestPattern);
 
-    updatePatternMutation.mutate({ trackId, pattern: latestPattern });
+    updatePatternMutation.mutate({
+      trackId,
+      pattern: latestPattern,
+    });
+  };
+
+  // New: Handle duration resize
+  const handleUpdateDuration = (
+    originalTime: string,
+    note: string,
+    newDuration: string,
+  ) => {
+    const updatedPattern = currentPattern.map((event) =>
+      event.time === originalTime && event.note === note
+        ? { ...event, duration: newDuration }
+        : event,
+    );
+
+    setPattern(trackId, updatedPattern);
+
+    updatePatternMutation.mutate({
+      trackId,
+      pattern: updatedPattern,
+    });
   };
 
   if (!samplerTrack) {
@@ -68,6 +103,7 @@ const PianoRollPage = () => {
       pattern={currentPattern}
       onAddNote={handleAddNote}
       onRemoveNote={handleRemoveNote}
+      onUpdateDuration={handleUpdateDuration}
       trigger={trigger}
     />
   );

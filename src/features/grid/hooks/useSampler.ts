@@ -1,4 +1,3 @@
-// src/features/grid/hooks/useSampler.ts
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 
@@ -20,11 +19,9 @@ export function useSampler(sampleUrl: string) {
       curve: "linear",
 
       onload: () => {
-        console.log("✅ Sampler loaded:", sampleUrl);
         setIsLoaded(true);
       },
-      onerror: (err: unknown) => {
-        console.error("❌ Sampler load error:", err);
+      onerror: () => {
         setError("Failed to load sample");
       },
     }).toDestination();
