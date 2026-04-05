@@ -1,6 +1,6 @@
+import type { SamplerEvent } from "@/types";
 import { protectedProcedure } from "../../trpc-base";
 import { z } from "zod";
-import type { SamplerEvent } from "@/types";
 
 export const samplerUpdateRouter = {
   updatePattern: protectedProcedure
@@ -22,21 +22,55 @@ export const samplerUpdateRouter = {
       });
 
       if (!samplerTrack) {
-        console.warn("No samplerTrack found for trackId:", input.trackId);
-        return { success: false };
+        throw new Error("Sampler track not found");
+      }
+
+      const updated = await ctx.prisma.samplerTrack.update({
+        where: { id: samplerTrack.id },
+        data: { pattern: input.pattern },
+      });
+
+      return {
+        success: true,
+        pattern: updated.pattern as SamplerEvent[],
+      };
+    }),
+
+  updateSample: protectedProcedure
+    .input(
+      z.object({
+        trackId: z.string().uuid(),
+        sampleUrl: z
+          .string()
+          .refine(
+            (val) =>
+              val.startsWith("/") || z.string().url().safeParse(val).success,
+            { message: "Must be a valid URL or path starting with /" },
+          ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const samplerTrack = await ctx.prisma.samplerTrack.findUnique({
+        where: { trackId: input.trackId },
+      });
+
+      if (!samplerTrack) {
+        throw new Error("Sampler track not found");
       }
 
       const updated = await ctx.prisma.samplerTrack.update({
         where: { id: samplerTrack.id },
         data: {
-          pattern: input.pattern,
+          sampleUrl: input.sampleUrl,
+        },
+        select: {
+          sampleUrl: true,
         },
       });
 
-      const savedPattern = updated.pattern as SamplerEvent[];
       return {
         success: true,
-        savedLength: savedPattern.length,
+        sampleUrl: updated.sampleUrl,
       };
     }),
 };

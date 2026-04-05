@@ -1,7 +1,7 @@
 import { type Track } from "@/types";
 import TrackDialog from "./Dialog";
 import useTracksStore from "./hooks/useTracksStore";
-import TrackAddDialog from "./AddDialog";
+import { AddTrackButton } from "./AddTrackButton"; // ← changed
 
 const TrackList = () => {
   const { tracks, trackErrors } = useTracksStore();
@@ -11,8 +11,7 @@ const TrackList = () => {
       <div className="flex-1 min-h-0 overflow-hidden p-1.5">
         <div className="h-full grid gap-1.5 grid-rows-[repeat(10,minmax(0,1fr))]">
           <div></div>
-          <TrackAddDialog />
-
+          <AddTrackButton /> {/* ← changed */}
           {tracks?.map((track: Track) => {
             const trackError = trackErrors.some(
               (error) => error.trackId === track.id,
@@ -25,7 +24,6 @@ const TrackList = () => {
               />
             );
           })}
-
           {Array.from({ length: Math.max(0, 8 - (tracks?.length || 0)) }).map(
             (_, i) => (
               <div

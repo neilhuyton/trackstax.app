@@ -18,8 +18,8 @@ export const TrackAddDialog = () => {
 
   const handleClick = () => {
     navigate({
-      to: "/stacks/$stackId/library",
-      params: { stackId },
+      to: "/stacks/$stackId/library/$trackId",
+      params: { stackId, trackId: "new" },
     });
   };
 

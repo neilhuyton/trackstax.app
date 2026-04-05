@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
 import useTracksStore from "../../track/hooks/useTracksStore";
-import { useSamplerPatternStore } from "@/features/sampler/hooks/useSamplerPatternStore";
 import type { SamplerEvent, Track } from "@/types";
 
 type SamplerTrackMinimal = Track & {
@@ -11,13 +10,19 @@ type SamplerTrackMinimal = Track & {
 
 export function useSamplerPattern() {
   const { tracks } = useTracksStore();
-  const { patterns } = useSamplerPatternStore();
 
   const samplerTracks = tracks.filter(
     (t): t is SamplerTrackMinimal => t.type === "sampler",
   );
 
-  const { trigger, isLoaded } = useSampler("/samples/43.wav");
+  const playableSamplerTracks = samplerTracks.filter(
+    (track) => track.durations && track.durations.length > 0,
+  );
+
+  const firstSamplerUrl =
+    playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
+
+  const { trigger, isLoaded } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -26,7 +31,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // ignore if already cleared
+        //
       }
     });
     eventIdsRef.current = [];
@@ -35,12 +40,12 @@ export function useSamplerPattern() {
   const scheduleAllPatterns = useCallback(() => {
     clearAllScheduledEvents();
 
-    if (!isLoaded || samplerTracks.length === 0) return;
+    if (!isLoaded || playableSamplerTracks.length === 0) return;
 
-    samplerTracks.forEach((track) => {
-      const localPattern = patterns[track.id] ?? [];
+    playableSamplerTracks.forEach((track) => {
+      const pattern = track.samplerTrack?.pattern ?? [];
 
-      localPattern.forEach((event: SamplerEvent) => {
+      pattern.forEach((event: SamplerEvent) => {
         const id = Tone.getTransport().schedule((time: number) => {
           trigger(event.note, event.duration || "16n", time);
         }, event.time);
@@ -48,9 +53,8 @@ export function useSamplerPattern() {
         eventIdsRef.current.push(id);
       });
     });
-  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents, patterns]);
+  }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Re-schedule when local patterns change or sampler becomes loaded
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -59,7 +63,6 @@ export function useSamplerPattern() {
     }
   }, [isLoaded, scheduleAllPatterns, clearAllScheduledEvents]);
 
-  // Transport event listeners
   useEffect(() => {
     const transport = Tone.getTransport();
 
@@ -85,7 +88,6 @@ export function useSamplerPattern() {
     };
   }, [scheduleAllPatterns, clearAllScheduledEvents]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearAllScheduledEvents();

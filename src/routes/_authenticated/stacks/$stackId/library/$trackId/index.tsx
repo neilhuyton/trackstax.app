@@ -1,17 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { TrackLibraryDialog } from "@/features/library/LibraryDialog";
+import { TrackLibrary } from "@/features/library/Library";
 import { useStack } from "@/features/stacks/hooks/useStackRead";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useAuthStore } from "@/store/authStore";
 
-export const Route = createFileRoute("/_authenticated/stacks/$stackId/library")(
-  {
-    component: StackLibraryPage,
-  },
-);
+export const Route = createFileRoute(
+  "/_authenticated/stacks/$stackId/library/$trackId/",
+)({
+  component: StackLibraryPage,
+});
 
 function StackLibraryPage() {
-  const { stackId } = Route.useParams();
+  const { stackId, trackId } = Route.useParams();
   const { data: stack } = useStack(stackId);
   const { tracks } = useTracksStore();
   const userId = useAuthStore((s) => s.user?.id);
@@ -22,7 +22,12 @@ function StackLibraryPage() {
 
   return (
     <div className="h-full overflow-hidden bg-neutral-950">
-      <TrackLibraryDialog userId={userId} tracks={tracks} stack={stack} />
+      <TrackLibrary
+        userId={userId}
+        tracks={tracks}
+        stack={stack}
+        trackId={trackId}
+      />
     </div>
   );
 }

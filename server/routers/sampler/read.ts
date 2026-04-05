@@ -8,11 +8,15 @@ export const samplerReadRouter = router({
     .query(async ({ ctx, input }) => {
       const samplerTrack = await ctx.prisma.samplerTrack.findUnique({
         where: { trackId: input.trackId },
-        select: { pattern: true },
+        select: {
+          pattern: true,
+          sampleUrl: true, // ← also return sampleUrl
+        },
       });
 
       return {
         pattern: (samplerTrack?.pattern as SamplerPattern) ?? [],
+        sampleUrl: samplerTrack?.sampleUrl ?? null,
       };
     }),
 });

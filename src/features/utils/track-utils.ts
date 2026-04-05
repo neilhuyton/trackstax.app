@@ -133,7 +133,7 @@ export type CreateNewTrackInput = {
   updatedAt: string;
   durations: Duration[];
   audioTrack: ReturnType<typeof createClientAudioTrack> | null;
-  samplerTrack: { pattern: SamplerPattern } | null;
+  samplerTrack: { pattern: SamplerPattern; sampleUrl: string | null } | null;
 };
 
 export const createNewTrack = (
@@ -142,6 +142,7 @@ export const createNewTrack = (
   tracks: Track[],
   stack: { id: string },
   result?: AudioBuffer,
+  isSampler: boolean = false,
 ): CreateNewTrackInput => {
   const [lastTrack] = tracks.slice(-1);
   const lastColorIdx =
@@ -159,8 +160,8 @@ export const createNewTrack = (
   const now = new Date().toISOString();
 
   return {
-    type: "audio",
-    label: `Track ${sortOrder}`,
+    type: isSampler ? "sampler" : "audio",
+    label: isSampler ? `Sampler ${sortOrder}` : `Track ${sortOrder}`,
     color: color.label,
     sortOrder,
     isMute: false,
@@ -177,19 +178,20 @@ export const createNewTrack = (
     createdAt: now,
     updatedAt: now,
     durations: [],
-    audioTrack: file
-      ? createClientAudioTrack(
-          file.name,
-          downloadUrl ?? null,
-          result?.duration ?? 0,
-          loopLength,
-        )
-      : null,
-    samplerTrack: null,
+    audioTrack: isSampler
+      ? null
+      : file
+        ? createClientAudioTrack(
+            file.name,
+            downloadUrl ?? null,
+            result?.duration ?? 0,
+            loopLength,
+          )
+        : null,
+    samplerTrack: isSampler ? { pattern: [], sampleUrl: null } : null,
   };
 };
 
-// Define the exact shape we expect from the server (Prisma output)
 type RawServerTrack = {
   id: string;
   type: string;
@@ -232,6 +234,7 @@ type RawServerTrack = {
   } | null;
   samplerTrack?: {
     pattern?: unknown;
+    sampleUrl?: string | null;
   } | null;
 };
 
@@ -256,17 +259,19 @@ export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
   updatedAt: serverTrack.updatedAt,
   durations: serverTrack.durations ?? [],
   audioTrack: serverTrack.audioTrack ?? null,
-  samplerTrack: {
-    pattern: Array.isArray(serverTrack.samplerTrack?.pattern)
-      ? (serverTrack.samplerTrack.pattern as SamplerPattern)
-      : [],
-  },
+  samplerTrack: serverTrack.samplerTrack
+    ? {
+        pattern: Array.isArray(serverTrack.samplerTrack.pattern)
+          ? (serverTrack.samplerTrack.pattern as SamplerPattern)
+          : [],
+        sampleUrl: serverTrack.samplerTrack.sampleUrl ?? null,
+      }
+    : null,
 });
 
 export const toClientTracks = (serverTracks: RawServerTrack[]): Track[] =>
   serverTracks.map(toClientTrack);
 
-// Legacy function (kept for compatibility - you can remove later if not used)
 export const buildClientTrackFromServer = (
   baseTrack: CreateNewTrackInput,
   createdTrack: RawServerTrack,
@@ -290,7 +295,7 @@ export const buildClientTrackFromServer = (
     updatedAt: baseTrack.updatedAt,
     durations: createdTrack.durations ?? [],
     audioTrack,
-    samplerTrack: baseTrack.samplerTrack ?? { pattern: [] },
+    samplerTrack: baseTrack.samplerTrack ?? { pattern: [], sampleUrl: null },
     isMute: createdTrack.isMute ?? false,
     isSolo: createdTrack.isSolo ?? false,
     isFavourite: createdTrack.isFavourite ?? false,

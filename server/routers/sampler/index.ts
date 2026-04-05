@@ -5,6 +5,7 @@ import { samplerUpdateRouter } from "./update";
 export const samplerRouter = router({
   getByTrackId: samplerReadRouter.getByTrackId,
   updatePattern: samplerUpdateRouter.updatePattern,
+  updateSample: samplerUpdateRouter.updateSample,
 });
 
-export type SampleRRouter = typeof samplerRouter;
+export type SamplerRouter = typeof samplerRouter;

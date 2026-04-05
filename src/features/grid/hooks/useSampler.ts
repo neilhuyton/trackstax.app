@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 
-export function useSampler(sampleUrl: string) {
+export function useSampler(sampleUrl: string | null) {
   const samplerRef = useRef<Tone.Sampler | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -9,6 +9,10 @@ export function useSampler(sampleUrl: string) {
   useEffect(() => {
     setIsLoaded(false);
     setError(null);
+
+    if (!sampleUrl) {
+      return;
+    }
 
     const sampler = new Tone.Sampler({
       urls: {
