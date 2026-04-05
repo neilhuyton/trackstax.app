@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
-import {
-  type Duration,
-  type PlayerChannel,
-  type PlayerEQ,
-  type Track,
-} from "@/types";
+import { type Duration, type PlayerChannel, type Track } from "@/types";
 import {
   barsToEndTime,
   calcVolumeLevel,
@@ -26,16 +21,15 @@ const usePlayers = (tracks: Track[]) => {
 
   const playersRef = useRef<Tone.Players | null>(null);
   const channelsRef = useRef<PlayerChannel[]>([]);
-  const eqsRef = useRef<PlayerEQ[]>([]);
-  const pitchShiftsRef = useRef<
-    { trackId: string; pitchShift: Tone.PitchShift }[]
-  >([]);
   const eventIds = useRef<number[]>([]);
 
   const { stopPosition } = usePositionStore();
-  const { addTrackError, eq, volume } = useTracksStore();
+  const { addTrackError, volume } = useTracksStore(); // removed eq
 
   const { isLoop, loopEnd, loopStart } = transport || {};
+
+  // Only audio tracks that actually need setup
+  const audioTracks = tracks.filter((t) => t.type === "audio" && t.audioTrack);
 
   const setupPlayer = useCallback(
     async (id: string, downloadUrl: string | null | undefined) => {
@@ -66,6 +60,23 @@ const usePlayers = (tracks: Track[]) => {
     },
     [addTrackError],
   );
+
+  const getOrCreateChannel = useCallback((track: Track): Tone.Channel => {
+    let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
+
+    if (!channelEntry) {
+      const channel = new Tone.Channel({
+        pan: 0,
+        mute: false,
+        channelCount: 2,
+      }).toDestination();
+
+      channelEntry = { track, channel };
+      channelsRef.current.push(channelEntry);
+    }
+
+    return channelEntry.channel;
+  }, []);
 
   const setupAudioDurations = useCallback(
     (track: Track, duration: Duration, player: Tone.Player) => {
@@ -151,23 +162,22 @@ const usePlayers = (tracks: Track[]) => {
     [isLoop, loopEnd, loopStart, stopPosition],
   );
 
-  const stopAndClearAll = () => {
+  const stopAndClearAll = useCallback(() => {
     if (playersRef.current) {
       playersRef.current.stopAll();
       tracks.forEach((track) => {
         if (track.type === "audio" && playersRef.current?.has(track.id)) {
           const player = playersRef.current.player(track.id);
-          if (player) {
-            player.stop();
-          }
+          if (player) player.stop();
         }
       });
     }
     Tone.getTransport().pause();
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.splice(0, eventIds.current.length);
-  };
+  }, [tracks]);
 
+  // Main heavy setup - only runs when audio tracks list or structure changes
   useEffect(() => {
     if (!playersRef.current) {
       playersRef.current = new Tone.Players().toDestination();
@@ -197,67 +207,69 @@ const usePlayers = (tracks: Track[]) => {
             continue;
           }
 
-          if (player) {
-            player.volume.value = calcVolumeLevel(track.volumePercent);
-            player.mute = track.isMute;
+          if (!player) continue;
 
-            if (
-              soloTracks.length &&
-              !soloTracks.find((t) => t.id === track.id)
-            ) {
-              player.mute = true;
-            }
+          const channel = getOrCreateChannel(track);
 
-            track.durations.forEach((duration) =>
-              setupAudioDurations(track, duration, player),
-            );
+          if (player.output) {
+            player.disconnect();
+            player.connect(channel);
           }
+
+          const shouldMuteBySolo =
+            soloTracks.length > 0 && !soloTracks.some((t) => t.id === track.id);
+
+          const isMuted = track.isMute || shouldMuteBySolo;
+
+          channel.volume.value = isMuted
+            ? -Infinity
+            : calcVolumeLevel(track.volumePercent);
+          channel.mute = isMuted;
+
+          track.durations.forEach((duration) =>
+            setupAudioDurations(track, duration, player),
+          );
         }
       }
     };
 
     setupAllTracks();
-
-    return () => {
-      pitchShiftsRef.current.forEach(({ pitchShift }) => pitchShift.dispose());
-      pitchShiftsRef.current = [];
-    };
   }, [
-    tracks,
+    audioTracks,
+    tracks, 
     isLoading,
     isError,
     stackId,
     setupPlayer,
     setupAudioDurations,
     addTrackError,
+    getOrCreateChannel,
   ]);
 
+  // Lightweight volume + mute updates (does NOT reschedule)
   useEffect(() => {
-    if (volume && playersRef.current?.has(volume.trackId)) {
-      const player = playersRef.current.player(volume.trackId);
+    if (!volume) return;
+
+    const channelEntry = channelsRef.current.find(
+      (c) => c.track.id === volume.trackId,
+    );
+
+    if (channelEntry) {
       const track = tracks.find((t) => t.id === volume.trackId);
       const soloTracks = tracks.filter((t) => t.isSolo);
-      const isSolo =
-        soloTracks.length && !soloTracks.find((t) => t.id === track?.id);
-      if (
-        player &&
-        track &&
-        track.type === "audio" &&
-        !track.isMute &&
-        !isSolo
-      ) {
-        player.volume.value = calcVolumeLevel(volume.volumePercent);
+      const isSoloMuted =
+        soloTracks.length && !soloTracks.some((t) => t.id === track?.id);
+
+      if (track && track.type === "audio") {
+        const isMuted = track.isMute || isSoloMuted;
+
+        channelEntry.channel.volume.value = isMuted
+          ? -Infinity
+          : calcVolumeLevel(volume.volumePercent);
+        channelEntry.channel.mute = Boolean(isMuted);
       }
     }
   }, [volume, tracks]);
-
-  useEffect(() => {
-    const currentEQ =
-      eq && eqsRef.current?.find((c) => c.track.id === eq.trackId)?.eq;
-    if (currentEQ) {
-      currentEQ.set({ ...eq });
-    }
-  }, [eq]);
 
   return {
     channels: channelsRef.current,

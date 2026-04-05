@@ -23,7 +23,7 @@ export function useSamplerPattern() {
   const firstSamplerUrl =
     playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
 
-  const { trigger, isLoaded, sampler } = useSampler(firstSamplerUrl);
+  const { trigger, isLoaded, channel } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -32,7 +32,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // fail silently - leave in here
+        // leave this comment here
       }
     });
     eventIdsRef.current = [];
@@ -68,7 +68,7 @@ export function useSamplerPattern() {
           const loopEndBar = Math.min(loopStartBar + loopLength, stop);
 
           pattern.forEach((event: SamplerEvent) => {
-            let eventTime: number;
+            let eventTime: number = 0;
 
             if (typeof event.time === "string") {
               if (event.time.includes(":")) {
@@ -103,6 +103,7 @@ export function useSamplerPattern() {
     });
   }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
+  // Scheduling effects
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -120,9 +121,7 @@ export function useSamplerPattern() {
       }
     };
 
-    const handleStopOrPause = () => {
-      clearAllScheduledEvents();
-    };
+    const handleStopOrPause = () => clearAllScheduledEvents();
 
     transport.on("start", handleStart);
     transport.on("stop", handleStopOrPause);
@@ -137,30 +136,49 @@ export function useSamplerPattern() {
   }, [scheduleAllPatterns, clearAllScheduledEvents]);
 
   useEffect(() => {
-    return () => {
-      clearAllScheduledEvents();
-    };
+    return () => clearAllScheduledEvents();
   }, [clearAllScheduledEvents]);
 
-  // Apply volume from tracks (initial load + track changes)
+  // ====================== VOLUME + MUTE + SOLO via CHANNEL ======================
+
+  // Initial + track changes
   useEffect(() => {
-    if (!sampler) return;
+    if (!channel) return;
 
     const samplerTrack = tracks.find((t) => t.type === "sampler");
     if (!samplerTrack) return;
 
-    sampler.volume.value = calcVolumeLevel(samplerTrack.volumePercent);
-  }, [sampler, tracks, isLoaded]);
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 &&
+      !soloTracks.some((t) => t.id === samplerTrack.id);
 
-  // Live slider updates
+    const isMuted = samplerTrack.isMute || shouldMuteBySolo;
+
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(samplerTrack.volumePercent);
+    channel.mute = isMuted;
+  }, [channel, tracks]);
+
+  // Live volume slider + mute/solo
   useEffect(() => {
-    if (!sampler || !volume?.trackId) return;
+    if (!channel || !volume?.trackId) return;
 
     const targetTrack = tracks.find((t) => t.id === volume.trackId);
     if (!targetTrack || targetTrack.type !== "sampler") return;
 
-    sampler.volume.value = calcVolumeLevel(volume.volumePercent);
-  }, [volume, sampler, tracks]);
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 && !soloTracks.some((t) => t.id === targetTrack.id);
+
+    const isMuted = targetTrack.isMute || shouldMuteBySolo;
+
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(volume.volumePercent);
+    channel.mute = isMuted;
+  }, [volume, channel, tracks]);
 
   return { isLoaded };
 }
