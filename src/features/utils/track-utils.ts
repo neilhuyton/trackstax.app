@@ -142,6 +142,7 @@ export const createNewTrack = (
   tracks: Track[],
   stack: { id: string },
   result?: AudioBuffer,
+  isSampler: boolean = false,
 ): CreateNewTrackInput => {
   const [lastTrack] = tracks.slice(-1);
   const lastColorIdx =
@@ -159,8 +160,8 @@ export const createNewTrack = (
   const now = new Date().toISOString();
 
   return {
-    type: "audio",
-    label: `Track ${sortOrder}`,
+    type: isSampler ? "sampler" : "audio",
+    label: isSampler ? `Sampler ${sortOrder}` : `Track ${sortOrder}`,
     color: color.label,
     sortOrder,
     isMute: false,
@@ -177,15 +178,17 @@ export const createNewTrack = (
     createdAt: now,
     updatedAt: now,
     durations: [],
-    audioTrack: file
-      ? createClientAudioTrack(
-          file.name,
-          downloadUrl ?? null,
-          result?.duration ?? 0,
-          loopLength,
-        )
-      : null,
-    samplerTrack: null,
+    audioTrack: isSampler
+      ? null
+      : file
+        ? createClientAudioTrack(
+            file.name,
+            downloadUrl ?? null,
+            result?.duration ?? 0,
+            loopLength,
+          )
+        : null,
+    samplerTrack: isSampler ? { pattern: [], sampleUrl: null } : null,
   };
 };
 

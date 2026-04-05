@@ -18,6 +18,7 @@ import { trpc } from "@/trpc";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import useTracksStore from "../track/hooks/useTracksStore";
+import { createNewTrack } from "../utils/track-utils";
 
 type TrackLibraryProps = {
   userId: string | null;
@@ -76,11 +77,19 @@ export const TrackLibrary = ({
         trackId === "new" && searchParams.get("type") === "sampler";
 
       if (isNewSampler) {
+        const baseTrack = createNewTrack(
+          null,
+          null,
+          tracks,
+          stack,
+          undefined,
+          true,
+        );
         const created = await createSamplerMutation.mutateAsync({
           stackId: stack.id,
           type: "sampler",
-          label: `Sampler ${tracks.length + 1}`,
-          color: "#8b5cf6",
+          label: baseTrack.label,
+          color: baseTrack.color,
         });
 
         await updateSamplerSampleMutation.mutateAsync({
