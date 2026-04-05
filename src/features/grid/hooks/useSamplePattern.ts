@@ -15,8 +15,12 @@ export function useSamplerPattern() {
     (t): t is SamplerTrackMinimal => t.type === "sampler",
   );
 
-  // Use the first sampler's sampleUrl (or fallback). In a full app you may want per-track samplers.
-  const firstSamplerUrl = samplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
+  const playableSamplerTracks = samplerTracks.filter(
+    (track) => track.durations && track.durations.length > 0,
+  );
+
+  const firstSamplerUrl =
+    playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
 
   const { trigger, isLoaded } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
@@ -27,7 +31,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // ignore
+        //
       }
     });
     eventIdsRef.current = [];
@@ -36,9 +40,9 @@ export function useSamplerPattern() {
   const scheduleAllPatterns = useCallback(() => {
     clearAllScheduledEvents();
 
-    if (!isLoaded || samplerTracks.length === 0) return;
+    if (!isLoaded || playableSamplerTracks.length === 0) return;
 
-    samplerTracks.forEach((track) => {
+    playableSamplerTracks.forEach((track) => {
       const pattern = track.samplerTrack?.pattern ?? [];
 
       pattern.forEach((event: SamplerEvent) => {
@@ -49,7 +53,7 @@ export function useSamplerPattern() {
         eventIdsRef.current.push(id);
       });
     });
-  }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
+  }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
   useEffect(() => {
     if (isLoaded) {
