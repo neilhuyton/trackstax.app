@@ -235,8 +235,8 @@ const usePlayers = (tracks: Track[]) => {
 
     setupAllTracks();
   }, [
-    audioTracks, // Main trigger for heavy setup
-    tracks, // ← Added to fix the lint warning
+    audioTracks,
+    tracks, 
     isLoading,
     isError,
     stackId,

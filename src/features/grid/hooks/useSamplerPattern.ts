@@ -103,7 +103,7 @@ export function useSamplerPattern() {
     });
   }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Scheduling effects (unchanged)
+  // Scheduling effects
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
