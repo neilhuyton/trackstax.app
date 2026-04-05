@@ -32,7 +32,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // fail silently - leave in here
+        // fail silently
       }
     });
     eventIdsRef.current = [];
@@ -41,7 +41,7 @@ export function useSamplerPattern() {
   const scheduleAllPatterns = useCallback(() => {
     clearAllScheduledEvents();
 
-    if (!isLoaded || playableSamplerTracks.length === 0) return;
+    if (!isLoaded || playableSamplerTracks.length === 0 || !sampler) return;
 
     const toTransportTime = (bars: number): string => {
       const whole = Math.floor(bars);
@@ -101,8 +101,15 @@ export function useSamplerPattern() {
         }
       });
     });
-  }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
+  }, [
+    playableSamplerTracks,
+    trigger,
+    isLoaded,
+    clearAllScheduledEvents,
+    sampler,
+  ]);
 
+  // Scheduling effects - unchanged
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -142,24 +149,47 @@ export function useSamplerPattern() {
     };
   }, [clearAllScheduledEvents]);
 
-  // Apply volume from tracks (initial load + track changes)
+  // ====================== VOLUME + MUTE + SOLO ======================
+
+  // Initial volume setup when sampler loads + track data is available
   useEffect(() => {
-    if (!sampler) return;
+    if (!sampler || !isLoaded) return;
 
     const samplerTrack = tracks.find((t) => t.type === "sampler");
     if (!samplerTrack) return;
 
-    sampler.volume.value = calcVolumeLevel(samplerTrack.volumePercent);
-  }, [sampler, tracks, isLoaded]);
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 &&
+      !soloTracks.some((t) => t.id === samplerTrack.id);
 
-  // Live slider updates
+    const isMuted = samplerTrack.isMute || shouldMuteBySolo;
+
+    if (isMuted) {
+      sampler.volume.value = -Infinity;
+    } else {
+      sampler.volume.value = calcVolumeLevel(samplerTrack.volumePercent);
+    }
+  }, [sampler, isLoaded, tracks]);
+
+  // Live updates for volume slider + mute/solo changes
   useEffect(() => {
     if (!sampler || !volume?.trackId) return;
 
     const targetTrack = tracks.find((t) => t.id === volume.trackId);
     if (!targetTrack || targetTrack.type !== "sampler") return;
 
-    sampler.volume.value = calcVolumeLevel(volume.volumePercent);
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 && !soloTracks.some((t) => t.id === targetTrack.id);
+
+    const isMuted = targetTrack.isMute || shouldMuteBySolo;
+
+    if (isMuted) {
+      sampler.volume.value = -Infinity;
+    } else {
+      sampler.volume.value = calcVolumeLevel(volume.volumePercent);
+    }
   }, [volume, sampler, tracks]);
 
   return { isLoaded };

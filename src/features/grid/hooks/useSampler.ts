@@ -10,8 +10,13 @@ export function useSampler(sampleUrl: string | null) {
     setIsLoaded(false);
     setError(null);
 
-    if (!sampleUrl) {
+    // Cleanup previous sampler
+    if (samplerRef.current) {
+      samplerRef.current.dispose();
       samplerRef.current = null;
+    }
+
+    if (!sampleUrl) {
       return;
     }
 
@@ -29,7 +34,7 @@ export function useSampler(sampleUrl: string | null) {
       onerror: () => {
         setError("Failed to load sample");
       },
-    }).toDestination();
+    }).toDestination();        // ← Direct connection = maximum fidelity
 
     samplerRef.current = sampler;
 
@@ -47,15 +52,17 @@ export function useSampler(sampleUrl: string | null) {
       try {
         sampler.triggerAttackRelease(note, duration, time);
       } catch (err) {
-        console.error(
-          `Trigger failed - note: ${note}, duration: ${duration}`,
-          err,
-        );
+        console.error(`Trigger failed - note: ${note}, duration: ${duration}`, err);
         sampler.triggerAttackRelease(note, "4n", time);
       }
     },
     [],
   );
 
-  return { trigger, isLoaded, error, sampler: samplerRef.current };
+  return {
+    trigger,
+    isLoaded,
+    error,
+    sampler: samplerRef.current,   // expose so we can control mute/volume
+  };
 }

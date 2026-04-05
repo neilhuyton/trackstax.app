@@ -37,6 +37,8 @@ const usePlayers = (tracks: Track[]) => {
 
   const { isLoop, loopEnd, loopStart } = transport || {};
 
+  // ====================== SETUP HELPERS ======================
+
   const setupPlayer = useCallback(
     async (id: string, downloadUrl: string | null | undefined) => {
       if (!playersRef.current?.has(id)) {
@@ -66,6 +68,19 @@ const usePlayers = (tracks: Track[]) => {
     },
     [addTrackError],
   );
+
+  const getOrCreateChannel = useCallback((track: Track): Tone.Channel => {
+    let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
+
+    if (!channelEntry) {
+      const channel = new Tone.Channel().toDestination();
+
+      channelEntry = { track, channel };
+      channelsRef.current.push(channelEntry);
+    }
+
+    return channelEntry.channel;
+  }, []);
 
   const setupAudioDurations = useCallback(
     (track: Track, duration: Duration, player: Tone.Player) => {
@@ -151,22 +166,22 @@ const usePlayers = (tracks: Track[]) => {
     [isLoop, loopEnd, loopStart, stopPosition],
   );
 
-  const stopAndClearAll = () => {
+  const stopAndClearAll = useCallback(() => {
     if (playersRef.current) {
       playersRef.current.stopAll();
       tracks.forEach((track) => {
         if (track.type === "audio" && playersRef.current?.has(track.id)) {
           const player = playersRef.current.player(track.id);
-          if (player) {
-            player.stop();
-          }
+          if (player) player.stop();
         }
       });
     }
     Tone.getTransport().pause();
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.splice(0, eventIds.current.length);
-  };
+  }, [tracks]);
+
+  // ====================== MAIN SETUP EFFECT ======================
 
   useEffect(() => {
     if (!playersRef.current) {
@@ -177,6 +192,7 @@ const usePlayers = (tracks: Track[]) => {
       return;
     }
 
+    // Clear previous events
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.length = 0;
 
@@ -197,21 +213,30 @@ const usePlayers = (tracks: Track[]) => {
             continue;
           }
 
-          if (player) {
-            player.volume.value = calcVolumeLevel(track.volumePercent);
-            player.mute = track.isMute;
+          if (!player) continue;
 
-            if (
-              soloTracks.length &&
-              !soloTracks.find((t) => t.id === track.id)
-            ) {
-              player.mute = true;
-            }
+          // === ROUTE PLAYER THROUGH CHANNEL ===
+          const channel = getOrCreateChannel(track);
 
-            track.durations.forEach((duration) =>
-              setupAudioDurations(track, duration, player),
-            );
+          // Disconnect player from destination and connect through channel
+          if (player.output) {
+            // Tone.Players internally manages connections — we chain: Player → Channel → Destination
+            player.disconnect();
+            player.connect(channel);
           }
+
+          // === VOLUME, MUTE, SOLO via CHANNEL (NOT PLAYER) ===
+          channel.volume.value = calcVolumeLevel(track.volumePercent);
+          channel.mute = track.isMute;
+
+          if (soloTracks.length && !soloTracks.some((t) => t.id === track.id)) {
+            channel.mute = true;
+          }
+
+          // Setup scheduling (unchanged)
+          track.durations.forEach((duration) =>
+            setupAudioDurations(track, duration, player),
+          );
         }
       }
     };
@@ -230,31 +255,40 @@ const usePlayers = (tracks: Track[]) => {
     setupPlayer,
     setupAudioDurations,
     addTrackError,
+    getOrCreateChannel,
   ]);
 
+  // ====================== VOLUME UPDATES ======================
+
   useEffect(() => {
-    if (volume && playersRef.current?.has(volume.trackId)) {
-      const player = playersRef.current.player(volume.trackId);
+    if (!volume) return;
+
+    const channelEntry = channelsRef.current.find(
+      (c) => c.track.id === volume.trackId,
+    );
+
+    if (channelEntry) {
       const track = tracks.find((t) => t.id === volume.trackId);
       const soloTracks = tracks.filter((t) => t.isSolo);
-      const isSolo =
-        soloTracks.length && !soloTracks.find((t) => t.id === track?.id);
-      if (
-        player &&
-        track &&
-        track.type === "audio" &&
-        !track.isMute &&
-        !isSolo
-      ) {
-        player.volume.value = calcVolumeLevel(volume.volumePercent);
+      const isSoloMuted =
+        soloTracks.length && !soloTracks.some((t) => t.id === track?.id);
+
+      if (track && track.type === "audio" && !track.isMute && !isSoloMuted) {
+        channelEntry.channel.volume.value = calcVolumeLevel(
+          volume.volumePercent,
+        );
       }
     }
   }, [volume, tracks]);
 
+  // ====================== EQ UPDATES (unchanged) ======================
+
   useEffect(() => {
-    const currentEQ =
-      eq && eqsRef.current?.find((c) => c.track.id === eq.trackId)?.eq;
-    if (currentEQ) {
+    const currentEQ = eqsRef.current?.find(
+      (c) => c.track.id === eq?.trackId,
+    )?.eq;
+
+    if (currentEQ && eq) {
       currentEQ.set({ ...eq });
     }
   }, [eq]);
