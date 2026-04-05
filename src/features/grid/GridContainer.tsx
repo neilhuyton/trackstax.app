@@ -1,6 +1,6 @@
-import GridHeader from "./Header";
+import GridBars from "./GridBars";
 import GridTrackRow from "./TrackRow";
-import GridPager from "./GridPager";
+import GridToolbar from "./GridToolbar";
 import useTracksStore from "../track/hooks/useTracksStore";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
@@ -38,8 +38,8 @@ const GridContainer = () => {
   return (
     <div className="h-full bg-[#1a1a1a] p-1.5 flex flex-col">
       <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
-        <GridPager />
-        <GridHeader />
+        <GridToolbar />
+        <GridBars />
 
         {tracks && tracks.length > 0 ? (
           tracks.map((track: Track) => {

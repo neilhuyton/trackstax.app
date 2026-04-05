@@ -7,7 +7,7 @@ import { useScreen } from "../screen/hooks/useScreen";
 import usePositionStore from "../position/hooks/usePositionStore";
 import { useTransportRead } from "../transport/hooks/useTransportRead";
 
-const GridHeader = () => {
+const GridBars = () => {
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
   const pageSize = 8;
   const visibleStartBar = page * pageSize;
@@ -97,4 +97,4 @@ const GridHeader = () => {
   );
 };
 
-export default GridHeader;
+export default GridBars;

@@ -13,6 +13,8 @@ import {
   getCurrentBar,
 } from "@/features/sampler/utils/pianoRollUtils";
 
+import PianoRollToolbar from "@/features/sampler/PianoRollToolbar";
+
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
   const { tracks, storeUpdateTrack } = useTracksStore();
@@ -74,13 +76,19 @@ const PianoRollPage = () => {
   }
 
   return (
-    <PianoRollViewer
-      pattern={currentPattern}
-      onAddNote={handleAddNote}
-      onRemoveNote={handleRemoveNote}
-      trigger={trigger}
-      currentBar={currentBar}
-    />
+    <div className="flex flex-col h-full overflow-hidden bg-[#1a1a1a]">
+      <PianoRollToolbar />
+
+      <div className="flex-1 overflow-hidden">
+        <PianoRollViewer
+          pattern={currentPattern}
+          onAddNote={handleAddNote}
+          onRemoveNote={handleRemoveNote}
+          trigger={trigger}
+          currentBar={currentBar}
+        />
+      </div>
+    </div>
   );
 };
 

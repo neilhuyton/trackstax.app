@@ -2,13 +2,13 @@ import { useEffect } from "react";
 import * as Tone from "tone";
 
 import type { Track } from "@/types";
-import { useTransportRead } from "./useTransportRead";
-import useTransportStore from "./useTransportStore";
 
 import { useTRPC } from "@/trpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
+import { useTransportRead } from "@/features/transport/hooks/useTransportRead";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 const useTempo = (players: Tone.Players | null, tracks: Track[]) => {
   const stackId = useStackIdStore((state) => state.stackId);
@@ -24,15 +24,14 @@ const useTempo = (players: Tone.Players | null, tracks: Track[]) => {
     stackId: stackId!,
   });
 
-  const updateLoopLengthsMutation = useMutation(
-    trpc.track.updateLoopLengths.mutationOptions({
+  const updateTrackMutation = useMutation(
+    trpc.track.update.mutationOptions({
       onMutate: async () => {
         await queryClient.cancelQueries({ queryKey: tracksQueryKey });
       },
 
       onError: (error) => {
         console.error("Failed to update track loop lengths:", error);
-        // Add banner here later
       },
 
       onSettled: () => {
@@ -74,15 +73,15 @@ const useTempo = (players: Tone.Players | null, tracks: Track[]) => {
 
       setTracks(updatedTracks);
 
-      const updates = updatedTracks
-        .filter((t) => t.type === "audio" && t.audioTrack)
-        .map((t) => ({
-          id: t.id,
-          loopLength: t.audioTrack!.loopLength,
-        }));
+      const updates = updatedTracks.filter(
+        (t) => t.type === "audio" && t.audioTrack,
+      );
 
       if (updates.length > 0) {
-        updateLoopLengthsMutation.mutate(updates);
+        updateTrackMutation.mutate({
+          id: updates[0].id,
+          loopLength: updates[0].loopLength, // use track.loopLength, not audioTrack.loopLength
+        });
       }
 
       setIsTempo(false);
@@ -96,7 +95,7 @@ const useTempo = (players: Tone.Players | null, tracks: Track[]) => {
     players,
     setTracks,
     setIsTempo,
-    updateLoopLengthsMutation,
+    updateTrackMutation,
     stackId,
     tracksQueryKey,
   ]);

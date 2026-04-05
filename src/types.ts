@@ -1,6 +1,6 @@
-import * as Tone from "tone";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "../server/trpc";
+import * as Tone from "tone";
 
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 
@@ -93,6 +93,7 @@ export type Track = {
   lowFrequency: number;
   highFrequency: number;
   isBypass: boolean;
+  loopLength: number;
   stackId: string;
   createdAt: string;
   updatedAt: string;
@@ -109,7 +110,6 @@ export type Track = {
     id: string;
     filename: string;
     downloadUrl: string | null;
-    loopLength: number;
     offset: number;
     duration: number;
     pitch: number;
@@ -143,7 +143,6 @@ export interface AudioTrack {
   id: string;
   filename: string;
   downloadUrl?: string;
-  loopLength: number;
   offset: number;
   duration: number;
   pitch: number;

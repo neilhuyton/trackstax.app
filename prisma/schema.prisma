@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider      = "prisma-client-js"
   output        = "../node_modules/.prisma/client"
@@ -109,6 +111,7 @@ model Track {
   lowFrequency  Int
   highFrequency Int
   isBypass      Boolean
+  loopLength    Int     @default(4)
 
   stackId String @db.Uuid
 
@@ -144,7 +147,6 @@ model AudioTrack {
   id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   filename     String
   downloadUrl  String?
-  loopLength   Int
   offset       Float   @default(0)
   duration     Float   @default(0)
   pitch        Float   @default(0)

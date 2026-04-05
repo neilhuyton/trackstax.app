@@ -8,11 +8,10 @@ import {
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useScreen } from "../screen/hooks/useScreen";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-// import TransportPositionDialog from "../transport/PositionDialog";
 import { useGridAutoPage } from "./hooks/useGridAutoPage";
 import { useGridEndStop } from "./hooks/useGridEndStop";
 
-const GridPager = () => {
+const GridToolbar = () => {
   const navigate = useNavigate();
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
@@ -49,14 +48,14 @@ const GridPager = () => {
   const goToLastPage = () => goToPage(totalPages - 1);
 
   return (
-    <div className="flex items-center justify-between bg-[#2a2a2a] rounded-lg px-4 h-9">
-      <div className="flex items-center gap-3">
+    <div className="h-10 flex items-center px-4 border-b border-neutral-800 bg-neutral-950">
+      <div className="flex items-center gap-3 flex-1">
         <Button
           variant="outline"
           size="sm"
           onClick={goToFirstPage}
           disabled={!canGoPrev}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronsLeft className="w-4 h-4" />
         </Button>
@@ -65,12 +64,12 @@ const GridPager = () => {
           size="sm"
           onClick={goToPrevPage}
           disabled={!canGoPrev}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
 
-        <div className="text-sm text-neutral-400 min-w-[130px] text-center">
+        <div className="text-sm text-neutral-400 min-w-[140px] text-center">
           Bars <span className="text-white font-medium">{startBar}</span>–
           {endBar} of {totalBars}
         </div>
@@ -80,7 +79,7 @@ const GridPager = () => {
           size="sm"
           onClick={goToNextPage}
           disabled={!canGoNext}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -89,15 +88,13 @@ const GridPager = () => {
           size="sm"
           onClick={goToLastPage}
           disabled={!canGoNext}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
         >
           <ChevronsRight className="w-4 h-4" />
         </Button>
       </div>
-
-      {/* <TransportPositionDialog /> */}
     </div>
   );
 };
 
-export default GridPager;
+export default GridToolbar;

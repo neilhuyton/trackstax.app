@@ -32,6 +32,7 @@ export const trackUpdateRouter = router({
         lowFrequency: z.number().optional(),
         highFrequency: z.number().optional(),
         isBypass: z.boolean().optional(),
+        loopLength: z.number().int().min(1).max(8).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -51,6 +52,7 @@ export const trackUpdateRouter = router({
           lowFrequency: input.lowFrequency,
           highFrequency: input.highFrequency,
           isBypass: input.isBypass,
+          loopLength: input.loopLength,
         },
         include: trackInclude,
       });

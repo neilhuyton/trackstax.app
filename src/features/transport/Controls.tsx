@@ -9,6 +9,7 @@ import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./hooks/useTransportStore";
 import useRecord from "./hooks/useRecord";
 import TransportPositionDialog from "./PositionDialog";
+import TransportTempoDialog from "./TempoDialog";
 
 const TransportControls = () => {
   const stackId = useStackIdStore((state) => state.stackId);
@@ -22,6 +23,7 @@ const TransportControls = () => {
   return (
     <div className="flex flex-col md:flex-row items-center min-w-0 w-full px-2 py-2">
       <div className="w-full flex flex-wrap justify-center gap-1 lg:gap-1 md:gap-1 sm:gap-1">
+        <TransportTempoDialog />
         <TransportPlay />
         <TransportReset />
         <TransportBackward />

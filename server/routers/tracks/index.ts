@@ -4,7 +4,6 @@ import { trackReadRouter } from "./read";
 import { trackCreateRouter } from "./create";
 import { trackDeleteRouter } from "./delete";
 import { trackUpdateRouter } from "./update";
-import { trackLoopLengthRouter } from "./updateLoopLengths";
 import { trackDurationsRouter } from "./updateDurations";
 
 export const trackRouter = router({
@@ -12,7 +11,6 @@ export const trackRouter = router({
   create: trackCreateRouter.create,
   delete: trackDeleteRouter.delete,
   update: trackUpdateRouter.update,
-  updateLoopLengths: trackLoopLengthRouter.updateMany,
   updateDurations: trackDurationsRouter.updateDurations,
 });
 

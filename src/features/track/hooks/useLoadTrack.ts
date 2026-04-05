@@ -51,7 +51,6 @@ export function useLoadTrack(tracks: Track[], stack: Stack) {
       sample.filename,
       sample.downloadUrl,
       duration,
-      loopLength,
     );
 
     storeAddTrack(newTrack as Track);
