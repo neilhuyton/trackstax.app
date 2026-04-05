@@ -37,21 +37,20 @@ export default function SamplerZoneSelector({
         mode: "select-sample",
         lowNote,
         highNote,
-        returnTo: "sampler", // ← important flag
+        returnTo: "sampler",
       },
     });
   };
 
-  // Edit / replace the current loaded sample
   const editCurrentZone = () => {
     navigate({
       to: "/stacks/$stackId/library/$trackId",
       params: { stackId, trackId },
       search: {
         mode: "select-sample",
-        lowNote: "C3", // TODO: make dynamic later if you store zone range
+        lowNote: "C3",
         highNote: "C5",
-        returnTo: "sampler", // ← important flag
+        returnTo: "sampler",
       },
     });
   };
