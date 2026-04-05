@@ -3,7 +3,7 @@ import PianoRollViewer from "@/features/sampler/PianoRollViewer";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useSampler } from "@/features/grid/hooks/useSampler";
 import { useMemo } from "react";
-import type { SamplerEvent } from "@/types";
+import type { SamplerEvent, Track } from "@/types";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 
@@ -26,21 +26,21 @@ const PianoRollPage = () => {
     [samplerTrack?.samplerTrack?.pattern],
   );
 
-  const { trigger } = useSampler("/samples/43.wav");
+  const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
+  const { trigger } = useSampler(sampleUrl);
 
   const updatePatternMutation = useMutation(
     trpc.sampler.updatePattern.mutationOptions(),
   );
 
-  // Helper: Update pattern both locally (optimistic) and on the server
   const updatePattern = (newPattern: SamplerEvent[]) => {
-    if (!samplerTrack) return;
+    if (!samplerTrack || !samplerTrack.samplerTrack) return;
 
-    const updatedTrack = {
+    const updatedTrack: Track = {
       ...samplerTrack,
       samplerTrack: {
-        ...samplerTrack.samplerTrack,
         pattern: newPattern,
+        sampleUrl: samplerTrack.samplerTrack.sampleUrl ?? null,
       },
     };
 

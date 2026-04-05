@@ -15,7 +15,10 @@ export function useSamplerPattern() {
     (t): t is SamplerTrackMinimal => t.type === "sampler",
   );
 
-  const { trigger, isLoaded } = useSampler("/samples/43.wav");
+  // Use the first sampler's sampleUrl (or fallback). In a full app you may want per-track samplers.
+  const firstSamplerUrl = samplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
+
+  const { trigger, isLoaded } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -24,7 +27,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // ignore if already cleared
+        // ignore
       }
     });
     eventIdsRef.current = [];
@@ -48,7 +51,6 @@ export function useSamplerPattern() {
     });
   }, [samplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Re-schedule when patterns change or sampler is loaded
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -57,7 +59,6 @@ export function useSamplerPattern() {
     }
   }, [isLoaded, scheduleAllPatterns, clearAllScheduledEvents]);
 
-  // Transport event listeners
   useEffect(() => {
     const transport = Tone.getTransport();
 
@@ -83,7 +84,6 @@ export function useSamplerPattern() {
     };
   }, [scheduleAllPatterns, clearAllScheduledEvents]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearAllScheduledEvents();

@@ -122,6 +122,7 @@ export type Track = {
 
   samplerTrack: {
     pattern: SamplerPattern;
+    sampleUrl: string | null;
   } | null;
 };
 

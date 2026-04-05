@@ -6,17 +6,19 @@ export const trackCreateRouter = router({
     .input(
       z.object({
         stackId: z.string().min(1),
-        type: z.enum(["audio", "midi"]),
+        type: z.enum(["audio", "sampler"]),
+
         label: z.string().min(1).max(100),
         color: z.string().min(1).max(50),
-        filename: z.string().min(1),
+
+        // Audio-only fields (make optional)
+        filename: z.string().min(1).optional(),
         downloadUrl: z
           .string()
-          .min(1)
           .refine(
             (val) =>
-              val.startsWith("/") || z.string().url().safeParse(val).success,
-            { message: "Must be a valid URL or a local path starting with /" },
+              !val || val.startsWith("/") || z.string().url().safeParse(val).success,
+            { message: "Must be a valid URL or path starting with /" }
           )
           .optional(),
         duration: z.number().optional(),
@@ -25,6 +27,7 @@ export const trackCreateRouter = router({
         offset: z.number().optional(),
         pitch: z.number().optional(),
         timestretch: z.number().optional(),
+
         sortOrder: z.number().int().optional(),
       }),
     )
@@ -57,8 +60,9 @@ export const trackCreateRouter = router({
           highFrequency: 0,
           isBypass: false,
 
+          // Create AudioTrack only for audio
           audioTrack:
-            input.type === "audio"
+            input.type === "audio" && input.filename
               ? {
                   create: {
                     id: crypto.randomUUID(),
@@ -73,6 +77,18 @@ export const trackCreateRouter = router({
                   },
                 }
               : undefined,
+
+          // Create SamplerTrack for sampler tracks
+          samplerTrack:
+            input.type === "sampler"
+              ? {
+                  create: {
+                    id: crypto.randomUUID(),
+                    pattern: [],           // empty pattern
+                    sampleUrl: null,
+                  },
+                }
+              : undefined,
         },
         include: {
           durations: {
@@ -81,6 +97,12 @@ export const trackCreateRouter = router({
           },
           audioTrack: {
             omit: { trackId: true },
+          },
+          samplerTrack: {
+            select: {
+              pattern: true,
+              sampleUrl: true,
+            },
           },
         },
       });

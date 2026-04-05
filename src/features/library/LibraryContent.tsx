@@ -10,7 +10,7 @@ type LibraryContentProps = {
   onSelectSubcategory: (subcategory: string) => void;
   preview: ReturnType<typeof useAudioPreview>;
   loadingFiles: Record<string, boolean>;
-  onLoadTrack: (sample: Sample) => Promise<void>;
+  onLoadTrack: (sample: Sample) => Promise<void> | void;
 };
 
 export const LibraryContent = ({
