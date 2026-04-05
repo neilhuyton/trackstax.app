@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
 import {
-  type AudioTrack,
   type Duration,
   type PlayerChannel,
   type PlayerEQ,
@@ -69,12 +68,15 @@ const usePlayers = (tracks: Track[]) => {
   );
 
   const setupAudioDurations = useCallback(
-    (audioTrack: AudioTrack, duration: Duration, player: Tone.Player) => {
+    (track: Track, duration: Duration, player: Tone.Player) => {
+      if (!track.audioTrack) return;
+
+      const audioTrack = track.audioTrack;
       const { start, stop } = duration;
       const trackOffsetSeconds = audioTrack.offset;
       const trackDurationSeconds = audioTrack.duration;
       const timestretch = audioTrack.timestretch;
-      const adjustedLoopLength = audioTrack.loopLength / timestretch;
+      const adjustedLoopLength = track.loopLength / timestretch;
 
       for (
         let subLoopStart = start;
@@ -183,8 +185,7 @@ const usePlayers = (tracks: Track[]) => {
     const setupAllTracks = async () => {
       for (const track of tracks) {
         if (track.type === "audio" && track.audioTrack) {
-          const audioTrack = track.audioTrack;
-          const { id, downloadUrl } = audioTrack;
+          const { id, downloadUrl } = track.audioTrack;
 
           await setupPlayer(id, downloadUrl);
 
@@ -207,13 +208,8 @@ const usePlayers = (tracks: Track[]) => {
               player.mute = true;
             }
 
-            const safeAudioTrack: AudioTrack = {
-              ...audioTrack,
-              downloadUrl: audioTrack.downloadUrl ?? undefined,
-            };
-
             track.durations.forEach((duration) =>
-              setupAudioDurations(safeAudioTrack, duration, player),
+              setupAudioDurations(track, duration, player),
             );
           }
         }

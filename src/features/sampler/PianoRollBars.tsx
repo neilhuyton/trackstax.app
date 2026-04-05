@@ -1,6 +1,4 @@
 import { useMemo, forwardRef } from "react";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
 
 const BAR_COUNT = 8;
 
@@ -8,29 +6,13 @@ type Props = {
   currentBar: number;
 };
 
-const PianoRollHeader = forwardRef<HTMLDivElement, Props>(
+const PianoRollBars = forwardRef<HTMLDivElement, Props>(
   ({ currentBar }, ref) => {
-    const navigate = useNavigate();
-    const { stackId } = useParams({ from: "/_authenticated/stacks/$stackId" });
-
     const bars = useMemo(() => Array.from({ length: BAR_COUNT }), []);
-
-    const handleBack = () => {
-      navigate({
-        to: "/stacks/$stackId",
-        params: { stackId },
-        search: { page: 0 },
-      });
-    };
 
     return (
       <div className="flex border-b border-zinc-700 bg-zinc-900">
-        <button
-          onClick={handleBack}
-          className="w-16 flex-shrink-0 border-r border-zinc-700 flex items-center justify-center hover:bg-zinc-800 transition-colors"
-        >
-          <ChevronLeft className="h-5 w-5 text-neutral-400" />
-        </button>
+        <div className="w-16 flex-shrink-0 border-r border-zinc-700" />
 
         <div
           ref={ref}
@@ -64,6 +46,6 @@ const PianoRollHeader = forwardRef<HTMLDivElement, Props>(
   },
 );
 
-PianoRollHeader.displayName = "PianoRollHeader";
+PianoRollBars.displayName = "PianoRollBars";
 
-export default PianoRollHeader;
+export default PianoRollBars;

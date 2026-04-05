@@ -10,7 +10,7 @@ import {
   useSampleSubcategories,
 } from "./hooks/useSampleLibrary";
 import { LibraryCollectionsView } from "./LibraryCollectionsView";
-import { LibraryHeader } from "./LibraryHeader";
+import { LibraryToolbar } from "./LibraryToolbar";
 import { LibrarySubcategoriesView } from "./LibrarySubcategoriesView";
 import { LibraryContent } from "./LibraryContent";
 import { useLoadTrack } from "../track/hooks/useLoadTrack";
@@ -136,7 +136,7 @@ export const TrackLibrary = ({
     <div className="flex flex-col h-full overflow-hidden">
       {!navigation.currentCollection ? (
         <div className="flex flex-col h-full overflow-hidden">
-          <LibraryHeader
+          <LibraryToolbar
             navigation={navigation}
             search={search}
             onSearchChange={setSearch}
@@ -153,7 +153,7 @@ export const TrackLibrary = ({
         </div>
       ) : (
         <div className="flex flex-col h-full overflow-hidden">
-          <LibraryHeader
+          <LibraryToolbar
             navigation={navigation}
             search={search}
             onSearchChange={setSearch}

@@ -3,7 +3,7 @@ import { toTitleCase } from "../utils/string-utils";
 import { useNavigate } from "@tanstack/react-router";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
-type LibraryHeaderProps = {
+type LibraryToolbarProps = {
   navigation: SampleLibraryNavigation;
   search: string;
   onSearchChange: (value: string) => void;
@@ -13,7 +13,7 @@ type LibraryHeaderProps = {
   showSearchAndBpm?: boolean;
 };
 
-export const LibraryHeader = ({
+export const LibraryToolbar = ({
   navigation,
   search,
   onSearchChange,
@@ -21,7 +21,7 @@ export const LibraryHeader = ({
   onBpmFilterChange,
   availableBpms,
   showSearchAndBpm = true,
-}: LibraryHeaderProps) => {
+}: LibraryToolbarProps) => {
   const navigate = useNavigate();
   const stackId = useStackIdStore((state) => state.stackId);
 
@@ -30,6 +30,7 @@ export const LibraryHeader = ({
       navigate({
         to: "/stacks/$stackId",
         params: { stackId },
+        search: { page: 0 },
         replace: true,
       });
     }
@@ -54,7 +55,7 @@ export const LibraryHeader = ({
     : "";
 
   return (
-    <div className="h-14 flex items-center px-4 border-b border-neutral-800 gap-4 relative z-10 bg-neutral-950">
+    <div className="h-10 flex items-center px-4 border-b border-neutral-800 gap-4 relative z-10 bg-neutral-950">
       <div className="flex items-center gap-2 text-sm font-medium min-w-0 flex-1">
         <button
           onClick={handleBack}

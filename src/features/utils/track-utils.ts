@@ -8,7 +8,6 @@ const createClientAudioTrack = (
   filename: string,
   downloadUrl: string | null,
   duration: number = 0,
-  loopLength: number = 1,
   sampleId: string | null = null,
 ) => {
   const now = new Date().toISOString();
@@ -17,7 +16,6 @@ const createClientAudioTrack = (
     id: uuid(),
     filename,
     downloadUrl,
-    loopLength,
     offset: 0,
     duration,
     pitch: 0,
@@ -128,6 +126,7 @@ export type CreateNewTrackInput = {
   lowFrequency: number;
   highFrequency: number;
   isBypass: boolean;
+  loopLength: number;
   stackId: string;
   createdAt: string;
   updatedAt: string;
@@ -155,7 +154,7 @@ export const createNewTrack = (
   const barDuration = Tone.TransportTime("1m").toSeconds();
   const loopLength = result
     ? Math.max(1, Math.round(result.duration / barDuration))
-    : 1;
+    : 4;
 
   const now = new Date().toISOString();
 
@@ -174,6 +173,7 @@ export const createNewTrack = (
     lowFrequency: 0,
     highFrequency: 0,
     isBypass: true,
+    loopLength,
     stackId: stack.id,
     createdAt: now,
     updatedAt: now,
@@ -185,7 +185,6 @@ export const createNewTrack = (
             file.name,
             downloadUrl ?? null,
             result?.duration ?? 0,
-            loopLength,
           )
         : null,
     samplerTrack: isSampler ? { pattern: [], sampleUrl: null } : null,
@@ -208,6 +207,7 @@ type RawServerTrack = {
   lowFrequency: number;
   highFrequency: number;
   isBypass: boolean;
+  loopLength: number;
   stackId: string;
   createdAt: string;
   updatedAt: string;
@@ -222,7 +222,6 @@ type RawServerTrack = {
     id: string;
     filename: string;
     downloadUrl: string | null;
-    loopLength: number;
     offset: number;
     duration: number;
     pitch: number;
@@ -254,6 +253,7 @@ export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
   lowFrequency: serverTrack.lowFrequency,
   highFrequency: serverTrack.highFrequency,
   isBypass: serverTrack.isBypass,
+  loopLength: serverTrack.loopLength ?? 4,
   stackId: serverTrack.stackId,
   createdAt: serverTrack.createdAt,
   updatedAt: serverTrack.updatedAt,
@@ -278,11 +278,10 @@ export const buildClientTrackFromServer = (
   filename: string,
   downloadUrl: string,
   duration: number,
-  loopLength: number,
 ): Track => {
   const audioTrack =
     createdTrack.audioTrack ??
-    createClientAudioTrack(filename, downloadUrl, duration, loopLength);
+    createClientAudioTrack(filename, downloadUrl, duration);
 
   return {
     id: createdTrack.id,
@@ -306,5 +305,6 @@ export const buildClientTrackFromServer = (
     lowFrequency: createdTrack.lowFrequency ?? 0,
     highFrequency: createdTrack.highFrequency ?? 0,
     isBypass: createdTrack.isBypass ?? false,
+    loopLength: createdTrack.loopLength ?? baseTrack.loopLength ?? 4,
   };
 };

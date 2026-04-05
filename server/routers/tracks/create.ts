@@ -11,14 +11,16 @@ export const trackCreateRouter = router({
         label: z.string().min(1).max(100),
         color: z.string().min(1).max(50),
 
-        // Audio-only fields (make optional)
+        // Audio-only fields
         filename: z.string().min(1).optional(),
         downloadUrl: z
           .string()
           .refine(
             (val) =>
-              !val || val.startsWith("/") || z.string().url().safeParse(val).success,
-            { message: "Must be a valid URL or path starting with /" }
+              !val ||
+              val.startsWith("/") ||
+              z.string().url().safeParse(val).success,
+            { message: "Must be a valid URL or path starting with /" },
           )
           .optional(),
         duration: z.number().optional(),
@@ -48,6 +50,7 @@ export const trackCreateRouter = router({
           color: input.color,
           sortOrder: input.sortOrder ?? newSortOrder,
           stackId: input.stackId,
+          loopLength: input.loopLength ?? 4,
 
           isMute: false,
           isSolo: false,
@@ -68,7 +71,6 @@ export const trackCreateRouter = router({
                     id: crypto.randomUUID(),
                     filename: input.filename,
                     downloadUrl: input.downloadUrl ?? "",
-                    loopLength: input.loopLength ?? 4,
                     offset: input.offset ?? 0,
                     duration: input.duration ?? 0,
                     pitch: input.pitch ?? 0,
@@ -84,7 +86,7 @@ export const trackCreateRouter = router({
               ? {
                   create: {
                     id: crypto.randomUUID(),
-                    pattern: [],           // empty pattern
+                    pattern: [],
                     sampleUrl: null,
                   },
                 }

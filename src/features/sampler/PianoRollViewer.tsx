@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import SideNotes from "./SideNotes";
 import DrawGrid from "./DrawGrid";
-import PianoRollHeader from "./PianoRollHeader";
+import PianoRollBars from "./PianoRollBars";
 import type { NoteName, SamplerEvent } from "@/types";
 import { NOTE_NAMES } from "@/types";
 
@@ -31,7 +31,6 @@ export default function PianoRollViewer({
   const gridScrollRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
 
-  // Convert pattern events to visual lines
   const lines = pattern.map((event) => eventToLine(event, TOTAL_STEPS));
 
   const handleLineComplete = (
@@ -42,7 +41,6 @@ export default function PianoRollViewer({
     const result = lineToEvent(rowIndex, startStep, endStep);
 
     if (!result) {
-      // Handle removal
       const eventToRemove = pattern.find((p) => {
         const [bar, beat, sixteenth] = p.time.split(":").map(Number);
         const eventStartStep = bar * 16 + beat * 4 + sixteenth;
@@ -59,28 +57,51 @@ export default function PianoRollViewer({
       return;
     }
 
-    // Handle addition
     onAddNote(result.time, result.note, result.duration);
   };
 
-  // Sync scroll between header and grid
   useEffect(() => {
     const grid = gridScrollRef.current;
     const header = headerScrollRef.current;
     if (!grid || !header) return;
 
+    let rafId: number;
+
     const syncHeader = () => {
-      header.scrollLeft = grid.scrollLeft;
+      if (header.scrollLeft !== grid.scrollLeft) {
+        header.scrollLeft = grid.scrollLeft;
+      }
     };
 
-    grid.addEventListener("scroll", syncHeader, { passive: true });
+    const syncGrid = () => {
+      if (grid.scrollLeft !== header.scrollLeft) {
+        grid.scrollLeft = header.scrollLeft;
+      }
+    };
 
-    return () => grid.removeEventListener("scroll", syncHeader);
+    const throttledSyncHeader = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(syncHeader);
+    };
+
+    const throttledSyncGrid = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(syncGrid);
+    };
+
+    grid.addEventListener("scroll", throttledSyncHeader, { passive: true });
+    header.addEventListener("scroll", throttledSyncGrid, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      grid.removeEventListener("scroll", throttledSyncHeader);
+      header.removeEventListener("scroll", throttledSyncGrid);
+    };
   }, []);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <PianoRollHeader currentBar={currentBar} ref={headerScrollRef} />
+      <PianoRollBars currentBar={currentBar} ref={headerScrollRef} />
 
       <div className="flex flex-1 overflow-hidden">
         <SideNotes

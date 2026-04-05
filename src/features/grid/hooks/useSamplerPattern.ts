@@ -31,7 +31,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        //
+        // fail silently
       }
     });
     eventIdsRef.current = [];
@@ -42,15 +42,62 @@ export function useSamplerPattern() {
 
     if (!isLoaded || playableSamplerTracks.length === 0) return;
 
+    const toTransportTime = (bars: number): string => {
+      const whole = Math.floor(bars);
+      const frac = bars - whole;
+      const beats = Math.floor(frac * 4);
+      const sixteenths = Math.floor((frac * 4 - beats) * 4);
+      return `${whole}:${beats}:${sixteenths}`;
+    };
+
     playableSamplerTracks.forEach((track) => {
       const pattern = track.samplerTrack?.pattern ?? [];
+      if (pattern.length === 0) return;
 
-      pattern.forEach((event: SamplerEvent) => {
-        const id = Tone.getTransport().schedule((time: number) => {
-          trigger(event.note, event.duration || "16n", time);
-        }, event.time);
+      const loopLength = track.loopLength ?? 4;
 
-        eventIdsRef.current.push(id);
+      track.durations.forEach((duration) => {
+        const { start, stop } = duration;
+
+        for (
+          let loopStartBar = start;
+          loopStartBar < stop;
+          loopStartBar += loopLength
+        ) {
+          const loopEndBar = Math.min(loopStartBar + loopLength, stop);
+
+          pattern.forEach((event: SamplerEvent) => {
+            let eventTime: number;
+
+            if (typeof event.time === "string") {
+              if (event.time.includes(":")) {
+                const parts = event.time.split(":");
+                const bars = Number(parts[0] || 0);
+                const beats = Number(parts[1] || 0);
+                const sixteenths = Number(parts[2] || 0);
+                eventTime = bars + beats / 4 + sixteenths / 16;
+              } else {
+                eventTime = Number(event.time);
+              }
+            } else {
+              eventTime = Number(event.time);
+            }
+
+            if (isNaN(eventTime)) return;
+
+            const absoluteTimeInBars = loopStartBar + eventTime;
+
+            if (absoluteTimeInBars < loopEndBar) {
+              const scheduleTime = toTransportTime(absoluteTimeInBars);
+
+              const id = Tone.getTransport().schedule((time: number) => {
+                trigger(event.note, event.duration || "16n", time);
+              }, scheduleTime);
+
+              eventIdsRef.current.push(id);
+            }
+          });
+        }
       });
     });
   }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);

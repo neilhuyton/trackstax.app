@@ -7,7 +7,7 @@ import useTransportStore from "./useTransportStore";
 import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
-import { useSamplerPattern } from "@/features/grid/hooks/useSamplePattern";
+import { useSamplerPattern } from "@/features/grid/hooks/useSamplerPattern";
 
 type SamplerEvent = {
   time: string;
