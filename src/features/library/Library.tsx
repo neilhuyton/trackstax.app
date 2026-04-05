@@ -25,6 +25,7 @@ type TrackLibraryProps = {
   tracks: Track[];
   stack: Stack;
   trackId: string;
+  samplerTrack?: Track;
 };
 
 export const TrackLibrary = ({
@@ -32,12 +33,13 @@ export const TrackLibrary = ({
   tracks,
   stack,
   trackId,
+  samplerTrack,
 }: TrackLibraryProps) => {
   const navigation = useSampleLibraryNavigation();
   const preview = useAudioPreview();
   const { loadTrack } = useLoadTrack(tracks, stack);
   const navigate = useNavigate();
-  const { storeAddTrack } = useTracksStore();
+  const { storeAddTrack, storeUpdateTrack } = useTracksStore();
 
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({});
   const [bpmFilter, setBpmFilter] = useState<number | null>(null);
@@ -73,6 +75,9 @@ export const TrackLibrary = ({
 
     try {
       const searchParams = new URLSearchParams(window.location.search);
+      const mode = searchParams.get("mode");
+      const returnTo = searchParams.get("returnTo");
+
       const isNewSampler =
         trackId === "new" && searchParams.get("type") === "sampler";
 
@@ -112,6 +117,27 @@ export const TrackLibrary = ({
         navigate({
           to: "/stacks/$stackId/sampler/$trackId",
           params: { stackId: stack.id, trackId: created.id },
+        });
+      } else if (mode === "select-sample" && returnTo === "sampler") {
+        await updateSamplerSampleMutation.mutateAsync({
+          trackId,
+          sampleUrl: sample.downloadUrl,
+        });
+
+        if (samplerTrack) {
+          storeUpdateTrack({
+            ...samplerTrack,
+            samplerTrack: {
+              pattern: samplerTrack.samplerTrack?.pattern ?? [],
+              sampleUrl: sample.downloadUrl,
+            },
+          });
+        }
+
+        navigate({
+          to: "/stacks/$stackId/sampler/$trackId",
+          params: { stackId: stack.id, trackId },
+          replace: true,
         });
       } else {
         await loadTrack(sample);

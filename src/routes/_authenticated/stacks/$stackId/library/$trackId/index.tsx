@@ -16,6 +16,10 @@ function StackLibraryPage() {
   const { tracks } = useTracksStore();
   const userId = useAuthStore((s) => s.user?.id);
 
+  const samplerTrack = tracks?.find(
+    (t) => t.id === trackId && t.type === "sampler",
+  );
+
   if (!stack || !userId) {
     return <div className="p-8 text-center">Loading library...</div>;
   }
@@ -27,6 +31,7 @@ function StackLibraryPage() {
         tracks={tracks}
         stack={stack}
         trackId={trackId}
+        samplerTrack={samplerTrack}
       />
     </div>
   );
