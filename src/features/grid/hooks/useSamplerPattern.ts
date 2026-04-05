@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
 import useTracksStore from "../../track/hooks/useTracksStore";
+import { calcVolumeLevel } from "@/utils";
 import type { SamplerEvent, Track } from "@/types";
 
 type SamplerTrackMinimal = Track & {
@@ -9,7 +10,7 @@ type SamplerTrackMinimal = Track & {
 };
 
 export function useSamplerPattern() {
-  const { tracks } = useTracksStore();
+  const { tracks, volume } = useTracksStore();
 
   const samplerTracks = tracks.filter(
     (t): t is SamplerTrackMinimal => t.type === "sampler",
@@ -22,7 +23,7 @@ export function useSamplerPattern() {
   const firstSamplerUrl =
     playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
 
-  const { trigger, isLoaded } = useSampler(firstSamplerUrl);
+  const { trigger, isLoaded, sampler } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -31,7 +32,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // fail silently
+        // fail silently - leave in here
       }
     });
     eventIdsRef.current = [];
@@ -140,6 +141,26 @@ export function useSamplerPattern() {
       clearAllScheduledEvents();
     };
   }, [clearAllScheduledEvents]);
+
+  // Apply volume from tracks (initial load + track changes)
+  useEffect(() => {
+    if (!sampler) return;
+
+    const samplerTrack = tracks.find((t) => t.type === "sampler");
+    if (!samplerTrack) return;
+
+    sampler.volume.value = calcVolumeLevel(samplerTrack.volumePercent);
+  }, [sampler, tracks, isLoaded]);
+
+  // Live slider updates
+  useEffect(() => {
+    if (!sampler || !volume?.trackId) return;
+
+    const targetTrack = tracks.find((t) => t.id === volume.trackId);
+    if (!targetTrack || targetTrack.type !== "sampler") return;
+
+    sampler.volume.value = calcVolumeLevel(volume.volumePercent);
+  }, [volume, sampler, tracks]);
 
   return { isLoaded };
 }

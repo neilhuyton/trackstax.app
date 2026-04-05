@@ -79,6 +79,10 @@ const useTracksStore = create<TracksStore>((set) => ({
   storeUpdateTrack: (track) =>
     set((state) => ({
       tracks: state.tracks.map((t) => (t.id === track.id ? track : t)),
+      volume: {
+        volumePercent: track.volumePercent,
+        trackId: track.id,
+      },
     })),
   storeDeleteTrack: (id) =>
     set((state) => ({

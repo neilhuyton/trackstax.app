@@ -11,6 +11,7 @@ export function useSampler(sampleUrl: string | null) {
     setError(null);
 
     if (!sampleUrl) {
+      samplerRef.current = null;
       return;
     }
 
@@ -56,5 +57,5 @@ export function useSampler(sampleUrl: string | null) {
     [],
   );
 
-  return { trigger, isLoaded, error };
+  return { trigger, isLoaded, error, sampler: samplerRef.current };
 }
