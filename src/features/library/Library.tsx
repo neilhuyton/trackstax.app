@@ -19,19 +19,19 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import useTracksStore from "../track/hooks/useTracksStore";
 
-type TrackLibraryDialogProps = {
+type TrackLibraryProps = {
   userId: string | null;
   tracks: Track[];
   stack: Stack;
   trackId: string;
 };
 
-export const TrackLibraryDialog = ({
+export const TrackLibrary = ({
   userId,
   tracks,
   stack,
   trackId,
-}: TrackLibraryDialogProps) => {
+}: TrackLibraryProps) => {
   const navigation = useSampleLibraryNavigation();
   const preview = useAudioPreview();
   const { loadTrack } = useLoadTrack(tracks, stack);
@@ -89,25 +89,8 @@ export const TrackLibraryDialog = ({
         });
 
         const newTrack: Track = {
-          id: created.id,
-          type: "sampler",
-          label: created.label,
-          color: created.color,
-          sortOrder: created.sortOrder,
-          stackId: created.stackId,
-          isMute: created.isMute,
-          isSolo: created.isSolo,
-          isFavourite: created.isFavourite,
-          volumePercent: created.volumePercent,
-          low: created.low,
-          mid: created.mid,
-          high: created.high,
-          lowFrequency: created.lowFrequency,
-          highFrequency: created.highFrequency,
-          isBypass: created.isBypass,
-          createdAt: created.createdAt,
-          updatedAt: created.updatedAt,
-          durations: created.durations,
+          ...created,
+          type: "sampler" as const,
           audioTrack: null,
           samplerTrack: {
             pattern: [],
@@ -204,4 +187,4 @@ export const TrackLibraryDialog = ({
   );
 };
 
-export default TrackLibraryDialog;
+export default TrackLibrary;

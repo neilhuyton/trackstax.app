@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { TrackLibraryDialog } from "@/features/library/LibraryDialog";
+import { TrackLibrary } from "@/features/library/Library";
 import { useStack } from "@/features/stacks/hooks/useStackRead";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useAuthStore } from "@/store/authStore";
@@ -22,7 +22,7 @@ function StackLibraryPage() {
 
   return (
     <div className="h-full overflow-hidden bg-neutral-950">
-      <TrackLibraryDialog
+      <TrackLibrary
         userId={userId}
         tracks={tracks}
         stack={stack}
