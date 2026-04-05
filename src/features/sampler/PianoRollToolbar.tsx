@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Music } from "lucide-react";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
@@ -43,10 +43,18 @@ const PianoRollToolbar = () => {
     });
   };
 
+  const handleGoToSampler = () => {
+    navigate({
+      to: "/stacks/$stackId/sampler/$trackId",
+      params: { stackId, trackId },
+      replace: true,
+    });
+  };
+
   const currentLoopLength = samplerTrack?.loopLength ?? 4;
 
   return (
-    <div className="h-12 flex items-center px-4 border-b border-neutral-800 bg-neutral-950">
+    <div className="h-10 flex items-center px-4 border-b border-neutral-800 bg-neutral-950">
       <button
         onClick={handleBack}
         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mr-8"
@@ -69,6 +77,14 @@ const PianoRollToolbar = () => {
           ))}
         </select>
       </div>
+
+      <button
+        onClick={handleGoToSampler}
+        className="ml-auto flex items-center gap-2 px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
+      >
+        <Music className="h-4 w-4" />
+        Open Sampler
+      </button>
     </div>
   );
 };
