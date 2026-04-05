@@ -23,7 +23,7 @@ export function useSamplerPattern() {
   const firstSamplerUrl =
     playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
 
-  const { trigger, isLoaded, sampler } = useSampler(firstSamplerUrl);
+  const { trigger, isLoaded, channel } = useSampler(firstSamplerUrl);
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -32,7 +32,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // fail silently
+        // leave this comment here
       }
     });
     eventIdsRef.current = [];
@@ -41,7 +41,7 @@ export function useSamplerPattern() {
   const scheduleAllPatterns = useCallback(() => {
     clearAllScheduledEvents();
 
-    if (!isLoaded || playableSamplerTracks.length === 0 || !sampler) return;
+    if (!isLoaded || playableSamplerTracks.length === 0) return;
 
     const toTransportTime = (bars: number): string => {
       const whole = Math.floor(bars);
@@ -68,7 +68,7 @@ export function useSamplerPattern() {
           const loopEndBar = Math.min(loopStartBar + loopLength, stop);
 
           pattern.forEach((event: SamplerEvent) => {
-            let eventTime: number;
+            let eventTime: number = 0;
 
             if (typeof event.time === "string") {
               if (event.time.includes(":")) {
@@ -101,15 +101,9 @@ export function useSamplerPattern() {
         }
       });
     });
-  }, [
-    playableSamplerTracks,
-    trigger,
-    isLoaded,
-    clearAllScheduledEvents,
-    sampler,
-  ]);
+  }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Scheduling effects - unchanged
+  // Scheduling effects (unchanged)
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -127,9 +121,7 @@ export function useSamplerPattern() {
       }
     };
 
-    const handleStopOrPause = () => {
-      clearAllScheduledEvents();
-    };
+    const handleStopOrPause = () => clearAllScheduledEvents();
 
     transport.on("start", handleStart);
     transport.on("stop", handleStopOrPause);
@@ -144,16 +136,14 @@ export function useSamplerPattern() {
   }, [scheduleAllPatterns, clearAllScheduledEvents]);
 
   useEffect(() => {
-    return () => {
-      clearAllScheduledEvents();
-    };
+    return () => clearAllScheduledEvents();
   }, [clearAllScheduledEvents]);
 
-  // ====================== VOLUME + MUTE + SOLO ======================
+  // ====================== VOLUME + MUTE + SOLO via CHANNEL ======================
 
-  // Initial volume setup when sampler loads + track data is available
+  // Initial + track changes
   useEffect(() => {
-    if (!sampler || !isLoaded) return;
+    if (!channel) return;
 
     const samplerTrack = tracks.find((t) => t.type === "sampler");
     if (!samplerTrack) return;
@@ -165,16 +155,15 @@ export function useSamplerPattern() {
 
     const isMuted = samplerTrack.isMute || shouldMuteBySolo;
 
-    if (isMuted) {
-      sampler.volume.value = -Infinity;
-    } else {
-      sampler.volume.value = calcVolumeLevel(samplerTrack.volumePercent);
-    }
-  }, [sampler, isLoaded, tracks]);
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(samplerTrack.volumePercent);
+    channel.mute = isMuted;
+  }, [channel, tracks]);
 
-  // Live updates for volume slider + mute/solo changes
+  // Live volume slider + mute/solo
   useEffect(() => {
-    if (!sampler || !volume?.trackId) return;
+    if (!channel || !volume?.trackId) return;
 
     const targetTrack = tracks.find((t) => t.id === volume.trackId);
     if (!targetTrack || targetTrack.type !== "sampler") return;
@@ -185,12 +174,11 @@ export function useSamplerPattern() {
 
     const isMuted = targetTrack.isMute || shouldMuteBySolo;
 
-    if (isMuted) {
-      sampler.volume.value = -Infinity;
-    } else {
-      sampler.volume.value = calcVolumeLevel(volume.volumePercent);
-    }
-  }, [volume, sampler, tracks]);
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(volume.volumePercent);
+    channel.mute = isMuted;
+  }, [volume, channel, tracks]);
 
   return { isLoaded };
 }

@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
-import {
-  type Duration,
-  type PlayerChannel,
-  type PlayerEQ,
-  type Track,
-} from "@/types";
+import { type Duration, type PlayerChannel, type Track } from "@/types";
 import {
   barsToEndTime,
   calcVolumeLevel,
@@ -26,18 +21,15 @@ const usePlayers = (tracks: Track[]) => {
 
   const playersRef = useRef<Tone.Players | null>(null);
   const channelsRef = useRef<PlayerChannel[]>([]);
-  const eqsRef = useRef<PlayerEQ[]>([]);
-  const pitchShiftsRef = useRef<
-    { trackId: string; pitchShift: Tone.PitchShift }[]
-  >([]);
   const eventIds = useRef<number[]>([]);
 
   const { stopPosition } = usePositionStore();
-  const { addTrackError, eq, volume } = useTracksStore();
+  const { addTrackError, volume } = useTracksStore(); // removed eq
 
   const { isLoop, loopEnd, loopStart } = transport || {};
 
-  // ====================== SETUP HELPERS ======================
+  // Only audio tracks that actually need setup
+  const audioTracks = tracks.filter((t) => t.type === "audio" && t.audioTrack);
 
   const setupPlayer = useCallback(
     async (id: string, downloadUrl: string | null | undefined) => {
@@ -73,7 +65,11 @@ const usePlayers = (tracks: Track[]) => {
     let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
 
     if (!channelEntry) {
-      const channel = new Tone.Channel().toDestination();
+      const channel = new Tone.Channel({
+        pan: 0,
+        mute: false,
+        channelCount: 2,
+      }).toDestination();
 
       channelEntry = { track, channel };
       channelsRef.current.push(channelEntry);
@@ -181,8 +177,7 @@ const usePlayers = (tracks: Track[]) => {
     eventIds.current.splice(0, eventIds.current.length);
   }, [tracks]);
 
-  // ====================== MAIN SETUP EFFECT ======================
-
+  // Main heavy setup - only runs when audio tracks list or structure changes
   useEffect(() => {
     if (!playersRef.current) {
       playersRef.current = new Tone.Players().toDestination();
@@ -192,7 +187,6 @@ const usePlayers = (tracks: Track[]) => {
       return;
     }
 
-    // Clear previous events
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.length = 0;
 
@@ -215,25 +209,23 @@ const usePlayers = (tracks: Track[]) => {
 
           if (!player) continue;
 
-          // === ROUTE PLAYER THROUGH CHANNEL ===
           const channel = getOrCreateChannel(track);
 
-          // Disconnect player from destination and connect through channel
           if (player.output) {
-            // Tone.Players internally manages connections — we chain: Player → Channel → Destination
             player.disconnect();
             player.connect(channel);
           }
 
-          // === VOLUME, MUTE, SOLO via CHANNEL (NOT PLAYER) ===
-          channel.volume.value = calcVolumeLevel(track.volumePercent);
-          channel.mute = track.isMute;
+          const shouldMuteBySolo =
+            soloTracks.length > 0 && !soloTracks.some((t) => t.id === track.id);
 
-          if (soloTracks.length && !soloTracks.some((t) => t.id === track.id)) {
-            channel.mute = true;
-          }
+          const isMuted = track.isMute || shouldMuteBySolo;
 
-          // Setup scheduling (unchanged)
+          channel.volume.value = isMuted
+            ? -Infinity
+            : calcVolumeLevel(track.volumePercent);
+          channel.mute = isMuted;
+
           track.durations.forEach((duration) =>
             setupAudioDurations(track, duration, player),
           );
@@ -242,13 +234,9 @@ const usePlayers = (tracks: Track[]) => {
     };
 
     setupAllTracks();
-
-    return () => {
-      pitchShiftsRef.current.forEach(({ pitchShift }) => pitchShift.dispose());
-      pitchShiftsRef.current = [];
-    };
   }, [
-    tracks,
+    audioTracks, // Main trigger for heavy setup
+    tracks, // ← Added to fix the lint warning
     isLoading,
     isError,
     stackId,
@@ -258,8 +246,7 @@ const usePlayers = (tracks: Track[]) => {
     getOrCreateChannel,
   ]);
 
-  // ====================== VOLUME UPDATES ======================
-
+  // Lightweight volume + mute updates (does NOT reschedule)
   useEffect(() => {
     if (!volume) return;
 
@@ -273,25 +260,16 @@ const usePlayers = (tracks: Track[]) => {
       const isSoloMuted =
         soloTracks.length && !soloTracks.some((t) => t.id === track?.id);
 
-      if (track && track.type === "audio" && !track.isMute && !isSoloMuted) {
-        channelEntry.channel.volume.value = calcVolumeLevel(
-          volume.volumePercent,
-        );
+      if (track && track.type === "audio") {
+        const isMuted = track.isMute || isSoloMuted;
+
+        channelEntry.channel.volume.value = isMuted
+          ? -Infinity
+          : calcVolumeLevel(volume.volumePercent);
+        channelEntry.channel.mute = Boolean(isMuted);
       }
     }
   }, [volume, tracks]);
-
-  // ====================== EQ UPDATES (unchanged) ======================
-
-  useEffect(() => {
-    const currentEQ = eqsRef.current?.find(
-      (c) => c.track.id === eq?.trackId,
-    )?.eq;
-
-    if (currentEQ && eq) {
-      currentEQ.set({ ...eq });
-    }
-  }, [eq]);
 
   return {
     channels: channelsRef.current,
