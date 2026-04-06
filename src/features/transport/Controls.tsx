@@ -10,6 +10,7 @@ import useTransportStore from "./hooks/useTransportStore";
 import useRecord from "./hooks/useRecord";
 import TransportPositionDialog from "./PositionDialog";
 import TransportTempoDialog from "./TempoDialog";
+import MasterVolumeDialog from "./MasterVolumeDialog";
 
 const TransportControls = () => {
   const stackId = useStackIdStore((state) => state.stackId);
@@ -32,6 +33,7 @@ const TransportControls = () => {
         <TransportLoopDialog />
         <TransportPositionDialog />
         <TransportRecordDownloadDialog recording={recording} />
+        <MasterVolumeDialog />
       </div>
     </div>
   );

@@ -1,15 +1,8 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 import useTracksStore from "../../track/hooks/useTracksStore";
 import useSamplerEnvelopeStore from "../../sampler/hooks/useSamplerEnvelopeStore";
 import { calcVolumeLevel } from "@/utils";
-
-type SamplerTrackInfo = {
-  id: string;
-  isMute: boolean;
-  isSolo: boolean;
-  volumePercent: number;
-};
 
 export function useSampler(sampleUrl: string | null) {
   const samplerRef = useRef<Tone.Sampler | null>(null);
@@ -20,19 +13,6 @@ export function useSampler(sampleUrl: string | null) {
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const samplerTrackInfo = useMemo<SamplerTrackInfo | null>(() => {
-    const samplerTrack = tracks.find((t) => t.type === "sampler");
-    if (!samplerTrack) return null;
-
-    return {
-      id: samplerTrack.id,
-      isMute: samplerTrack.isMute,
-      isSolo: samplerTrack.isSolo,
-      volumePercent: samplerTrack.volumePercent,
-    };
-  }, [tracks]);
-
-  // Create / recreate sampler when sampleUrl or track info changes
   useEffect(() => {
     samplerRef.current?.dispose();
     channelRef.current?.dispose();
@@ -60,17 +40,13 @@ export function useSampler(sampleUrl: string | null) {
 
     samplerRef.current = sampler;
 
-    if (samplerTrackInfo) {
-      applyVolumeToChannel(channel, samplerTrackInfo);
-    }
-
     return () => {
       sampler.dispose();
       channel.dispose();
     };
-  }, [sampleUrl, samplerTrackInfo]);
+  }, [sampleUrl]);
 
-  // Update envelope whenever attack/release from store changes
+  // Update attack/release from envelope store
   useEffect(() => {
     const sampler = samplerRef.current;
     if (!sampler) return;
@@ -88,15 +64,27 @@ export function useSampler(sampleUrl: string | null) {
     sampler.curve = "linear";
   }, [attackMs, releaseMs]);
 
-  // Update volume/mute when track info changes
+  // Master volume + solo logic
   useEffect(() => {
     const channel = channelRef.current;
-    if (!channel || !samplerTrackInfo) return;
+    if (!channel) return;
 
-    applyVolumeToChannel(channel, samplerTrackInfo);
-  }, [samplerTrackInfo]);
+    const samplerTrack = tracks.find((t) => t.type === "sampler");
+    if (!samplerTrack) return;
 
-  // Stable trigger that always uses latest sampler and isLoaded
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 &&
+      !soloTracks.some((t) => t.id === samplerTrack.id);
+
+    const isMuted = samplerTrack.isMute || shouldMuteBySolo;
+
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(samplerTrack.volumePercent);
+    channel.mute = isMuted;
+  }, [tracks]);
+
   const trigger = useCallback(
     (note: string = "C3", duration: string = "8n", time?: number) => {
       const sampler = samplerRef.current;
@@ -112,24 +100,4 @@ export function useSampler(sampleUrl: string | null) {
     trigger,
     channel: channelRef.current,
   };
-}
-
-function applyVolumeToChannel(
-  channel: Tone.Channel,
-  track: SamplerTrackInfo,
-): void {
-  const { tracks } = useTracksStore.getState();
-  const soloTracks = tracks.filter((t) => t.type === "sampler" || t.isSolo);
-  const hasSolo = soloTracks.some((t) => t.isSolo);
-  const isSoloed = soloTracks.some((t) => t.id === track.id && t.isSolo);
-
-  const shouldMuteBySolo = hasSolo && !isSoloed;
-  const isMuted = track.isMute || shouldMuteBySolo;
-
-  const calculatedDb = isMuted
-    ? -Infinity
-    : calcVolumeLevel(track.volumePercent);
-
-  channel.volume.value = calculatedDb;
-  channel.mute = isMuted;
 }
