@@ -24,11 +24,10 @@ const usePlayers = (tracks: Track[]) => {
   const eventIds = useRef<number[]>([]);
 
   const { stopPosition } = usePositionStore();
-  const { addTrackError, volume } = useTracksStore(); // removed eq
+  const { addTrackError, volume } = useTracksStore();
 
   const { isLoop, loopEnd, loopStart } = transport || {};
 
-  // Only audio tracks that actually need setup
   const audioTracks = tracks.filter((t) => t.type === "audio" && t.audioTrack);
 
   const setupPlayer = useCallback(
@@ -80,7 +79,9 @@ const usePlayers = (tracks: Track[]) => {
 
   const setupAudioDurations = useCallback(
     (track: Track, duration: Duration, player: Tone.Player) => {
-      if (!track.audioTrack) return;
+      if (!track.audioTrack) {
+        return;
+      }
 
       const audioTrack = track.audioTrack;
       const { start, stop } = duration;
@@ -168,7 +169,9 @@ const usePlayers = (tracks: Track[]) => {
       tracks.forEach((track) => {
         if (track.type === "audio" && playersRef.current?.has(track.id)) {
           const player = playersRef.current.player(track.id);
-          if (player) player.stop();
+          if (player) {
+            player.stop();
+          }
         }
       });
     }
@@ -177,7 +180,6 @@ const usePlayers = (tracks: Track[]) => {
     eventIds.current.splice(0, eventIds.current.length);
   }, [tracks]);
 
-  // Main heavy setup - only runs when audio tracks list or structure changes
   useEffect(() => {
     if (!playersRef.current) {
       playersRef.current = new Tone.Players().toDestination();
@@ -207,7 +209,9 @@ const usePlayers = (tracks: Track[]) => {
             continue;
           }
 
-          if (!player) continue;
+          if (!player) {
+            continue;
+          }
 
           const channel = getOrCreateChannel(track);
 
@@ -236,7 +240,7 @@ const usePlayers = (tracks: Track[]) => {
     setupAllTracks();
   }, [
     audioTracks,
-    tracks, 
+    tracks,
     isLoading,
     isError,
     stackId,
@@ -246,9 +250,10 @@ const usePlayers = (tracks: Track[]) => {
     getOrCreateChannel,
   ]);
 
-  // Lightweight volume + mute updates (does NOT reschedule)
   useEffect(() => {
-    if (!volume) return;
+    if (!volume) {
+      return;
+    }
 
     const channelEntry = channelsRef.current.find(
       (c) => c.track.id === volume.trackId,

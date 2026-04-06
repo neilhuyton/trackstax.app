@@ -11,7 +11,6 @@ export function useSampler(sampleUrl: string | null) {
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Create sampler only when sampleUrl changes
   useEffect(() => {
     setIsLoaded(false);
 
@@ -21,7 +20,9 @@ export function useSampler(sampleUrl: string | null) {
     samplerRef.current = null;
     channelRef.current = null;
 
-    if (!sampleUrl) return;
+    if (!sampleUrl) {
+      return;
+    }
 
     const channel = new Tone.Channel({
       pan: 0,
@@ -49,13 +50,16 @@ export function useSampler(sampleUrl: string | null) {
     };
   }, [sampleUrl]);
 
-  // Update volume/mute/solo - only when needed
   useEffect(() => {
     const channel = channelRef.current;
-    if (!channel) return;
+    if (!channel) {
+      return;
+    }
 
     const samplerTrack = tracks.find((t) => t.type === "sampler");
-    if (!samplerTrack) return;
+    if (!samplerTrack) {
+      return;
+    }
 
     const soloTracks = tracks.filter((t) => t.isSolo);
     const shouldMuteBySolo =
@@ -73,7 +77,9 @@ export function useSampler(sampleUrl: string | null) {
   const trigger = useCallback(
     (note: string = "C3", duration: string = "8n", time?: number) => {
       const sampler = samplerRef.current;
-      if (!sampler || !isLoaded) return;
+      if (!sampler || !isLoaded) {
+        return;
+      }
       sampler.triggerAttackRelease(note, duration, time);
     },
     [isLoaded],
