@@ -19,7 +19,6 @@ export function useMasterVolumePersistence(stackId: string) {
     }),
   );
 
-  // Load from DB and set store immediately
   useEffect(() => {
     if (destination?.volumePercent !== undefined) {
       useTransportStore.setState({
