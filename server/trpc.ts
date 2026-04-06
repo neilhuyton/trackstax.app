@@ -6,6 +6,7 @@ import { screenRouter } from "./routers/screen";
 import { trackRouter } from "./routers/tracks";
 import { sampleRouter } from "./routers/samples";
 import { samplerRouter } from "./routers/sampler";
+import { destinationRouter } from "./routers/destination";
 
 export const appRouter = router({
   user: userRouter,
@@ -16,6 +17,7 @@ export const appRouter = router({
   track: trackRouter,
   sample: sampleRouter,
   sampler: samplerRouter,
+  destination: destinationRouter,
 });
 
 export type AppRouter = typeof appRouter;

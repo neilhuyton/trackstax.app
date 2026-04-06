@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Tone from "tone";
-
 import { type Track } from "@/types";
 import { toPosition } from "@/utils";
 import useTransportStore from "./useTransportStore";
@@ -8,12 +7,7 @@ import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
 import { useSamplerPattern } from "@/features/grid/hooks/useSamplerPattern";
-
-type SamplerEvent = {
-  time: string;
-  note: string;
-  duration?: string;
-};
+import { useMasterVolume } from "./useMasterVolume";
 
 interface TransportControlsProps {
   tracks: Track[];
@@ -24,7 +18,6 @@ interface TransportControlsProps {
   isPlay: boolean;
   isForward: boolean;
   isBackward: boolean;
-  samplerPattern: SamplerEvent[];
 }
 
 export const useTransportControls = ({
@@ -43,6 +36,7 @@ export const useTransportControls = ({
   const { setIsPlay } = useTransportStore();
   const { players, stopAndClearAll } = usePlayers(tracks);
 
+  useMasterVolume();
   useTempo(players, tracks);
   useSamplerPattern();
 
