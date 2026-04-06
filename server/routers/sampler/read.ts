@@ -10,13 +10,17 @@ export const samplerReadRouter = router({
         where: { trackId: input.trackId },
         select: {
           pattern: true,
-          sampleUrl: true, // ← also return sampleUrl
+          sampleUrl: true,
+          attackMs: true,
+          releaseMs: true,
         },
       });
 
       return {
         pattern: (samplerTrack?.pattern as SamplerPattern) ?? [],
         sampleUrl: samplerTrack?.sampleUrl ?? null,
+        attackMs: samplerTrack?.attackMs ?? 10,
+        releaseMs: samplerTrack?.releaseMs ?? 200,
       };
     }),
 });
