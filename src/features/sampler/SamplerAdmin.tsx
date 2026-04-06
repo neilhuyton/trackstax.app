@@ -5,9 +5,9 @@ import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import SamplerToolbar from "./SamplerToolbar";
 import SamplerZoneSelector from "./SamplerZoneSelector";
 import SamplerEnvelopeControl from "./SamplerEnvelopeControl";
-import useSamplerEnvelopeStore from "./hooks/useSamplerEnvelopeStore";
+import { useSamplerEnvelopeStore } from "./hooks/useSamplerEnvelopeStore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
-import { useEffect, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useTRPC } from "@/trpc";
 import { useDebouncedMutation } from "./hooks/useDebouncedMutation";
 
@@ -23,7 +23,7 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
 
   const { tracks, storeUpdateTrack } = useTracksStore();
 
-  const { attackMs, releaseMs, setAttack, setRelease, initFromTrack } =
+  const { attackMs, releaseMs, setAttack, setRelease } =
     useSamplerEnvelopeStore();
 
   const trpc = useTRPC();
@@ -34,27 +34,6 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
   );
 
   const isUserDraggingRef = useRef(false);
-
-  useEffect(() => {
-    if (isUserDraggingRef.current) {
-      return;
-    }
-
-    const st =
-      samplerTrack?.samplerTrack ||
-      tracks?.find((t) => t.id === trackId)?.samplerTrack;
-
-    if (st) {
-      const attack =
-        typeof st.attackMs === "number" && st.attackMs >= 0 ? st.attackMs : 10;
-      const release =
-        typeof st.releaseMs === "number" && st.releaseMs >= 0
-          ? st.releaseMs
-          : 200;
-
-      initFromTrack(attack, release);
-    }
-  }, [samplerTrack, tracks, trackId, initFromTrack]);
 
   const handleAttackChange = useCallback(
     (value: number) => {
