@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 import useTracksStore from "../../track/hooks/useTracksStore";
-import useSamplerEnvelopeStore from "../../sampler/hooks/useSamplerEnvelopeStore";
+import { useSamplerEnvelopeStore } from "../../sampler/hooks/useSamplerEnvelopeStore";
 import { calcVolumeLevel } from "@/utils";
 
 export function useSampler(sampleUrl: string | null) {
@@ -46,7 +46,6 @@ export function useSampler(sampleUrl: string | null) {
     };
   }, [sampleUrl]);
 
-  // Update attack/release from envelope store
   useEffect(() => {
     const sampler = samplerRef.current;
     if (!sampler) return;
@@ -64,7 +63,6 @@ export function useSampler(sampleUrl: string | null) {
     sampler.curve = "linear";
   }, [attackMs, releaseMs]);
 
-  // Master volume + solo logic
   useEffect(() => {
     const channel = channelRef.current;
     if (!channel) return;

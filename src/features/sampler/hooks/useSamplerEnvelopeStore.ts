@@ -1,22 +1,16 @@
 import { create } from "zustand";
+import useTracksStore from "@/features/track/hooks/useTracksStore";
 
 interface SamplerEnvelopeStore {
   attackMs: number;
   releaseMs: number;
   setAttack: (value: number) => void;
   setRelease: (value: number) => void;
-  initFromTrack: (attackMs: number, releaseMs: number) => void;
 }
 
-const useSamplerEnvelopeStore = create<SamplerEnvelopeStore>((set) => ({
+export const useSamplerEnvelopeStore = create<SamplerEnvelopeStore>((set) => ({
   attackMs: 10,
   releaseMs: 200,
-
-  initFromTrack: (attackMs: number, releaseMs: number) =>
-    set({
-      attackMs: Number.isFinite(attackMs) ? Math.max(0, attackMs) : 10,
-      releaseMs: Number.isFinite(releaseMs) ? Math.max(0, releaseMs) : 200,
-    }),
 
   setAttack: (value: number) => {
     const newValue = Number.isFinite(value) ? Math.max(0, value) : 10;
@@ -29,4 +23,28 @@ const useSamplerEnvelopeStore = create<SamplerEnvelopeStore>((set) => ({
   },
 }));
 
-export default useSamplerEnvelopeStore;
+// Subscribe to tracks store and sync envelope values when sampler track data changes
+useTracksStore.subscribe((state) => {
+  const samplerTrack = state.tracks.find(
+    (t) => t.type === "sampler",
+  )?.samplerTrack;
+
+  const attack =
+    typeof samplerTrack?.attackMs === "number" && samplerTrack.attackMs >= 0
+      ? samplerTrack.attackMs
+      : 10;
+
+  const release =
+    typeof samplerTrack?.releaseMs === "number" && samplerTrack.releaseMs >= 0
+      ? samplerTrack.releaseMs
+      : 200;
+
+  const current = useSamplerEnvelopeStore.getState();
+
+  if (attack !== current.attackMs) {
+    useSamplerEnvelopeStore.setState({ attackMs: attack });
+  }
+  if (release !== current.releaseMs) {
+    useSamplerEnvelopeStore.setState({ releaseMs: release });
+  }
+});
