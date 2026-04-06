@@ -172,6 +172,10 @@ model SamplerTrack {
   pattern        Json
   sampleUrl      String?
 
+  // New fields for envelope
+  attackMs       Int    @default(10)
+  releaseMs      Int    @default(200)
+
   trackId        String @unique @db.Uuid
 
   track          Track  @relation("TrackToSamplerTrack", fields: [trackId], references: [id], onDelete: Cascade)

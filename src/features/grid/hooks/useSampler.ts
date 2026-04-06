@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 import useTracksStore from "../../track/hooks/useTracksStore";
+import useSamplerEnvelopeStore from "../../sampler/hooks/useSamplerEnvelopeStore";
 import { calcVolumeLevel } from "@/utils";
 
 export function useSampler(sampleUrl: string | null) {
@@ -8,21 +9,19 @@ export function useSampler(sampleUrl: string | null) {
   const channelRef = useRef<Tone.Channel | null>(null);
 
   const { tracks } = useTracksStore();
+  const { attackMs, releaseMs } = useSamplerEnvelopeStore();
 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setIsLoaded(false);
-
     samplerRef.current?.dispose();
     channelRef.current?.dispose();
 
     samplerRef.current = null;
     channelRef.current = null;
+    setIsLoaded(false);
 
-    if (!sampleUrl) {
-      return;
-    }
+    if (!sampleUrl) return;
 
     const channel = new Tone.Channel({
       pan: 0,
@@ -34,12 +33,9 @@ export function useSampler(sampleUrl: string | null) {
 
     const sampler = new Tone.Sampler({
       urls: { C3: sampleUrl },
-      attack: 0,
-      release: 1.2,
       curve: "linear",
-
       onload: () => setIsLoaded(true),
-      onerror: () => console.error("Failed to load sample:", sampleUrl),
+      onerror: (err) => console.error("Sampler load failed:", sampleUrl, err),
     }).connect(channel);
 
     samplerRef.current = sampler;
@@ -50,16 +46,31 @@ export function useSampler(sampleUrl: string | null) {
     };
   }, [sampleUrl]);
 
+  // Update attack/release from envelope store
+  useEffect(() => {
+    const sampler = samplerRef.current;
+    if (!sampler) return;
+
+    const safeAttack = Number.isFinite(attackMs)
+      ? Math.max(0, attackMs) / 1000
+      : 0.01;
+
+    const safeRelease = Number.isFinite(releaseMs)
+      ? Math.max(0.001, releaseMs) / 1000
+      : 0.2;
+
+    sampler.attack = safeAttack;
+    sampler.release = safeRelease;
+    sampler.curve = "linear";
+  }, [attackMs, releaseMs]);
+
+  // Master volume + solo logic
   useEffect(() => {
     const channel = channelRef.current;
-    if (!channel) {
-      return;
-    }
+    if (!channel) return;
 
     const samplerTrack = tracks.find((t) => t.type === "sampler");
-    if (!samplerTrack) {
-      return;
-    }
+    if (!samplerTrack) return;
 
     const soloTracks = tracks.filter((t) => t.isSolo);
     const shouldMuteBySolo =
@@ -77,9 +88,8 @@ export function useSampler(sampleUrl: string | null) {
   const trigger = useCallback(
     (note: string = "C3", duration: string = "8n", time?: number) => {
       const sampler = samplerRef.current;
-      if (!sampler || !isLoaded) {
-        return;
-      }
+      if (!sampler || !isLoaded) return;
+
       sampler.triggerAttackRelease(note, duration, time);
     },
     [isLoaded],

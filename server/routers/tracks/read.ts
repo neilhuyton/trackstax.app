@@ -27,6 +27,8 @@ export const trackReadRouter = router({
             select: {
               pattern: true,
               sampleUrl: true,
+              attackMs: true,
+              releaseMs: true,
             },
           },
         },

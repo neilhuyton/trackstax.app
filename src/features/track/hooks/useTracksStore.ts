@@ -76,9 +76,9 @@ const useTracksStore = create<TracksStore>((set) => ({
     set((state) => ({
       tracks: [...state.tracks, track],
     })),
-  storeUpdateTrack: (track) =>
+  storeUpdateTrack: (track: Track) =>
     set((state) => ({
-      tracks: state.tracks.map((t) => (t.id === track.id ? track : t)),
+      tracks: state.tracks.map((t) => (t.id === track.id ? { ...track } : t)),
       volume: {
         volumePercent: track.volumePercent,
         trackId: track.id,

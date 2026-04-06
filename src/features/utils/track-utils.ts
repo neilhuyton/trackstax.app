@@ -111,6 +111,13 @@ export const updateTrackDurations = (
   durations: sanitiseDurations(track.durations, currentBar, isActive),
 });
 
+const DEFAULT_SAMPLER_TRACK = {
+  pattern: [] as SamplerPattern,
+  sampleUrl: null as string | null,
+  attackMs: 10,
+  releaseMs: 200,
+} as const;
+
 export type CreateNewTrackInput = {
   type: "audio" | "sampler";
   label: string;
@@ -132,7 +139,7 @@ export type CreateNewTrackInput = {
   updatedAt: string;
   durations: Duration[];
   audioTrack: ReturnType<typeof createClientAudioTrack> | null;
-  samplerTrack: { pattern: SamplerPattern; sampleUrl: string | null } | null;
+  samplerTrack: typeof DEFAULT_SAMPLER_TRACK | null;
 };
 
 export const createNewTrack = (
@@ -187,7 +194,7 @@ export const createNewTrack = (
             result?.duration ?? 0,
           )
         : null,
-    samplerTrack: isSampler ? { pattern: [], sampleUrl: null } : null,
+    samplerTrack: isSampler ? DEFAULT_SAMPLER_TRACK : null,
   };
 };
 
@@ -234,8 +241,40 @@ type RawServerTrack = {
   samplerTrack?: {
     pattern?: unknown;
     sampleUrl?: string | null;
+    attackMs?: number;
+    releaseMs?: number;
   } | null;
 };
+
+const normalizeSamplerTrack = (
+  samplerTrack?: RawServerTrack["samplerTrack"],
+): NonNullable<Track["samplerTrack"]> => {
+  if (!samplerTrack) return DEFAULT_SAMPLER_TRACK;
+
+  return {
+    pattern: Array.isArray(samplerTrack.pattern)
+      ? (samplerTrack.pattern as SamplerPattern)
+      : [],
+    sampleUrl: samplerTrack.sampleUrl ?? null,
+    attackMs:
+      typeof samplerTrack.attackMs === "number" ? samplerTrack.attackMs : 10,
+    releaseMs:
+      typeof samplerTrack.releaseMs === "number" ? samplerTrack.releaseMs : 200,
+  };
+};
+
+const SERVER_DEFAULTS = {
+  isMute: false,
+  isSolo: false,
+  isFavourite: false,
+  volumePercent: 75,
+  low: 0,
+  mid: 0,
+  high: 0,
+  lowFrequency: 0,
+  highFrequency: 0,
+  isBypass: false,
+} as const;
 
 export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
   id: serverTrack.id,
@@ -259,14 +298,7 @@ export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
   updatedAt: serverTrack.updatedAt,
   durations: serverTrack.durations ?? [],
   audioTrack: serverTrack.audioTrack ?? null,
-  samplerTrack: serverTrack.samplerTrack
-    ? {
-        pattern: Array.isArray(serverTrack.samplerTrack.pattern)
-          ? (serverTrack.samplerTrack.pattern as SamplerPattern)
-          : [],
-        sampleUrl: serverTrack.samplerTrack.sampleUrl ?? null,
-      }
-    : null,
+  samplerTrack: normalizeSamplerTrack(serverTrack.samplerTrack),
 });
 
 export const toClientTracks = (serverTracks: RawServerTrack[]): Track[] =>
@@ -284,27 +316,22 @@ export const buildClientTrackFromServer = (
     createClientAudioTrack(filename, downloadUrl, duration);
 
   return {
+    ...baseTrack,
     id: createdTrack.id,
-    type: baseTrack.type,
-    label: baseTrack.label,
-    color: baseTrack.color,
-    sortOrder: baseTrack.sortOrder,
-    stackId: baseTrack.stackId,
-    createdAt: baseTrack.createdAt,
-    updatedAt: baseTrack.updatedAt,
     durations: createdTrack.durations ?? [],
     audioTrack,
-    samplerTrack: baseTrack.samplerTrack ?? { pattern: [], sampleUrl: null },
-    isMute: createdTrack.isMute ?? false,
-    isSolo: createdTrack.isSolo ?? false,
-    isFavourite: createdTrack.isFavourite ?? false,
-    volumePercent: createdTrack.volumePercent ?? 75,
-    low: createdTrack.low ?? 0,
-    mid: createdTrack.mid ?? 0,
-    high: createdTrack.high ?? 0,
-    lowFrequency: createdTrack.lowFrequency ?? 0,
-    highFrequency: createdTrack.highFrequency ?? 0,
-    isBypass: createdTrack.isBypass ?? false,
+    samplerTrack: normalizeSamplerTrack(createdTrack.samplerTrack),
+    ...SERVER_DEFAULTS,
+    isMute: createdTrack.isMute ?? SERVER_DEFAULTS.isMute,
+    isSolo: createdTrack.isSolo ?? SERVER_DEFAULTS.isSolo,
+    isFavourite: createdTrack.isFavourite ?? SERVER_DEFAULTS.isFavourite,
+    volumePercent: createdTrack.volumePercent ?? SERVER_DEFAULTS.volumePercent,
+    low: createdTrack.low ?? SERVER_DEFAULTS.low,
+    mid: createdTrack.mid ?? SERVER_DEFAULTS.mid,
+    high: createdTrack.high ?? SERVER_DEFAULTS.high,
+    lowFrequency: createdTrack.lowFrequency ?? SERVER_DEFAULTS.lowFrequency,
+    highFrequency: createdTrack.highFrequency ?? SERVER_DEFAULTS.highFrequency,
+    isBypass: createdTrack.isBypass ?? SERVER_DEFAULTS.isBypass,
     loopLength: createdTrack.loopLength ?? baseTrack.loopLength ?? 4,
   };
 };

@@ -2,18 +2,34 @@ import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { useSampler } from "./useSampler";
 import useTracksStore from "../../track/hooks/useTracksStore";
-import { calcVolumeLevel } from "@/utils";
-import type { SamplerEvent, Track } from "@/types";
+import type { Track } from "@/types";
 
-type SamplerTrackMinimal = Track & {
+type SamplerEvent = {
+  time: string | number;
+  note: string;
+  duration?: string;
+};
+
+type Duration = {
+  start: number;
+  stop: number;
+};
+
+type SamplerTrack = Track & {
   type: "sampler";
+  samplerTrack?: {
+    pattern: SamplerEvent[];
+    sampleUrl?: string;
+  };
+  durations: Duration[];
+  loopLength?: number;
 };
 
 export function useSamplerPattern() {
-  const { tracks, volume } = useTracksStore();
+  const { tracks } = useTracksStore();
 
   const samplerTracks = tracks.filter(
-    (t): t is SamplerTrackMinimal => t.type === "sampler",
+    (t): t is SamplerTrack => t.type === "sampler",
   );
 
   const playableSamplerTracks = samplerTracks.filter(
@@ -23,7 +39,8 @@ export function useSamplerPattern() {
   const firstSamplerUrl =
     playableSamplerTracks[0]?.samplerTrack?.sampleUrl ?? null;
 
-  const { trigger, isLoaded, channel } = useSampler(firstSamplerUrl);
+  const { trigger, isLoaded } = useSampler(firstSamplerUrl);
+
   const eventIdsRef = useRef<number[]>([]);
 
   const clearAllScheduledEvents = useCallback(() => {
@@ -32,7 +49,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // leave this comment here
+        // empty catch
       }
     });
     eventIdsRef.current = [];
@@ -67,7 +84,7 @@ export function useSamplerPattern() {
         ) {
           const loopEndBar = Math.min(loopStartBar + loopLength, stop);
 
-          pattern.forEach((event: SamplerEvent) => {
+          pattern.forEach((event) => {
             let eventTime: number = 0;
 
             if (typeof event.time === "string") {
@@ -103,7 +120,6 @@ export function useSamplerPattern() {
     });
   }, [playableSamplerTracks, trigger, isLoaded, clearAllScheduledEvents]);
 
-  // Scheduling effects
   useEffect(() => {
     if (isLoaded) {
       scheduleAllPatterns();
@@ -138,47 +154,6 @@ export function useSamplerPattern() {
   useEffect(() => {
     return () => clearAllScheduledEvents();
   }, [clearAllScheduledEvents]);
-
-  // ====================== VOLUME + MUTE + SOLO via CHANNEL ======================
-
-  // Initial + track changes
-  useEffect(() => {
-    if (!channel) return;
-
-    const samplerTrack = tracks.find((t) => t.type === "sampler");
-    if (!samplerTrack) return;
-
-    const soloTracks = tracks.filter((t) => t.isSolo);
-    const shouldMuteBySolo =
-      soloTracks.length > 0 &&
-      !soloTracks.some((t) => t.id === samplerTrack.id);
-
-    const isMuted = samplerTrack.isMute || shouldMuteBySolo;
-
-    channel.volume.value = isMuted
-      ? -Infinity
-      : calcVolumeLevel(samplerTrack.volumePercent);
-    channel.mute = isMuted;
-  }, [channel, tracks]);
-
-  // Live volume slider + mute/solo
-  useEffect(() => {
-    if (!channel || !volume?.trackId) return;
-
-    const targetTrack = tracks.find((t) => t.id === volume.trackId);
-    if (!targetTrack || targetTrack.type !== "sampler") return;
-
-    const soloTracks = tracks.filter((t) => t.isSolo);
-    const shouldMuteBySolo =
-      soloTracks.length > 0 && !soloTracks.some((t) => t.id === targetTrack.id);
-
-    const isMuted = targetTrack.isMute || shouldMuteBySolo;
-
-    channel.volume.value = isMuted
-      ? -Infinity
-      : calcVolumeLevel(volume.volumePercent);
-    channel.mute = isMuted;
-  }, [volume, channel, tracks]);
 
   return { isLoaded };
 }

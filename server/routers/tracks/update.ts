@@ -12,6 +12,9 @@ const trackInclude = {
   samplerTrack: {
     select: {
       pattern: true,
+      sampleUrl: true,
+      attackMs: true,
+      releaseMs: true,
     },
   },
 } as const;
