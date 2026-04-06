@@ -17,7 +17,7 @@ export default function SideNotes({ notes, scrollRef, trigger }: Props) {
     [trigger],
   );
 
-  // Sync vertical scroll between grid and keyboard
+  // Sync vertical scroll
   useEffect(() => {
     const grid = scrollRef.current;
     const keyboard = keyboardRef.current;
@@ -29,25 +29,36 @@ export default function SideNotes({ notes, scrollRef, trigger }: Props) {
 
     grid.addEventListener("scroll", syncScroll, { passive: true });
 
-    return () => {
-      grid.removeEventListener("scroll", syncScroll);
-    };
+    return () => grid.removeEventListener("scroll", syncScroll);
   }, [scrollRef]);
+
+  const isBlackKey = (note: NoteName): boolean =>
+    note.includes("#") || note.includes("b");
 
   return (
     <div className="w-16 bg-black flex-shrink-0 border-r border-neutral-800 overflow-hidden">
       <div ref={keyboardRef} className="h-full overflow-hidden">
-        {notes.map((note) => (
-          <button
-            key={note}
-            onClick={() => playNote(note)}
-            className="h-[28px] w-full border-b border-gray-800 flex items-center pl-3 text-sm 
-                       cursor-pointer hover:bg-zinc-800 active:bg-violet-600 
-                       transition-colors select-none"
-          >
-            {note}
-          </button>
-        ))}
+        {notes.map((note) => {
+          const isBlack = isBlackKey(note);
+
+          return (
+            <button
+              key={note}
+              onClick={() => playNote(note)}
+              className={`
+                h-[28px] w-full flex items-center pl-3 text-sm 
+                cursor-pointer select-none transition-colors border-b border-neutral-800
+                ${
+                  isBlack
+                    ? "bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 text-white"
+                    : "bg-white hover:bg-zinc-100 active:bg-violet-100 text-neutral-900"
+                }
+              `}
+            >
+              <span className="font-mono relative z-10">{note}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
