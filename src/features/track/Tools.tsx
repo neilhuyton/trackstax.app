@@ -5,6 +5,7 @@ import { borderColors } from "@/consts";
 import { type Track } from "@/types";
 
 import useTracksStore from "./hooks/useTracksStore";
+import MasterVolumeDialog from "@/features/transport/MasterVolumeDialog";
 
 export const TrackTools = () => {
   const { tracks } = useTracksStore();
@@ -13,8 +14,9 @@ export const TrackTools = () => {
     <div className="h-full flex flex-col">
       <div className="flex-1 min-h-0 overflow-hidden p-1.5">
         <div className="h-full grid gap-1.5 grid-rows-[repeat(10,minmax(0,1fr))]">
-          <div></div>
-          <div></div>
+          <div className="flex items-center px-4">
+            <MasterVolumeDialog />
+          </div>
 
           {tracks.map((track: Track) => {
             const color =

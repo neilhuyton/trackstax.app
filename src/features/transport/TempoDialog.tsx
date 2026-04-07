@@ -62,13 +62,9 @@ export function TransportTempoDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="text-white font-semibold text-xl flex cursor-pointer"
-        >
-          <span>TEMPO:</span>
-          <span className="w-14">{transport.tempo}</span>
-          <span>BPM</span>
+        <Button variant="outline" className="h-9 px-3 text-base font-medium">
+          <span>{transport.tempo}</span>
+          <span className="text-sm">BPM</span>
         </Button>
       </DialogTrigger>
 

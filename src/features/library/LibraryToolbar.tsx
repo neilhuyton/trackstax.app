@@ -2,6 +2,7 @@ import type { SampleLibraryNavigation } from "@/types";
 import { toTitleCase } from "../utils/string-utils";
 import { useNavigate } from "@tanstack/react-router";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import { ChevronDown } from "lucide-react";
 
 type LibraryToolbarProps = {
   navigation: SampleLibraryNavigation;
@@ -55,11 +56,12 @@ export const LibraryToolbar = ({
     : "";
 
   return (
-    <div className="h-10 flex items-center px-4 border-b border-neutral-800 gap-4 relative z-10 bg-neutral-950">
+    <div className="h-10 flex items-center px-4 border-neutral-800 gap-4 bg-neutral-950">
+      {/* Left side - Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium min-w-0 flex-1">
         <button
           onClick={handleBack}
-          className="text-gray-400 hover:text-white transition-colors cursor-pointer mr-1 flex-shrink-0"
+          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors cursor-pointer h-9 px-3 rounded hover:bg-neutral-900 flex-shrink-0"
           title="Go back"
         >
           ←
@@ -71,7 +73,7 @@ export const LibraryToolbar = ({
               navigation.goToCollection(navigation.currentCollection);
             }
           }}
-          className="text-gray-400 hover:text-white cursor-pointer transition-colors truncate"
+          className="text-neutral-400 hover:text-white cursor-pointer transition-colors truncate"
         >
           {displayCollection}
         </span>
@@ -86,34 +88,50 @@ export const LibraryToolbar = ({
 
       {showSearchAndBpm && (
         <div className="flex items-center gap-4 flex-shrink-0">
+          {/* Search Input - height matched to select without changing the select */}
           <div className="w-60">
             <input
               type="text"
               placeholder="Search filename..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-neutral-600"
+              className="w-full bg-neutral-900 border border-neutral-700 rounded px-3  text-sm 
+                         focus:outline-none focus:border-neutral-600 
+                         hover:border-neutral-600 transition-colors
+                         box-border leading-none h-[28px]"
             />
           </div>
 
+          {/* BPM Select */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 whitespace-nowrap">BPM</span>
-            <select
-              value={bpmFilter ?? ""}
-              onChange={(e) =>
-                onBpmFilterChange(
-                  e.target.value ? parseInt(e.target.value) : null,
-                )
-              }
-              className="bg-neutral-900 border border-neutral-700 text-sm rounded px-3 py-1 focus:outline-none focus:border-neutral-600 min-w-[70px]"
-            >
-              <option value="">All</option>
-              {availableBpms.map((bpm) => (
-                <option key={bpm} value={bpm}>
-                  {bpm}
-                </option>
-              ))}
-            </select>
+            <span className="text-sm text-neutral-400 whitespace-nowrap">BPM</span>
+
+            <div className="relative">
+              <select
+                value={bpmFilter ?? ""}
+                onChange={(e) =>
+                  onBpmFilterChange(
+                    e.target.value ? parseInt(e.target.value) : null,
+                  )
+                }
+                className="bg-neutral-900 border border-neutral-700 text-sm rounded px-3 py-0.75 
+                           focus:outline-none focus:border-neutral-600 
+                           hover:border-neutral-600 transition-colors
+                           appearance-none cursor-pointer min-w-[70px]"
+              >
+                <option value="">All</option>
+                {availableBpms.map((bpm) => (
+                  <option key={bpm} value={bpm}>
+                    {bpm}
+                  </option>
+                ))}
+              </select>
+
+              {/* Custom Chevron */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-400">
+                <ChevronDown className="h-4 w-4" />
+              </div>
+            </div>
           </div>
         </div>
       )}

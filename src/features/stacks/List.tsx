@@ -1,5 +1,4 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { Card } from "@/components/ui/card";
 import DataTable from "./DataTable";
 
 import type { Stack } from "./hooks/useStackRead";
@@ -11,7 +10,7 @@ type Props = {
 
 export const StackList = ({ stacks, columns }: Props) => {
   return (
-    <Card className="w-full flex flex-col p-6">
+    <div className="w-full flex flex-col px-6 py-6">
       <div className="pb-4 flex items-center justify-between">
         <h2 className="text-white font-semibold text-xl">Your Stacks</h2>
         <div className="text-sm text-muted-foreground">
@@ -22,6 +21,6 @@ export const StackList = ({ stacks, columns }: Props) => {
       <div className="flex-1 min-h-0">
         <DataTable columns={columns} data={stacks} />
       </div>
-    </Card>
+    </div>
   );
 };

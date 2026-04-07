@@ -1,5 +1,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 
@@ -20,9 +21,14 @@ export const columns: ColumnDef<Stack>[] = [
     cell: ({ row }) => {
       const stack = row.original;
       return (
-        <a href={`/stacks/${stack.id}`} className="font-medium hover:underline">
+        <Link
+          to="/stacks/$stackId"
+          params={{ stackId: stack.id }}
+          search={{ page: 0 }}
+          className="font-medium hover:underline text-white"
+        >
           {stack.title}
-        </a>
+        </Link>
       );
     },
   },

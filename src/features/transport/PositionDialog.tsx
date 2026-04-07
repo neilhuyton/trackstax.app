@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Tone from "tone";
-import { useNavigate } from "@tanstack/react-router"; // ← Added
+import { useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ const calculateScrollAndPosition = (bar: string) => {
 };
 
 export const TransportPositionDialog = () => {
-  const navigate = useNavigate(); // ← Added
+  const navigate = useNavigate();
 
   const { position, setPosition, setStopPosition } = usePositionStore();
 
@@ -91,7 +91,7 @@ export const TransportPositionDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="text-sm font-medium h-7 px-3">
+        <Button variant="outline" className="h-9 px-3 text-sm font-medium">
           Pos: <span className="font-semibold ml-1">{pos.bars + 1}</span>
         </Button>
       </DialogTrigger>
