@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
   ChevronRight,
@@ -47,51 +46,60 @@ const GridToolbar = () => {
   const goToNextPage = () => goToPage(currentPage + 1);
   const goToLastPage = () => goToPage(totalPages - 1);
 
+  const handleBack = () => {
+    navigate({
+      to: "/stacks",
+      replace: true,
+    });
+  };
+
   return (
-    <div className="h-10 flex items-center px-4 border-b border-neutral-800 bg-neutral-950">
+    <div className="h-10 flex items-center px-4 border-neutral-800 bg-neutral-950">
       <div className="flex items-center gap-3 flex-1">
-        <Button
-          variant="outline"
-          size="sm"
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mr-8 px-1 text-sm font-medium"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          <span className="font-medium">Back to Stacks</span>
+        </button>
+
+        <button
           onClick={goToFirstPage}
           disabled={!canGoPrev}
-          className="h-8 w-8 p-0"
+          className="ml-auto px-4 py-0.75 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
         >
           <ChevronsLeft className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
+        </button>
+
+        <button
           onClick={goToPrevPage}
           disabled={!canGoPrev}
-          className="h-8 w-8 p-0"
+          className="px-4 py-0.75 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
-        </Button>
+        </button>
 
         <div className="text-sm text-neutral-400 min-w-[140px] text-center">
           Bars <span className="text-white font-medium">{startBar}</span>–
           {endBar} of {totalBars}
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={goToNextPage}
           disabled={!canGoNext}
-          className="h-8 w-8 p-0"
+          className="px-4 py-0.75 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
         >
           <ChevronRight className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
+        </button>
+
+        <button
           onClick={goToLastPage}
           disabled={!canGoNext}
-          className="h-8 w-8 p-0"
+          className="px-4 py-0.75 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
         >
           <ChevronsRight className="w-4 h-4" />
-        </Button>
+        </button>
       </div>
     </div>
   );

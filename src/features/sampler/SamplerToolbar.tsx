@@ -18,10 +18,10 @@ export default function SamplerToolbar({ stackId, trackId }: Props) {
   };
 
   return (
-    <div className="h-10 flex items-center px-4 border-b border-neutral-800 bg-neutral-950">
+    <div className="h-10 flex items-center px-4 border-neutral-800 bg-neutral-950">
       <button
         onClick={goToPianoRoll}
-        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors h-9 px-1 text-sm font-medium"
       >
         <ChevronLeft className="h-5 w-5" />
         <span className="font-medium">Back to Piano Roll</span>

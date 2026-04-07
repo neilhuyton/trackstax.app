@@ -8,10 +8,10 @@ const TrackList = () => {
 
   return (
     <div data-testid="track-list" className="h-full flex flex-col">
-      <div className="flex-1 min-h-0 overflow-hidden p-1.5">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <div className="h-full grid gap-1.5 grid-rows-[repeat(10,minmax(0,1fr))]">
           <div></div>
-          <AddTrackButton /> {/* ← changed */}
+          <AddTrackButton />
           {tracks?.map((track: Track) => {
             const trackError = trackErrors.some(
               (error) => error.trackId === track.id,

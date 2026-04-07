@@ -36,7 +36,7 @@ const GridContainer = () => {
   const placeholderCount = Math.max(0, 8 - trackCount);
 
   return (
-    <div className="h-full bg-[#1a1a1a] p-1.5 flex flex-col">
+    <div className="h-full bg-[#1a1a1a] flex flex-col">
       <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
         <GridToolbar />
         <GridBars />
