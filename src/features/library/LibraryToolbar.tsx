@@ -102,7 +102,7 @@ export const LibraryToolbar = ({
             />
           </div>
 
-          {/* BPM Select - UNCHANGED (exactly as before) */}
+          {/* BPM Select */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-neutral-400 whitespace-nowrap">BPM</span>
 
