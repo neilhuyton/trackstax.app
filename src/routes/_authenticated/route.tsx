@@ -33,14 +33,23 @@ const AuthenticatedLayout = () => {
   }
 
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <div className="flex flex-col h-screen overscroll-none bg-background">   {/* changed to h-screen */}
-        <HeaderSheet />
-
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <Outlet />
-          <ActionBanner />
-        </main>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          Loading...
+        </div>
+      }
+    >
+      {/* Main container - centered both horizontally and vertically on desktop */}
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-[1600px] h-[95vh] max-h-[1080px] flex flex-col rounded-xl overflow-hidden shadow-2xl border border-border/50 bg-[#0a0a0a]">
+          <HeaderSheet />
+          
+          <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <Outlet />
+            <ActionBanner />
+          </main>
+        </div>
       </div>
     </Suspense>
   );
