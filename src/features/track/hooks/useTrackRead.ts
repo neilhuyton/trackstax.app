@@ -8,7 +8,7 @@ export function useTrackRead(stackId: string) {
     trpc.track.getByStackId.queryOptions(
       { stackId },
       {
-        staleTime: 1000 * 60 * 5, // 5 minutes – good balance for an editor
+        staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 60 * 24,
         enabled: !!stackId && stackId.length > 0,
       },

@@ -193,7 +193,7 @@ const usePlayers = (tracks: Track[]) => {
       return;
     }
 
-    // Clear old events before setting up new ones (important for realtime editing)
+    // Clear old events before setting up new ones
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.length = 0;
 
