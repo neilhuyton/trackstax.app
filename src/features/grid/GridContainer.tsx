@@ -4,11 +4,14 @@ import GridToolbar from "./GridToolbar";
 import useTracksStore from "../track/hooks/useTracksStore";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/features/utils/track-utils";
 import { useSearch } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 
 const GridContainer = () => {
+  const queryClient = useQueryClient();
+  const { stackId } = useParams({ from: "/_authenticated/stacks/$stackId/" });
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
   const pageSize = 8;
 
@@ -16,7 +19,15 @@ const GridContainer = () => {
   const visibleStartBar = page * pageSize;
 
   const updateDurationsMutation = useMutation(
-    trpc.track.updateDurations.mutationOptions({ onSuccess: () => {} }),
+    trpc.track.updateDurations.mutationOptions({
+      onSuccess: () => {
+        if (stackId) {
+          queryClient.invalidateQueries({
+            queryKey: trpc.track.getByStackId.queryKey({ stackId }),
+          });
+        }
+      },
+    }),
   );
 
   const handleToggle = (trackId: string, bar: number, wasActive: boolean) => {
