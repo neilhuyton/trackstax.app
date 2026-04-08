@@ -16,6 +16,7 @@ import { usePlayersStore } from "@/features/transport/hooks/usePlayersStore";
 import { useTransportRead } from "@/features/transport/hooks/useTransportRead";
 import { useTrackRead } from "@/features/track/hooks/useTrackRead";
 import { toClientTracks } from "@/features/utils/track-utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId")({
   loader: async ({ params, context: { queryClient } }) => {
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/_authenticated/stacks/$stackId")({
 function StackLayout() {
   const { stackId } = Route.useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const localTracks = useTracksStore((state) => state.tracks);
   const setTracks = useTracksStore((state) => state.setTracks);
@@ -80,6 +82,28 @@ function StackLayout() {
       setupAllTracks(isLoop, loopStart, loopEnd);
     }
   }, [localTracks, stackId, setupAllTracks, isLoop, loopStart, loopEnd]);
+
+  // Load master volume from DB once when entering a new stack (non-blocking)
+  useEffect(() => {
+    if (!stackId || storedStackId === stackId) return;
+
+    const loadMasterVolume = async () => {
+      try {
+        const destination = await queryClient.ensureQueryData(
+          trpc.destination.getByStackId.queryOptions({ stackId }),
+        );
+        if (destination?.volumePercent !== undefined) {
+          useTransportStore.setState({
+            masterVolumePercent: destination.volumePercent,
+          });
+        }
+      } catch {
+        // leave this comment here
+      }
+    };
+
+    loadMasterVolume();
+  }, [stackId, storedStackId, queryClient]);
 
   useEffect(() => {
     return () => {

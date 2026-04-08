@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect } from "react";
+import { useCallback, useState } from "react";
 
 import { FaVolumeHigh } from "react-icons/fa6";
 
@@ -17,26 +17,24 @@ import { Slider } from "@/components/ui/slider";
 
 import { useMasterVolume } from "./hooks/useMasterVolume";
 import useTransportStore from "./hooks/useTransportStore";
-import { useMasterVolumePersistence } from "./hooks/useMasterVolumePersistence";
+import { useMasterVolumeUpdate } from "./hooks/useMasterVolumeUpdate";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
 export const MasterVolumeDialog = () => {
   const stackId = useStackIdStore((state) => state.stackId);
   const { setMasterVolumePercent } = useMasterVolume();
-  const { saveMasterVolume } = useMasterVolumePersistence(stackId || "");
+  const { saveMasterVolume } = useMasterVolumeUpdate(stackId || "");
   const masterVolumePercent = useTransportStore(
     (state) => state.masterVolumePercent,
   );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [tempVolumePercent, setTempVolumePercent] = useState<number>(100);
-  const originalVolumeRef = useRef<number>(100);
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
         const currentVolume = masterVolumePercent ?? 100;
         setTempVolumePercent(currentVolume);
-        originalVolumeRef.current = currentVolume;
       }
       setIsOpen(open);
     },
@@ -52,16 +50,10 @@ export const MasterVolumeDialog = () => {
     [setMasterVolumePercent],
   );
 
-  const handleSave = useCallback(() => {
-    saveMasterVolume(tempVolumePercent);
+  const handleSave = useCallback(async () => {
+    await saveMasterVolume(tempVolumePercent);
     setIsOpen(false);
   }, [tempVolumePercent, saveMasterVolume]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTempVolumePercent(masterVolumePercent ?? 100);
-    }
-  }, [masterVolumePercent, isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
