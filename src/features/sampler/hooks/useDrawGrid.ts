@@ -19,8 +19,10 @@ type UseDrawGridProps = {
   ) => void;
 };
 
-const HOLD_DELAY = 200;
-const MOVE_THRESHOLD = 15;
+const HOLD_DELAY = 90;
+const MOVE_THRESHOLD = 4;
+const AUTO_SCROLL_SPEED = 12;
+const EDGE_THRESHOLD = 60; // pixels from edge to start auto-scroll
 
 export function useDrawGrid({
   notes,
@@ -53,7 +55,6 @@ export function useDrawGrid({
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    // Background with alternating bar colors
     for (let bar = 0; bar < Math.ceil(cols / 16); bar++) {
       const isEvenBar = bar % 2 === 0;
       const barStartX = bar * 16 * pixelSize;
@@ -63,7 +64,6 @@ export function useDrawGrid({
       ctx.fillRect(barStartX, 0, barWidth, canvasHeight);
     }
 
-    // Grid lines
     ctx.strokeStyle = "#3f3f46";
     ctx.lineWidth = 1;
 
@@ -80,7 +80,6 @@ export function useDrawGrid({
       ctx.stroke();
     }
 
-    // Notes
     ctx.fillStyle = "#8b5cf6";
     lines.forEach((line) => {
       const startX = line.startStep * pixelSize;
@@ -179,6 +178,22 @@ export function useDrawGrid({
 
       minColRef.current = newMin;
       maxColRef.current = newMax;
+
+      // Auto-scroll when near edge
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const scrollContainer = canvas.parentElement?.parentElement; // the scrollable div
+      if (!scrollContainer) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const distanceToRight = rect.right - clientX;
+      const distanceToLeft = clientX - rect.left;
+
+      if (distanceToRight < EDGE_THRESHOLD) {
+        scrollContainer.scrollLeft += AUTO_SCROLL_SPEED;
+      } else if (distanceToLeft < EDGE_THRESHOLD) {
+        scrollContainer.scrollLeft -= AUTO_SCROLL_SPEED;
+      }
     },
     [getGridPos, drawPixel],
   );
@@ -217,62 +232,75 @@ export function useDrawGrid({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
+    let isDrawing = false;
 
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    const handlePointerDown = (e: PointerEvent) => {
+      touchStartRef.current = { x: e.clientX, y: e.clientY };
       clearHoldTimer();
 
       holdTimerRef.current = setTimeout(() => {
         if (touchStartRef.current) {
-          handleTapOrHold(touch.clientX, touch.clientY, true);
+          isDrawing = true;
+          handleTapOrHold(e.clientX, e.clientY, true);
         }
       }, HOLD_DELAY);
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
-
-      if (isDrawingRef.current) {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (isDrawing) {
         e.preventDefault();
-        onMove(touch.clientX, touch.clientY);
+        onMove(e.clientX, e.clientY);
       } else if (touchStartRef.current) {
-        const dx = Math.abs(touch.clientX - touchStartRef.current.x);
-        const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+        const dx = Math.abs(e.clientX - touchStartRef.current.x);
+        const dy = Math.abs(e.clientY - touchStartRef.current.y);
+
         if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
           clearHoldTimer();
         }
       }
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handlePointerUp = (e: PointerEvent) => {
       clearHoldTimer();
 
-      const lastTouch = e.changedTouches?.[0];
-      if (!lastTouch) return;
-
-      if (isDrawingRef.current) {
-        finishDrawing(lastTouch.clientX, lastTouch.clientY);
+      if (isDrawing) {
+        e.preventDefault();
+        finishDrawing(e.clientX, e.clientY);
+        isDrawing = false;
       } else if (touchStartRef.current) {
-        handleTapOrHold(lastTouch.clientX, lastTouch.clientY, false);
+        handleTapOrHold(
+          touchStartRef.current.x,
+          touchStartRef.current.y,
+          false,
+        );
       }
 
       touchStartRef.current = null;
     };
 
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
-    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
-    canvas.addEventListener("touchend", handleTouchEnd, { passive: true });
-    canvas.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    canvas.addEventListener("pointerdown", handlePointerDown, {
+      passive: false,
+    });
+    canvas.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
+    canvas.addEventListener("pointerup", handlePointerUp, { passive: false });
+    canvas.addEventListener("pointerleave", handlePointerUp, {
+      passive: false,
+    });
+    canvas.addEventListener("pointercancel", handlePointerUp, {
+      passive: false,
+    });
+
+    canvas.style.touchAction = "pan-x pan-y";
 
     return () => {
       clearHoldTimer();
-      canvas.removeEventListener("touchstart", handleTouchStart);
-      canvas.removeEventListener("touchmove", handleTouchMove);
-      canvas.removeEventListener("touchend", handleTouchEnd);
-      canvas.removeEventListener("touchcancel", handleTouchEnd);
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointerleave", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerUp);
     };
   }, [handleTapOrHold, onMove, finishDrawing, clearHoldTimer]);
 
