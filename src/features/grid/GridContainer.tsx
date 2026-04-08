@@ -3,14 +3,12 @@ import GridToolbar from "./GridToolbar";
 import useTracksStore from "../track/hooks/useTracksStore";
 import { type Track } from "@/types";
 import { trpc } from "@/trpc";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/features/utils/track-utils";
 import { useSearch } from "@tanstack/react-router";
 import GridBars from "./GridBars";
 
 const GridContainer = () => {
-  const queryClient = useQueryClient();
-  const { stackId } = useParams({ from: "/_authenticated/stacks/$stackId/" });
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
   const pageSize = 8;
 
