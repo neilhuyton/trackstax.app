@@ -75,7 +75,7 @@ const PianoRollPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-[#1a1a1a]">
+    <div className="flex flex-col h-full overflow-hidden bg-[#1a1a1a] relative">
       <PianoRollToolbar />
 
       <div className="flex-1 overflow-hidden">

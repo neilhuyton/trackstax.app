@@ -26,7 +26,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: false,
-
+      proxy: {
+        "/trpc": {
+          target: "http://localhost:8888",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+      allowedHosts: [".ngrok-free.dev"],
       fs: {
         allow: [".."],
       },

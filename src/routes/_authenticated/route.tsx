@@ -10,6 +10,7 @@ import { Suspense } from "react";
 
 import { HeaderSheet } from "@/features/header/HeaderSheet";
 import { ActionBanner } from "@steel-cut/steel-lib";
+import FullscreenButton from "@/features/screen/FullscreenButton";
 
 const AuthenticatedLayout = () => {
   const navigate = useNavigate();
@@ -33,13 +34,22 @@ const AuthenticatedLayout = () => {
   }
 
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <div className="flex flex-col h-screen overscroll-none bg-background">   {/* changed to h-screen */}
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          Loading...
+        </div>
+      }
+    >
+      <div className="flex flex-col h-screen overscroll-none bg-background">
         <HeaderSheet />
 
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
           <Outlet />
           <ActionBanner />
+
+          {/* Global Fullscreen Button */}
+          <FullscreenButton />
         </main>
       </div>
     </Suspense>
