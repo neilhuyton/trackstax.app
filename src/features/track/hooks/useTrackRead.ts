@@ -8,11 +8,9 @@ export function useTrackRead(stackId: string) {
     trpc.track.getByStackId.queryOptions(
       { stackId },
       {
-        staleTime: 0,
-        gcTime: 1000 * 60 * 5,
-        refetchOnMount: "always",
-        refetchOnWindowFocus: false,
-        retry: false,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 60 * 24,
+        enabled: !!stackId && stackId.length > 0,
       },
     ),
   );
