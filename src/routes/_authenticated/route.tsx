@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { HeaderSheet } from "@/features/header/HeaderSheet";
 import { ActionBanner } from "@steel-cut/steel-lib";
 import FullscreenButton from "@/features/screen/FullscreenButton";
+import OrientationLock from "@/features/screen/OrientationLock";
 
 const AuthenticatedLayout = () => {
   const navigate = useNavigate();
@@ -48,8 +49,8 @@ const AuthenticatedLayout = () => {
           <Outlet />
           <ActionBanner />
 
-          {/* Global Fullscreen Button */}
           <FullscreenButton />
+          <OrientationLock />  
         </main>
       </div>
     </Suspense>
