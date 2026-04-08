@@ -6,6 +6,7 @@ import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { updateTrackDurations } from "@/features/utils/track-utils";
 import { useSearch } from "@tanstack/react-router";
+import GridBars from "./GridBars";
 
 const GridContainer = () => {
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
@@ -38,6 +39,7 @@ const GridContainer = () => {
     <div className="h-full bg-[#1a1a1a] flex flex-col">
       <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
         <GridToolbar />
+        <GridBars />
 
         {tracks && tracks.length > 0 ? (
           tracks.map((track: Track) => {

@@ -1,13 +1,31 @@
 import { useMemo, forwardRef } from "react";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 const BAR_COUNT = 8;
 
 type Props = {
-  currentBar: number;
+  currentBar?: number;
 };
 
 const PianoRollBars = forwardRef<HTMLDivElement, Props>(
-  ({ currentBar }, ref) => {
+  ({ currentBar: propCurrentBar }, ref) => {
+    const { position } = usePositionStore();
+
+    const currentBar = useMemo(() => {
+      if (propCurrentBar !== undefined) return propCurrentBar;
+
+      if (!position) return -1;
+
+      const posString = String(position);
+      if (posString.includes(":")) {
+        const [barsStr] = posString.split(":");
+        const bar = parseInt(barsStr, 10);
+        return isNaN(bar) ? -1 : bar;
+      }
+
+      return -1;
+    }, [position, propCurrentBar]);
+
     const bars = useMemo(() => Array.from({ length: BAR_COUNT }), []);
 
     return (

@@ -8,7 +8,7 @@ import TransportReset from "@/features/transport/Reset";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import useTransportStore from "./hooks/useTransportStore";
 import useRecord from "./hooks/useRecord";
-// import TransportPositionDialog from "./PositionDialog";
+import TransportPositionDialog from "./PositionDialog";
 import TransportTempoDialog from "./TempoDialog";
 
 const TransportControls = () => {
@@ -30,7 +30,7 @@ const TransportControls = () => {
         <TransportForward />
         <TransportRecordConfirmDialog />
         <TransportLoopDialog />
-        {/* <TransportPositionDialog /> */}
+        <TransportPositionDialog />
         <TransportRecordDownloadDialog recording={recording} />
       </div>
     </div>

@@ -4,18 +4,25 @@ import type { Track, PlayerChannel, Duration } from "@/types";
 import {
   barsToEndTime,
   calcVolumeLevel,
+  cleanPosition,
+  isPositionZero,
+  positionDiff,
   toPosition,
 } from "@/utils";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
-import useTransportStore from "./useTransportStore";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 interface PlayersStore {
   playersRef: React.MutableRefObject<Tone.Players | null>;
   channelsRef: React.MutableRefObject<PlayerChannel[]>;
   eventIdsRef: React.MutableRefObject<number[]>;
   stopAndClearAll: () => void;
-  setupAllTracks: (isLoop: boolean, loopStart: number, loopEnd: number) => Promise<void>;
+  setupAllTracks: (
+    isLoop: boolean,
+    loopStart: number,
+    loopEnd: number,
+  ) => Promise<void>;
   cleanup: () => void;
 }
 
@@ -41,23 +48,26 @@ export const usePlayersStore = create<PlayersStore>(() => {
     Tone.getTransport().pause();
     eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
     eventIdsRef.current.length = 0;
-    Tone.getTransport().position = "0:0:0";
-    Tone.getTransport().cancel();
-
-    useTransportStore.setState({ isPlay: false });
   };
 
   const getOrCreateChannel = (track: Track): Tone.Channel => {
     let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
     if (!channelEntry) {
-      const channel = new Tone.Channel({ pan: 0, mute: false, channelCount: 2 }).toDestination();
+      const channel = new Tone.Channel({
+        pan: 0,
+        mute: false,
+        channelCount: 2,
+      }).toDestination();
       channelEntry = { track, channel };
       channelsRef.current.push(channelEntry);
     }
     return channelEntry.channel;
   };
 
-  const setupPlayer = async (id: string, downloadUrl: string | null | undefined) => {
+  const setupPlayer = async (
+    id: string,
+    downloadUrl: string | null | undefined,
+  ) => {
     if (!playersRef.current?.has(id) && downloadUrl) {
       await new Promise<void>((resolve) => {
         playersRef.current!.add(id, downloadUrl, () => resolve());
@@ -71,7 +81,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
     player: Tone.Player,
     isLoop: boolean,
     loopStart: number,
-    loopEnd: number
+    loopEnd: number,
   ) => {
     if (!track.audioTrack) return;
 
@@ -81,6 +91,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
     const trackDurationSeconds = audioTrack.duration;
     const timestretch = audioTrack.timestretch;
     const adjustedLoopLength = track.loopLength / timestretch;
+    const stopPosition = usePositionStore.getState().stopPosition;
 
     for (
       let subLoopStart = start;
@@ -93,6 +104,18 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
       if (stop < subLoopEnd) subLoopEnd = stop;
 
+      if (!isLoop) {
+        const [bars] = (stopPosition?.toString() ?? "0:0:0").split(":");
+        if (
+          !isPositionZero(stopPosition ?? "0:0:0") &&
+          subLoopStart <= Number(bars) &&
+          subLoopEnd > Number(bars)
+        ) {
+          startPosition = cleanPosition(stopPosition ?? "0:0:0");
+          transportOffset = positionDiff(startPosition, `${subLoopStart}:0:0`);
+        }
+      }
+
       if (isLoop) {
         if (subLoopEnd >= loopEnd) subLoopEnd = loopEnd;
         if (subLoopStart < loopStart && subLoopEnd > loopStart) {
@@ -103,9 +126,10 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
       eventIdsRef.current.push(
         Tone.getTransport().schedule((time) => {
-          const transportOffsetSeconds = typeof transportOffset === "string"
-            ? Tone.Time(transportOffset).toSeconds()
-            : transportOffset;
+          const transportOffsetSeconds =
+            typeof transportOffset === "string"
+              ? Tone.Time(transportOffset).toSeconds()
+              : transportOffset;
 
           let playbackOffset = 0;
           let adjustedTime = time;
@@ -118,21 +142,24 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
           const totalOffset = playbackOffset + transportOffsetSeconds;
           player.start(adjustedTime, totalOffset, trackDurationSeconds);
-        }, startPosition)
+        }, startPosition),
       );
 
       eventIdsRef.current.push(
         Tone.getTransport().schedule((time) => {
-          const adjustedStopTime = trackOffsetSeconds < 0
-            ? time + Math.abs(trackOffsetSeconds)
-            : time;
+          const adjustedStopTime =
+            trackOffsetSeconds < 0 ? time + Math.abs(trackOffsetSeconds) : time;
           player.stop(adjustedStopTime);
-        }, barsToEndTime(subLoopEnd))
+        }, barsToEndTime(subLoopEnd)),
       );
     }
   };
 
-  const setupAllTracks = async (isLoop: boolean, loopStart: number, loopEnd: number) => {
+  const setupAllTracks = async (
+    isLoop: boolean,
+    loopStart: number,
+    loopEnd: number,
+  ) => {
     const { tracks, addTrackError } = useTracksStore.getState();
     const stackId = useStackIdStore.getState().stackId;
     if (!stackId) return;
@@ -156,6 +183,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
         try {
           player = playersRef.current.player(id);
         } catch {
+          // player lookup failed
           addTrackError({ trackId: id, message: "Player not found" });
           continue;
         }
@@ -169,14 +197,24 @@ export const usePlayersStore = create<PlayersStore>(() => {
           player.connect(channel);
         }
 
-        const shouldMuteBySolo = soloTracks.length > 0 && !soloTracks.some((t) => t.id === track.id);
+        const shouldMuteBySolo =
+          soloTracks.length > 0 && !soloTracks.some((t) => t.id === track.id);
         const isMuted = track.isMute || shouldMuteBySolo;
 
-        channel.volume.value = isMuted ? -Infinity : calcVolumeLevel(track.volumePercent);
+        channel.volume.value = isMuted
+          ? -Infinity
+          : calcVolumeLevel(track.volumePercent);
         channel.mute = isMuted;
 
         track.durations.forEach((duration) =>
-          setupAudioDurations(track, duration, player, isLoop, loopStart, loopEnd)
+          setupAudioDurations(
+            track,
+            duration,
+            player,
+            isLoop,
+            loopStart,
+            loopEnd,
+          ),
         );
       }
     }

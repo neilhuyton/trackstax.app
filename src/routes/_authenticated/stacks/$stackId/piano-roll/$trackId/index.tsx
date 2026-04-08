@@ -10,7 +10,6 @@ import { useMutation } from "@tanstack/react-query";
 import {
   addNoteToPattern,
   removeNoteFromPattern,
-  getCurrentBar,
 } from "@/features/sampler/utils/pianoRollUtils";
 
 import PianoRollToolbar from "@/features/sampler/PianoRollToolbar";
@@ -67,8 +66,6 @@ const PianoRollPage = () => {
     updatePattern(latestPattern);
   };
 
-  const currentBar = useMemo(() => getCurrentBar(), []);
-
   if (!samplerTrack) {
     return (
       <div className="h-full flex items-center justify-center text-neutral-400 bg-[#1a1a1a]">
@@ -87,7 +84,6 @@ const PianoRollPage = () => {
           onAddNote={handleAddNote}
           onRemoveNote={handleRemoveNote}
           trigger={trigger}
-          currentBar={currentBar}
         />
       </div>
     </div>

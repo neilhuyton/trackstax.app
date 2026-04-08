@@ -18,7 +18,7 @@ type Props = {
   onAddNote: (time: string, note: string, duration?: string) => void;
   onRemoveNote: (time: string, note: string) => void;
   trigger?: (note: string, duration?: string) => void;
-  currentBar: number;
+  currentBar?: number;
 };
 
 export default function PianoRollViewer({

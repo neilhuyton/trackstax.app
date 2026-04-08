@@ -48,9 +48,6 @@ function StackLayout() {
   const localTracks = useTracksStore((state) => state.tracks);
   const setTracks = useTracksStore((state) => state.setTracks);
 
-  const storedStackId = useStackIdStore((state) => state.stackId);
-  const setStoredStackId = useStackIdStore((state) => state.setStackId);
-
   const { stopAndClearAll, setupAllTracks } = usePlayersStore();
   const { transport } = useTransportRead(stackId);
   const { tracks: serverTracks } = useTrackRead(stackId);
@@ -59,16 +56,18 @@ function StackLayout() {
   const loopStart = transport?.loopStart ?? 0;
   const loopEnd = transport?.loopEnd ?? 0;
 
+  // Set stackId synchronously on every render (before children mount)
+  useStackIdStore.setState({ stackId });
+
   useEffect(() => {
     if (!stackId) return;
 
+    const storedStackId = useStackIdStore.getState().stackId;
+
     if (storedStackId !== stackId) {
       setTracks([]);
-      setStoredStackId(stackId);
     }
-
-    useStackIdStore.setState({ stackId });
-  }, [stackId, storedStackId, setTracks, setStoredStackId]);
+  }, [stackId, setTracks]);
 
   useEffect(() => {
     if (serverTracks && serverTracks.length > 0 && localTracks.length === 0) {
@@ -83,9 +82,9 @@ function StackLayout() {
     }
   }, [localTracks, stackId, setupAllTracks, isLoop, loopStart, loopEnd]);
 
-  // Load master volume from DB once when entering a new stack (non-blocking)
+  // Load master volume from DB once when entering a new stack
   useEffect(() => {
-    if (!stackId || storedStackId === stackId) return;
+    if (!stackId) return;
 
     const loadMasterVolume = async () => {
       try {
@@ -103,7 +102,7 @@ function StackLayout() {
     };
 
     loadMasterVolume();
-  }, [stackId, storedStackId, queryClient]);
+  }, [stackId, queryClient]);
 
   useEffect(() => {
     return () => {

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import * as Tone from "tone";
 import { useSearch } from "@tanstack/react-router";
 
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
@@ -25,27 +24,17 @@ const GridBars = () => {
     loopEnd: 0,
   };
 
-  const bars = useMemo(() => Array.from({ length: pageSize }), [pageSize]);
-
   const currentBar = useMemo(() => {
     if (!position) return -1;
 
-    try {
-      const pos = Tone.getTransport().position as string;
-
-      if (typeof pos === "string" && pos.includes(":")) {
-        const [barsStr] = pos.split(":");
-        const bar = parseInt(barsStr, 10);
-        return isNaN(bar) ? -1 : bar;
-      }
-
-      const transportTime = Tone.TransportTime(position);
-      const bbs = transportTime.toBarsBeatsSixteenths();
-      const bar = parseInt(bbs.split(":")[0], 10);
+    const posString = String(position);
+    if (posString.includes(":")) {
+      const [barsStr] = posString.split(":");
+      const bar = parseInt(barsStr, 10);
       return isNaN(bar) ? -1 : bar;
-    } catch {
-      return -1;
     }
+
+    return -1;
   }, [position]);
 
   const getBgColor = (i: number) => {
@@ -76,7 +65,7 @@ const GridBars = () => {
 
   return (
     <div className="grid grid-cols-8 gap-1.5 bg-[#2a2a2a] rounded-lg overflow-hidden">
-      {bars.map((_, i) => {
+      {Array.from({ length: pageSize }).map((_, i) => {
         const globalBar = visibleStartBar + i;
         return (
           <div

@@ -4,9 +4,10 @@ import { type Track } from "@/types";
 import { toPosition } from "@/utils";
 import useTransportStore from "./useTransportStore";
 import useTempo from "./useTempo";
-// import usePositionStore from "@/features/position/hooks/usePositionStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 import { useSamplerPattern } from "@/features/grid/hooks/useSamplerPattern";
 import { useMasterVolume } from "./useMasterVolume";
+import { usePlayersStore } from "./usePlayersStore";
 
 interface TransportControlsProps {
   tracks: Track[];
@@ -31,34 +32,31 @@ export const useTransportControls = ({
 }: TransportControlsProps) => {
   const [started, setStarted] = useState(false);
 
-  console.log('useTransportControls');
-
-  // const { setPosition, setStopPosition } = usePositionStore();
+  const { setPosition, setStopPosition } = usePositionStore();
   const { setIsPlay } = useTransportStore();
+  const { stopAndClearAll } = usePlayersStore();
 
   useMasterVolume();
   useTempo(tracks);
   useSamplerPattern();
 
   const handleStop = useCallback(() => {
-
     const pos = isLoop ? toPosition(loopStart) : Tone.getTransport().position;
 
     Tone.getTransport().stop();
     setIsPlay(false);
-    // setPosition(pos);
-    // setStopPosition(pos);
+    setPosition(pos);
+    setStopPosition(pos);
     Tone.getTransport().position = pos;
 
-    // stopAndClearAll();
+    stopAndClearAll();
   }, [
-    // players,
     isLoop,
     loopStart,
     setIsPlay,
-    // setPosition,
-    // setStopPosition,
-    // stopAndClearAll,
+    setPosition,
+    setStopPosition,
+    stopAndClearAll,
   ]);
 
   const handlePlay = useCallback(async () => {
@@ -74,8 +72,8 @@ export const useTransportControls = ({
       ) {
         const pos = toPosition(loopStart);
         Tone.getTransport().position = pos;
-        // setPosition(pos);
-        // setStopPosition(pos);
+        setPosition(pos);
+        setStopPosition(pos);
       }
     } else {
       Tone.getTransport().position = stopPosition ?? "0:0:0";
@@ -90,8 +88,8 @@ export const useTransportControls = ({
     loopStart,
     loopEnd,
     setIsPlay,
-    // setPosition,
-    // setStopPosition,
+    setPosition,
+    setStopPosition,
   ]);
 
   useEffect(() => {

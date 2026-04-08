@@ -1,4 +1,3 @@
-// src/features/transport/Play.tsx
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import usePositionStore from "../position/hooks/usePositionStore";
 import useTracksStore from "../track/hooks/useTracksStore";
@@ -17,7 +16,7 @@ const TransportPlay = () => {
   const { stopPosition } = usePositionStore();
   const { isPlay, isForward, isBackward } = useTransportStore();
 
-  const { stopAndClearAll, setupAllTracks } = usePlayersStore();
+  const { setupAllTracks } = usePlayersStore();
 
   const isAnyError = tracksError || transportError;
 
@@ -40,11 +39,13 @@ const TransportPlay = () => {
 
   const onClick = async () => {
     if (isPlay) {
-      stopAndClearAll();
       handleStop();
     } else {
-      // Re-setup audio scheduling BEFORE starting playback
-      if (isLoop !== undefined && loopStart !== undefined && loopEnd !== undefined) {
+      if (
+        isLoop !== undefined &&
+        loopStart !== undefined &&
+        loopEnd !== undefined
+      ) {
         await setupAllTracks(isLoop, loopStart, loopEnd);
       }
       handlePlay();
@@ -52,10 +53,7 @@ const TransportPlay = () => {
   };
 
   return (
-    <Button
-      onClick={onClick}
-      title={isPlay ? "Pause" : "Play"}
-    >
+    <Button onClick={onClick} title={isPlay ? "Pause" : "Play"}>
       <TransportButtonIcon isPlay={isPlay} isLoop={isLoop ?? false} />
     </Button>
   );
