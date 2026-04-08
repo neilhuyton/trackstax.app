@@ -17,6 +17,7 @@ import { useTransportRead } from "@/features/transport/hooks/useTransportRead";
 import { useTrackRead } from "@/features/track/hooks/useTrackRead";
 import { toClientTracks } from "@/features/utils/track-utils";
 import { useQueryClient } from "@tanstack/react-query";
+import SamplerPlayer from "@/features/grid/SamplerPlayer";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId")({
   loader: async ({ params, context: { queryClient } }) => {
@@ -56,7 +57,6 @@ function StackLayout() {
   const loopStart = transport?.loopStart ?? 0;
   const loopEnd = transport?.loopEnd ?? 0;
 
-  // Set stackId synchronously on every render (before children mount)
   useStackIdStore.setState({ stackId });
 
   useEffect(() => {
@@ -125,6 +125,7 @@ function StackLayout() {
         <Outlet />
       </div>
 
+      <SamplerPlayer />
       <TransportSheet />
     </div>
   );

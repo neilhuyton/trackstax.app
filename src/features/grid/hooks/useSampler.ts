@@ -4,7 +4,7 @@ import useTracksStore from "../../track/hooks/useTracksStore";
 import { useSamplerEnvelopeStore } from "../../sampler/hooks/useSamplerEnvelopeStore";
 import { calcVolumeLevel } from "@/utils";
 
-export function useSampler(sampleUrl: string | null) {
+export function useSampler(trackId: string, sampleUrl: string | null) {
   const samplerRef = useRef<Tone.Sampler | null>(null);
   const channelRef = useRef<Tone.Channel | null>(null);
 
@@ -14,28 +14,31 @@ export function useSampler(sampleUrl: string | null) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    return () => {
+      samplerRef.current?.dispose();
+      channelRef.current?.dispose();
+    };
+  }, [trackId]);
+
+  useEffect(() => {
     samplerRef.current?.dispose();
     channelRef.current?.dispose();
-
-    samplerRef.current = null;
-    channelRef.current = null;
     setIsLoaded(false);
 
-    if (!sampleUrl) return;
+    if (!sampleUrl || !trackId) return;
 
     const channel = new Tone.Channel({
       pan: 0,
       mute: false,
       channelCount: 2,
     }).toDestination();
-
     channelRef.current = channel;
 
     const sampler = new Tone.Sampler({
       urls: { C3: sampleUrl },
       curve: "linear",
       onload: () => setIsLoaded(true),
-      onerror: (err) => console.error("Sampler load failed:", sampleUrl, err),
+      onerror: (err) => console.error(`Sampler failed for ${trackId}`, err),
     }).connect(channel);
 
     samplerRef.current = sampler;
@@ -44,58 +47,41 @@ export function useSampler(sampleUrl: string | null) {
       sampler.dispose();
       channel.dispose();
     };
-  }, [sampleUrl]);
+  }, [sampleUrl, trackId]);
 
   useEffect(() => {
     const sampler = samplerRef.current;
     if (!sampler) return;
-
-    const safeAttack = Number.isFinite(attackMs)
-      ? Math.max(0, attackMs) / 1000
-      : 0.01;
-
-    const safeRelease = Number.isFinite(releaseMs)
-      ? Math.max(0.001, releaseMs) / 1000
-      : 0.2;
-
-    sampler.attack = safeAttack;
-    sampler.release = safeRelease;
-    sampler.curve = "linear";
+    sampler.attack = Math.max(0, Number(attackMs) || 10) / 1000;
+    sampler.release = Math.max(0.001, Number(releaseMs) || 200) / 1000;
   }, [attackMs, releaseMs]);
 
   useEffect(() => {
     const channel = channelRef.current;
     if (!channel) return;
 
-    const samplerTrack = tracks.find((t) => t.type === "sampler");
-    if (!samplerTrack) return;
+    const track = tracks.find((t) => t.id === trackId);
+    if (!track || track.type !== "sampler") return;
 
     const soloTracks = tracks.filter((t) => t.isSolo);
     const shouldMuteBySolo =
-      soloTracks.length > 0 &&
-      !soloTracks.some((t) => t.id === samplerTrack.id);
+      soloTracks.length > 0 && !soloTracks.some((t) => t.id === trackId);
 
-    const isMuted = samplerTrack.isMute || shouldMuteBySolo;
+    const isMuted = track.isMute || shouldMuteBySolo;
 
     channel.volume.value = isMuted
       ? -Infinity
-      : calcVolumeLevel(samplerTrack.volumePercent);
+      : calcVolumeLevel(track.volumePercent);
     channel.mute = isMuted;
-  }, [tracks]);
+  }, [tracks, trackId]);
 
   const trigger = useCallback(
-    (note: string = "C3", duration: string = "8n", time?: number) => {
-      const sampler = samplerRef.current;
-      if (!sampler || !isLoaded) return;
-
-      sampler.triggerAttackRelease(note, duration, time);
+    (note = "C3", duration = "8n", time?: number) => {
+      if (!samplerRef.current || !isLoaded) return;
+      samplerRef.current.triggerAttackRelease(note, duration, time);
     },
     [isLoaded],
   );
 
-  return {
-    isLoaded,
-    trigger,
-    channel: channelRef.current,
-  };
+  return { trigger };
 }
