@@ -30,8 +30,8 @@ export const TransportLoopDialog = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [newIsLoop, setNewIsLoop] = useState(false);
-  const [newStart, setNewStart] = useState(1);
-  const [newEnd, setNewEnd] = useState(4);
+  const [newStart, setNewStart] = useState("");
+  const [newEnd, setNewEnd] = useState("");
 
   const updateMutation = useMutation(
     trpc.transport.update.mutationOptions({
@@ -51,8 +51,8 @@ export const TransportLoopDialog = () => {
   useEffect(() => {
     if (transport) {
       setNewIsLoop(transport.isLoop);
-      setNewStart(transport.loopStart + 1);
-      setNewEnd(transport.loopEnd);
+      setNewStart(String(transport.loopStart + 1));
+      setNewEnd(String(transport.loopEnd));
 
       const toneTransport = getTransport();
       toneTransport.setLoopPoints(
@@ -72,16 +72,19 @@ export const TransportLoopDialog = () => {
   };
 
   const handleStartChange = (value: string) => {
-    setNewStart(Number(value) || 1);
+    setNewStart(value);
   };
 
   const handleEndChange = (value: string) => {
-    setNewEnd(Number(value) || newStart + 1);
+    setNewEnd(value);
   };
 
   const handleSave = () => {
-    const start = Math.max(0, newStart - 1);
-    const end = Math.max(start + 1, newEnd);
+    const startNum = Number(newStart);
+    const endNum = Number(newEnd);
+
+    const start = Math.max(0, isNaN(startNum) ? 0 : startNum - 1);
+    const end = Math.max(start + 1, isNaN(endNum) ? start + 2 : endNum);
 
     const toneTransport = getTransport();
     toneTransport.setLoopPoints(`${start}m`, `${end}m`);
