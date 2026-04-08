@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useSearch } from "@tanstack/react-router";
 
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
-import { useScreen } from "../screen/hooks/useScreen";
 import usePositionStore from "../position/hooks/usePositionStore";
 import { useTransportRead } from "../transport/hooks/useTransportRead";
 
@@ -12,11 +11,8 @@ const GridBars = () => {
   const visibleStartBar = page * pageSize;
 
   const stackId = useStackIdStore((state) => state.stackId);
-  const { transport, isError: transportError } = useTransportRead(stackId);
-  const { isError: screenError } = useScreen(stackId);
+  const { transport, isError } = useTransportRead(stackId);
   const { position } = usePositionStore();
-
-  const isError = screenError || transportError;
 
   const { isLoop, loopStart, loopEnd } = transport || {
     isLoop: false,
