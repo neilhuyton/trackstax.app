@@ -28,7 +28,7 @@ const PianoRollPage = () => {
   );
 
   const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
-  const { trigger } = useSampler(sampleUrl);
+  const { trigger } = useSampler(trackId, sampleUrl);
 
   const updatePatternMutation = useMutation(
     trpc.sampler.updatePattern.mutationOptions(),

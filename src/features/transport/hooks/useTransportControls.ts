@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import * as Tone from "tone";
 import { type Track } from "@/types";
 import { toPosition } from "@/utils";
-import useTransportStore from "./useTransportStore";
-import useTempo from "./useTempo";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
 import { useSamplerPattern } from "@/features/grid/hooks/useSamplerPattern";
-import { useMasterVolume } from "./useMasterVolume";
 import { usePlayersStore } from "./usePlayersStore";
+import { useMasterVolume } from "./useMasterVolume";
+import useTransportStore from "./useTransportStore";
+import useTempo from "./useTempo";
 
 interface TransportControlsProps {
   tracks: Track[];
