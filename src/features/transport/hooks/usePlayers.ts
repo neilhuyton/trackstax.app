@@ -30,8 +30,6 @@ const usePlayers = (tracks: Track[]) => {
 
   const { isLoop, loopEnd, loopStart } = transport || {};
 
-  const audioTracks = tracks.filter((t) => t.type === "audio" && t.audioTrack);
-
   const setupPlayer = useCallback(
     async (id: string, downloadUrl: string | null | undefined) => {
       if (!playersRef.current?.has(id)) {
@@ -117,6 +115,12 @@ const usePlayers = (tracks: Track[]) => {
           }
         }
 
+        // Small safety buffer to reduce "Start time must be strictly greater" error
+        const safeStartPosition =
+          typeof startPosition === "string"
+            ? Tone.Time(startPosition).toSeconds() + 0.005
+            : Number(startPosition) + 0.005;
+
         eventIds.current.push(
           Tone.getTransport().schedule((time) => {
             const transportOffsetSeconds =
@@ -135,7 +139,7 @@ const usePlayers = (tracks: Track[]) => {
 
             const totalOffset = playbackOffset + transportOffsetSeconds;
             player.start(adjustedTime, totalOffset, trackDurationSeconds);
-          }, startPosition),
+          }, safeStartPosition),
         );
 
         eventIds.current.push(
@@ -176,6 +180,7 @@ const usePlayers = (tracks: Track[]) => {
       return;
     }
 
+    // Clear old events before setting up new ones
     eventIds.current.forEach((id) => Tone.getTransport().clear(id));
     eventIds.current.length = 0;
 
@@ -224,7 +229,6 @@ const usePlayers = (tracks: Track[]) => {
 
     setupAllTracks();
   }, [
-    audioTracks,
     tracks,
     isLoading,
     isError,
@@ -235,6 +239,7 @@ const usePlayers = (tracks: Track[]) => {
     getOrCreateChannel,
   ]);
 
+  // Volume update
   useEffect(() => {
     if (!volume) return;
 
@@ -258,6 +263,30 @@ const usePlayers = (tracks: Track[]) => {
       }
     }
   }, [volume, tracks]);
+
+  // === CLEANUP ON UNMOUNT ===
+  useEffect(() => {
+    return () => {
+      if (playersRef.current) {
+        playersRef.current.stopAll();
+      }
+      eventIds.current.forEach((id) => {
+        try {
+          Tone.getTransport().clear(id);
+        } catch {
+          // Ignore
+        }
+      });
+      eventIds.current = [];
+
+      try {
+        Tone.getTransport().pause();
+        Tone.getTransport().position = "0:0:0";
+      } catch {
+        // Ignore transport errors
+      }
+    };
+  }, []);
 
   return {
     channels: channelsRef.current,
