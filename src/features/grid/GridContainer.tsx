@@ -1,4 +1,3 @@
-import GridBars from "./GridBars";
 import GridTrackRow from "./TrackRow";
 import GridToolbar from "./GridToolbar";
 import useTracksStore from "../track/hooks/useTracksStore";
@@ -16,7 +15,7 @@ const GridContainer = () => {
   const visibleStartBar = page * pageSize;
 
   const updateDurationsMutation = useMutation(
-    trpc.track.updateDurations.mutationOptions({ onSuccess: () => {} }),
+    trpc.track.updateDurations.mutationOptions({}),
   );
 
   const handleToggle = (trackId: string, bar: number, wasActive: boolean) => {
@@ -39,7 +38,6 @@ const GridContainer = () => {
     <div className="h-full bg-[#1a1a1a] flex flex-col">
       <div className="flex-1 grid grid-rows-[repeat(10,minmax(0,1fr))] gap-1.5 min-h-0 overflow-hidden">
         <GridToolbar />
-        <GridBars />
 
         {tracks && tracks.length > 0 ? (
           tracks.map((track: Track) => {

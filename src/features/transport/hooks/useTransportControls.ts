@@ -3,9 +3,8 @@ import * as Tone from "tone";
 import { type Track } from "@/types";
 import { toPosition } from "@/utils";
 import useTransportStore from "./useTransportStore";
-import usePlayers from "./usePlayers";
 import useTempo from "./useTempo";
-import usePositionStore from "@/features/position/hooks/usePositionStore";
+// import usePositionStore from "@/features/position/hooks/usePositionStore";
 import { useSamplerPattern } from "@/features/grid/hooks/useSamplerPattern";
 import { useMasterVolume } from "./useMasterVolume";
 
@@ -32,34 +31,34 @@ export const useTransportControls = ({
 }: TransportControlsProps) => {
   const [started, setStarted] = useState(false);
 
-  const { setPosition, setStopPosition } = usePositionStore();
+  console.log('useTransportControls');
+
+  // const { setPosition, setStopPosition } = usePositionStore();
   const { setIsPlay } = useTransportStore();
-  const { players, stopAndClearAll } = usePlayers(tracks);
 
   useMasterVolume();
-  useTempo(players, tracks);
+  useTempo(tracks);
   useSamplerPattern();
 
   const handleStop = useCallback(() => {
-    if (!players) return;
 
     const pos = isLoop ? toPosition(loopStart) : Tone.getTransport().position;
 
     Tone.getTransport().stop();
     setIsPlay(false);
-    setPosition(pos);
-    setStopPosition(pos);
+    // setPosition(pos);
+    // setStopPosition(pos);
     Tone.getTransport().position = pos;
 
-    stopAndClearAll();
+    // stopAndClearAll();
   }, [
-    players,
+    // players,
     isLoop,
     loopStart,
     setIsPlay,
-    setPosition,
-    setStopPosition,
-    stopAndClearAll,
+    // setPosition,
+    // setStopPosition,
+    // stopAndClearAll,
   ]);
 
   const handlePlay = useCallback(async () => {
@@ -75,8 +74,8 @@ export const useTransportControls = ({
       ) {
         const pos = toPosition(loopStart);
         Tone.getTransport().position = pos;
-        setPosition(pos);
-        setStopPosition(pos);
+        // setPosition(pos);
+        // setStopPosition(pos);
       }
     } else {
       Tone.getTransport().position = stopPosition ?? "0:0:0";
@@ -91,8 +90,8 @@ export const useTransportControls = ({
     loopStart,
     loopEnd,
     setIsPlay,
-    setPosition,
-    setStopPosition,
+    // setPosition,
+    // setStopPosition,
   ]);
 
   useEffect(() => {

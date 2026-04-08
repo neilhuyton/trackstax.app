@@ -5,17 +5,19 @@ import { type Duration, type PlayerChannel, type Track } from "@/types";
 import {
   barsToEndTime,
   calcVolumeLevel,
-  cleanPosition,
-  isPositionZero,
-  positionDiff,
+  // cleanPosition,
+  // isPositionZero,
+  // positionDiff,
   toPosition,
 } from "@/utils";
 import { useTransportRead } from "./useTransportRead";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
-import usePositionStore from "@/features/position/hooks/usePositionStore";
+// import usePositionStore from "@/features/position/hooks/usePositionStore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 
 const usePlayers = (tracks: Track[]) => {
+  console.count("🔥 usePlayers hook rendered");
+
   const stackId = useStackIdStore((state) => state.stackId);
   const { transport, isLoading, isError } = useTransportRead(stackId);
 
@@ -23,7 +25,7 @@ const usePlayers = (tracks: Track[]) => {
   const channelsRef = useRef<PlayerChannel[]>([]);
   const eventIds = useRef<number[]>([]);
 
-  const { stopPosition } = usePositionStore();
+  // const { stopPosition } = usePositionStore();
   const { addTrackError, volume } = useTracksStore();
 
   const { isLoop, loopEnd, loopStart } = transport || {};
@@ -36,16 +38,12 @@ const usePlayers = (tracks: Track[]) => {
         try {
           await new Promise<void>((resolve, reject) => {
             const source = downloadUrl ?? undefined;
-
             if (!source) {
               reject(new Error(`No source provided for track ID: ${id}`));
               return;
             }
-
             if (playersRef.current) {
-              playersRef.current.add(id, source, () => {
-                resolve();
-              });
+              playersRef.current.add(id, source, () => resolve());
             }
           });
         } catch (error) {
@@ -62,26 +60,21 @@ const usePlayers = (tracks: Track[]) => {
 
   const getOrCreateChannel = useCallback((track: Track): Tone.Channel => {
     let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
-
     if (!channelEntry) {
       const channel = new Tone.Channel({
         pan: 0,
         mute: false,
         channelCount: 2,
       }).toDestination();
-
       channelEntry = { track, channel };
       channelsRef.current.push(channelEntry);
     }
-
     return channelEntry.channel;
   }, []);
 
   const setupAudioDurations = useCallback(
     (track: Track, duration: Duration, player: Tone.Player) => {
-      if (!track.audioTrack) {
-        return;
-      }
+      if (!track.audioTrack) return;
 
       const audioTrack = track.audioTrack;
       const { start, stop } = duration;
@@ -99,29 +92,25 @@ const usePlayers = (tracks: Track[]) => {
         let startPosition: number | string = toPosition(subLoopStart);
         let subLoopEnd = subLoopStart + adjustedLoopLength;
 
-        if (stop < subLoopEnd) {
-          subLoopEnd = stop;
-        }
+        if (stop < subLoopEnd) subLoopEnd = stop;
 
-        if (!isLoop) {
-          const [bars] = (stopPosition?.toString() ?? "0:0:0").split(":");
-          if (
-            !isPositionZero(stopPosition ?? "0:0:0") &&
-            subLoopStart <= Number(bars) &&
-            subLoopEnd > Number(bars)
-          ) {
-            startPosition = cleanPosition(stopPosition ?? "0:0:0");
-            transportOffset = positionDiff(
-              startPosition,
-              `${subLoopStart}:0:0`,
-            );
-          }
-        }
+        // if (!isLoop) {
+        //   const [bars] = (stopPosition?.toString() ?? "0:0:0").split(":");
+        //   if (
+        //     !isPositionZero(stopPosition ?? "0:0:0") &&
+        //     subLoopStart <= Number(bars) &&
+        //     subLoopEnd > Number(bars)
+        //   ) {
+        //     startPosition = cleanPosition(stopPosition ?? "0:0:0");
+        //     transportOffset = positionDiff(
+        //       startPosition,
+        //       `${subLoopStart}:0:0`,
+        //     );
+        //   }
+        // }
 
         if (isLoop) {
-          if (subLoopEnd >= loopEnd) {
-            subLoopEnd = loopEnd;
-          }
+          if (subLoopEnd >= loopEnd) subLoopEnd = loopEnd;
           if (subLoopStart < loopStart && subLoopEnd > loopStart) {
             startPosition = toPosition(loopStart);
             transportOffset = toPosition(loopStart - subLoopStart);
@@ -160,7 +149,7 @@ const usePlayers = (tracks: Track[]) => {
         );
       }
     },
-    [isLoop, loopEnd, loopStart, stopPosition],
+    [isLoop, loopEnd, loopStart],
   );
 
   const stopAndClearAll = useCallback(() => {
@@ -169,9 +158,7 @@ const usePlayers = (tracks: Track[]) => {
       tracks.forEach((track) => {
         if (track.type === "audio" && playersRef.current?.has(track.id)) {
           const player = playersRef.current.player(track.id);
-          if (player) {
-            player.stop();
-          }
+          if (player) player.stop();
         }
       });
     }
@@ -209,9 +196,7 @@ const usePlayers = (tracks: Track[]) => {
             continue;
           }
 
-          if (!player) {
-            continue;
-          }
+          if (!player) continue;
 
           const channel = getOrCreateChannel(track);
 
@@ -251,9 +236,7 @@ const usePlayers = (tracks: Track[]) => {
   ]);
 
   useEffect(() => {
-    if (!volume) {
-      return;
-    }
+    if (!volume) return;
 
     const channelEntry = channelsRef.current.find(
       (c) => c.track.id === volume.trackId,

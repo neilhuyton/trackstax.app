@@ -1,0 +1,195 @@
+import { create } from "zustand";
+import * as Tone from "tone";
+import type { Track, PlayerChannel, Duration } from "@/types";
+import {
+  barsToEndTime,
+  calcVolumeLevel,
+  toPosition,
+} from "@/utils";
+import useTracksStore from "@/features/track/hooks/useTracksStore";
+import useTransportStore from "./useTransportStore";
+import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
+
+interface PlayersStore {
+  playersRef: React.MutableRefObject<Tone.Players | null>;
+  channelsRef: React.MutableRefObject<PlayerChannel[]>;
+  eventIdsRef: React.MutableRefObject<number[]>;
+  stopAndClearAll: () => void;
+  setupAllTracks: (isLoop: boolean, loopStart: number, loopEnd: number) => Promise<void>;
+  cleanup: () => void;
+}
+
+export const usePlayersStore = create<PlayersStore>(() => {
+  const playersRef = { current: null as Tone.Players | null };
+  const channelsRef = { current: [] as PlayerChannel[] };
+  const eventIdsRef = { current: [] as number[] };
+
+  const stopAndClearAll = () => {
+    const players = playersRef.current;
+    const tracks = useTracksStore.getState().tracks;
+
+    if (players) {
+      players.stopAll();
+      tracks.forEach((track) => {
+        if (track.type === "audio" && players.has(track.id)) {
+          const player = players.player(track.id);
+          if (player) player.stop();
+        }
+      });
+    }
+
+    Tone.getTransport().pause();
+    eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
+    eventIdsRef.current.length = 0;
+    Tone.getTransport().position = "0:0:0";
+    Tone.getTransport().cancel();
+
+    useTransportStore.setState({ isPlay: false });
+  };
+
+  const getOrCreateChannel = (track: Track): Tone.Channel => {
+    let channelEntry = channelsRef.current.find((c) => c.track.id === track.id);
+    if (!channelEntry) {
+      const channel = new Tone.Channel({ pan: 0, mute: false, channelCount: 2 }).toDestination();
+      channelEntry = { track, channel };
+      channelsRef.current.push(channelEntry);
+    }
+    return channelEntry.channel;
+  };
+
+  const setupPlayer = async (id: string, downloadUrl: string | null | undefined) => {
+    if (!playersRef.current?.has(id) && downloadUrl) {
+      await new Promise<void>((resolve) => {
+        playersRef.current!.add(id, downloadUrl, () => resolve());
+      });
+    }
+  };
+
+  const setupAudioDurations = (
+    track: Track,
+    duration: Duration,
+    player: Tone.Player,
+    isLoop: boolean,
+    loopStart: number,
+    loopEnd: number
+  ) => {
+    if (!track.audioTrack) return;
+
+    const audioTrack = track.audioTrack;
+    const { start, stop } = duration;
+    const trackOffsetSeconds = audioTrack.offset;
+    const trackDurationSeconds = audioTrack.duration;
+    const timestretch = audioTrack.timestretch;
+    const adjustedLoopLength = track.loopLength / timestretch;
+
+    for (
+      let subLoopStart = start;
+      subLoopStart < stop;
+      subLoopStart += adjustedLoopLength
+    ) {
+      let transportOffset: number | string = "0:0:0";
+      let startPosition: number | string = toPosition(subLoopStart);
+      let subLoopEnd = subLoopStart + adjustedLoopLength;
+
+      if (stop < subLoopEnd) subLoopEnd = stop;
+
+      if (isLoop) {
+        if (subLoopEnd >= loopEnd) subLoopEnd = loopEnd;
+        if (subLoopStart < loopStart && subLoopEnd > loopStart) {
+          startPosition = toPosition(loopStart);
+          transportOffset = toPosition(loopStart - subLoopStart);
+        }
+      }
+
+      eventIdsRef.current.push(
+        Tone.getTransport().schedule((time) => {
+          const transportOffsetSeconds = typeof transportOffset === "string"
+            ? Tone.Time(transportOffset).toSeconds()
+            : transportOffset;
+
+          let playbackOffset = 0;
+          let adjustedTime = time;
+
+          if (trackOffsetSeconds < 0) {
+            adjustedTime = time + Math.abs(trackOffsetSeconds);
+          } else {
+            playbackOffset = trackOffsetSeconds;
+          }
+
+          const totalOffset = playbackOffset + transportOffsetSeconds;
+          player.start(adjustedTime, totalOffset, trackDurationSeconds);
+        }, startPosition)
+      );
+
+      eventIdsRef.current.push(
+        Tone.getTransport().schedule((time) => {
+          const adjustedStopTime = trackOffsetSeconds < 0
+            ? time + Math.abs(trackOffsetSeconds)
+            : time;
+          player.stop(adjustedStopTime);
+        }, barsToEndTime(subLoopEnd))
+      );
+    }
+  };
+
+  const setupAllTracks = async (isLoop: boolean, loopStart: number, loopEnd: number) => {
+    const { tracks, addTrackError } = useTracksStore.getState();
+    const stackId = useStackIdStore.getState().stackId;
+    if (!stackId) return;
+
+    eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
+    eventIdsRef.current.length = 0;
+
+    const soloTracks = tracks.filter((t) => t.isSolo);
+
+    if (!playersRef.current) {
+      playersRef.current = new Tone.Players().toDestination();
+    }
+
+    for (const track of tracks) {
+      if (track.type === "audio" && track.audioTrack) {
+        const { id, downloadUrl } = track.audioTrack;
+
+        await setupPlayer(id, downloadUrl);
+
+        let player: Tone.Player | undefined;
+        try {
+          player = playersRef.current.player(id);
+        } catch {
+          addTrackError({ trackId: id, message: "Player not found" });
+          continue;
+        }
+
+        if (!player) continue;
+
+        const channel = getOrCreateChannel(track);
+
+        if (player.output) {
+          player.disconnect();
+          player.connect(channel);
+        }
+
+        const shouldMuteBySolo = soloTracks.length > 0 && !soloTracks.some((t) => t.id === track.id);
+        const isMuted = track.isMute || shouldMuteBySolo;
+
+        channel.volume.value = isMuted ? -Infinity : calcVolumeLevel(track.volumePercent);
+        channel.mute = isMuted;
+
+        track.durations.forEach((duration) =>
+          setupAudioDurations(track, duration, player, isLoop, loopStart, loopEnd)
+        );
+      }
+    }
+  };
+
+  const cleanup = () => stopAndClearAll();
+
+  return {
+    playersRef,
+    channelsRef,
+    eventIdsRef,
+    stopAndClearAll,
+    setupAllTracks,
+    cleanup,
+  };
+});

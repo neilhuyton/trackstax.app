@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
 import { useMasterVolume } from "./hooks/useMasterVolume";
-import useTransportStore from "./hooks/useTransportStore"; // ← Add this
+import useTransportStore from "./hooks/useTransportStore";
 import { useMasterVolumePersistence } from "./hooks/useMasterVolumePersistence";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 
