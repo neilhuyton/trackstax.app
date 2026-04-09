@@ -9,7 +9,6 @@ export const stackReadRouter = router({
       orderBy: { sortOrder: "asc" },
       include: {
         transport: true,
-        screen: true,
         destination: true,
         tracks: {
           orderBy: { sortOrder: "asc" },
@@ -32,7 +31,6 @@ export const stackReadRouter = router({
         },
         include: {
           transport: true,
-          screen: true,
           destination: true,
           tracks: {
             orderBy: { sortOrder: "asc" },

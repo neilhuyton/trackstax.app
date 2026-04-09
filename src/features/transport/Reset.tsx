@@ -8,6 +8,7 @@ import usePositionStore from "../position/hooks/usePositionStore";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "./hooks/useTransportRead";
 import useTransportStore from "./hooks/useTransportStore";
+import { usePlayersStore } from "./hooks/usePlayersStore";
 
 export const TransportReset = () => {
   const navigate = useNavigate();
@@ -15,9 +16,12 @@ export const TransportReset = () => {
   const { setPosition, setStopPosition } = usePositionStore();
   const { transport, isError } = useTransportRead(stackId);
   const { isPlay, setIsReset } = useTransportStore();
+  const { stopAndClearAll, setupAllTracks } = usePlayersStore();
 
-  const handleReset = () => {
+  const handleReset = async () => {
     Tone.getTransport().stop();
+
+    stopAndClearAll();
 
     const position = transport?.isLoop
       ? toPosition(transport.loopStart)
@@ -28,7 +32,6 @@ export const TransportReset = () => {
     setStopPosition(position);
     Tone.getTransport().position = position;
 
-    // Reset to first page in URL
     navigate({
       to: ".",
       search: { page: 0 },
@@ -36,6 +39,17 @@ export const TransportReset = () => {
     });
 
     if (isPlay) {
+      if (
+        transport?.isLoop !== undefined &&
+        transport?.loopStart !== undefined &&
+        transport?.loopEnd !== undefined
+      ) {
+        await setupAllTracks(
+          transport.isLoop,
+          transport.loopStart,
+          transport.loopEnd,
+        );
+      }
       Tone.getTransport().start();
     }
   };

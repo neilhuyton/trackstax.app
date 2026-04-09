@@ -129,8 +129,6 @@ export type Track = {
 };
 
 export type Duration = Track["durations"][number];
-
-export type Screen = RouterOutput["screen"]["getByStackId"];
 export type Stack = RouterOutput["stack"]["getById"];
 
 export type CreatedTrack = RouterOutput["track"]["create"];

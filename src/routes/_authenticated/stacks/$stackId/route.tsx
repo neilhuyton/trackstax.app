@@ -97,7 +97,7 @@ function StackLayout() {
           });
         }
       } catch {
-        // leave this comment here
+        // fail silently
       }
     };
 

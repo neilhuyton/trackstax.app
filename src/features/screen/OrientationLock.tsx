@@ -3,56 +3,37 @@ import { RotateCw } from "lucide-react";
 
 export default function OrientationLock() {
   const [isPortrait, setIsPortrait] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkOrientation = () => {
+    const checkOrientationAndDevice = () => {
       const currentlyPortrait = window.matchMedia(
         "(orientation: portrait)",
       ).matches;
-      setIsPortrait(currentlyPortrait);
+      const currentlyMobile = window.matchMedia("(max-width: 768px)").matches;
 
-      // Try to force landscape
-      if (
-        screen.orientation?.lock &&
-        typeof screen.orientation.lock === "function"
-      ) {
-        if (currentlyPortrait) {
-          screen.orientation.lock("landscape").catch((err) => {
-            console.warn("Could not lock screen orientation:", err);
-          });
-        }
-      }
+      setIsPortrait(currentlyPortrait);
+      setIsMobile(currentlyMobile);
     };
 
-    // Initial check
-    checkOrientation();
+    checkOrientationAndDevice();
 
-    // Listen for changes
-    const mediaQuery = window.matchMedia("(orientation: portrait)");
-    mediaQuery.addEventListener("change", checkOrientation);
+    const orientationMedia = window.matchMedia("(orientation: portrait)");
+    const mobileMedia = window.matchMedia("(max-width: 768px)");
 
-    window.addEventListener("resize", checkOrientation);
+    orientationMedia.addEventListener("change", checkOrientationAndDevice);
+    mobileMedia.addEventListener("change", checkOrientationAndDevice);
+
+    window.addEventListener("resize", checkOrientationAndDevice);
 
     return () => {
-      mediaQuery.removeEventListener("change", checkOrientation);
-      window.removeEventListener("resize", checkOrientation);
-
-      // Safely unlock when component unmounts
-      if (
-        screen.orientation?.unlock &&
-        typeof screen.orientation.unlock === "function"
-      ) {
-        try {
-          screen.orientation.unlock();
-        } catch (err) {
-          // Some browsers throw synchronously or return void
-          console.warn("Could not unlock orientation:", err);
-        }
-      }
+      orientationMedia.removeEventListener("change", checkOrientationAndDevice);
+      mobileMedia.removeEventListener("change", checkOrientationAndDevice);
+      window.removeEventListener("resize", checkOrientationAndDevice);
     };
   }, []);
 
-  if (!isPortrait) return null;
+  if (!isPortrait || !isMobile) return null;
 
   return (
     <div className="fixed inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-center text-center p-8">

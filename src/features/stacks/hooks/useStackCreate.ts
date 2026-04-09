@@ -22,7 +22,6 @@ function createOptimisticStack(
     createdAt: now,
     updatedAt: now,
     transport: null,
-    screen: null,
     destination: null,
     tracks: [],
   } as Stack;

@@ -34,7 +34,6 @@ model Stack {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   transport   Transport?
   tracks      Track[]
-  screen      Screen?
   destination Destination?
 
   createdAt DateTime @default(now())
@@ -62,21 +61,6 @@ model Transport {
 
   @@index([stackId])
   @@map("transports")
-}
-
-model Screen {
-  id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  gridLengthInBars Int    @default(32)
-
-  stackId String @unique @db.Uuid
-
-  stack Stack @relation(fields: [stackId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([stackId])
-  @@map("screens")
 }
 
 model Destination {
