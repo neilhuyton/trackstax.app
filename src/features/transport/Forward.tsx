@@ -10,14 +10,13 @@ import usePositionStore from "../position/hooks/usePositionStore";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "./hooks/useTransportRead";
 import useTransportStore from "./hooks/useTransportStore";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 const MAX_BARS = 200;
 const pageSize = 8;
 
 export const TransportForward = () => {
   const navigate = useNavigate();
-  const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
   const stackId = useStackIdStore((state) => state.stackId);
   const { transport, isError } = useTransportRead(stackId);
@@ -65,20 +64,17 @@ export const TransportForward = () => {
       setStopPosition(newPosition);
       Tone.getTransport().position = newPosition;
 
-      const currentPage = page;
       const targetPage = Math.floor(newBar / pageSize);
 
-      if (targetPage > currentPage) {
-        navigate({
-          to: ".",
-          search: { page: targetPage },
-          replace: true,
-        });
-      }
+      navigate({
+        to: ".",
+        search: { page: targetPage },
+        replace: true,
+      });
     } catch {
-      // leave this comment here
+      // fail silently
     }
-  }, [setIsForward, setPosition, setStopPosition, page, navigate, isAtMax]);
+  }, [setIsForward, setPosition, setStopPosition, navigate, isAtMax]);
 
   const startMovingForward = useCallback(() => {
     if (!forwardIntervalRef.current) {

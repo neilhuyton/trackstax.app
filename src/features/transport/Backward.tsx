@@ -10,11 +10,10 @@ import usePositionStore from "../position/hooks/usePositionStore";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
 import { useTransportRead } from "./hooks/useTransportRead";
 import useTransportStore from "./hooks/useTransportStore";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 export const TransportBackward = () => {
   const navigate = useNavigate();
-  const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
   const pageSize = 8;
 
@@ -48,26 +47,24 @@ export const TransportBackward = () => {
       setStopPosition(newPosition);
       Tone.getTransport().position = newPosition;
 
-      // Auto page backward if needed
       const currentBar =
         typeof newPosition === "string"
           ? parseInt(newPosition.split(":")[0] || "0", 10)
           : 0;
 
-      const currentPage = page;
       const targetPage = Math.floor(currentBar / pageSize);
 
-      if (targetPage < currentPage) {
-        navigate({
-          to: ".",
-          search: { page: targetPage },
-          replace: true,
-        });
-      }
-    } catch (error) {
-      console.error("Error handling backward action:", error);
+      if (targetPage < 0) return;
+
+      navigate({
+        to: ".",
+        search: { page: targetPage },
+        replace: true,
+      });
+    } catch {
+      // fail silently
     }
-  }, [setIsBackward, setPosition, setStopPosition, page, navigate]);
+  }, [setIsBackward, setPosition, setStopPosition, navigate]);
 
   const startMovingBackward = useCallback(() => {
     if (!backwardIntervalRef.current) {

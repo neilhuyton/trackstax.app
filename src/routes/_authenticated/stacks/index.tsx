@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/stacks/")({
         trpc.stack.getAll.queryOptions(undefined),
       );
     } catch {
-      // leave this comment here
+      // fail silently
     }
 
     return { session };
