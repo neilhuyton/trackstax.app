@@ -51,7 +51,7 @@ const PianoRollPage = () => {
     updatePatternMutation.mutate({ trackId, pattern: newPattern });
   };
 
-  const handleAddNote = (time: string, note: string, duration = "16n") => {
+  const handleAddNote = (time: string, note: string, duration = "0:0:0") => {
     const latestPattern = addNoteToPattern(
       currentPattern,
       time,
@@ -84,6 +84,7 @@ const PianoRollPage = () => {
           onAddNote={handleAddNote}
           onRemoveNote={handleRemoveNote}
           trigger={trigger}
+          loopLength={samplerTrack.loopLength}
         />
       </div>
     </div>

@@ -19,6 +19,7 @@ type Props = {
   onRemoveNote: (time: string, note: string) => void;
   trigger?: (note: string, duration?: string) => void;
   currentBar?: number;
+  loopLength: number;
 };
 
 export default function PianoRollViewer({
@@ -27,6 +28,7 @@ export default function PianoRollViewer({
   onRemoveNote,
   trigger,
   currentBar,
+  loopLength,
 }: Props) {
   const gridScrollRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
@@ -115,6 +117,7 @@ export default function PianoRollViewer({
           totalSteps={TOTAL_STEPS}
           lines={lines}
           onLineComplete={handleLineComplete}
+          loopLength={loopLength}
         />
       </div>
     </div>
