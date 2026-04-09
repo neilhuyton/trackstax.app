@@ -7,6 +7,7 @@ export function redrawPianoRollCanvas(
   notes: readonly string[],
   totalSteps: number,
   pixelSize: number,
+  loopLength: number = 4,
 ) {
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) return;
@@ -19,13 +20,18 @@ export function redrawPianoRollCanvas(
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
 
+  const activeSteps = loopLength * 16;
+
   // Background bars
   for (let bar = 0; bar < Math.ceil(cols / 16); bar++) {
     const isEvenBar = bar % 2 === 0;
     const barStartX = bar * 16 * pixelSize;
     const barWidth = Math.min(16 * pixelSize, canvasWidth - barStartX);
 
-    ctx.fillStyle = isEvenBar ? "#18181b" : "#1f1f23";
+    const isDisabled = bar >= loopLength;
+
+    ctx.fillStyle = isDisabled ? "#111113" : isEvenBar ? "#18181b" : "#1f1f23";
+
     ctx.fillRect(barStartX, 0, barWidth, canvasHeight);
   }
 
@@ -71,8 +77,8 @@ export function redrawPianoRollCanvas(
     ctx.stroke();
   }
 
-  // Full row + column highlight
-  if (selectedCell) {
+  // Full row + column highlight (only in active area)
+  if (selectedCell && selectedCell.step < activeSteps) {
     const x = selectedCell.step * pixelSize;
     const y = selectedCell.rowIndex * pixelSize;
 
@@ -88,13 +94,22 @@ export function redrawPianoRollCanvas(
     ctx.strokeRect(x + 1, y + 1, pixelSize - 2, pixelSize - 2);
   }
 
-  // Notes
-  ctx.fillStyle = "#8b5cf6";
+  // Notes (dimmed if beyond loop length)
   lines.forEach((line) => {
     const startX = line.startStep * pixelSize;
     const width = (line.endStep - line.startStep + 1) * pixelSize;
     const y = line.rowIndex * pixelSize;
 
+    const isNoteDisabled = line.startStep >= activeSteps;
+
+    ctx.fillStyle = isNoteDisabled ? "#4b5563" : "#8b5cf6";
     ctx.fillRect(startX + 1, y + 1, width - 2, pixelSize - 2);
   });
+
+  // Disabled overlay (semi-transparent dark cover on inactive bars)
+  if (activeSteps < cols) {
+    const disabledStartX = activeSteps * pixelSize;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(disabledStartX, 0, canvasWidth - disabledStartX, canvasHeight);
+  }
 }

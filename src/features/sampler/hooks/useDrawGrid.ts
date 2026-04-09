@@ -19,6 +19,7 @@ type UseDrawGridProps = {
     clientX: number,
     clientY: number,
   ) => void;
+  loopLength: number;
 };
 
 export function useDrawGrid({
@@ -28,6 +29,7 @@ export function useDrawGrid({
   lines,
   onLineComplete,
   onLongPress,
+  loopLength,
 }: UseDrawGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -72,6 +74,13 @@ export function useDrawGrid({
     (clientX: number, clientY: number, isHold: boolean) => {
       const pos = getGridPos(clientX, clientY);
 
+      const activeSteps = loopLength * 16;
+
+      // Prevent interaction on disabled bars
+      if (pos.step >= activeSteps) {
+        return;
+      }
+
       const existing = lines.find(
         (l) =>
           l.rowIndex === pos.rowIndex &&
@@ -94,7 +103,7 @@ export function useDrawGrid({
         return;
       }
     },
-    [getGridPos, lines, onLineComplete, onLongPress],
+    [getGridPos, lines, onLineComplete, onLongPress, loopLength],
   );
 
   const finishDrawing = useCallback(
@@ -134,8 +143,9 @@ export function useDrawGrid({
       notes,
       totalSteps,
       pixelSize,
+      loopLength,
     );
-  }, [lines, selectedCell, notes, totalSteps, pixelSize]);
+  }, [lines, selectedCell, notes, totalSteps, pixelSize, loopLength]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

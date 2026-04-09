@@ -14,10 +14,14 @@ type Props = {
     startStep: number,
     endStep: number,
   ) => void;
+  loopLength: number;
 };
 
 const DrawGrid = forwardRef<HTMLDivElement, Props>(
-  ({ notes, totalSteps, pixelSize = 28, lines, onLineComplete }, ref) => {
+  (
+    { notes, totalSteps, pixelSize = 28, lines, onLineComplete, loopLength },
+    ref,
+  ) => {
     const canvasWidth = totalSteps * pixelSize;
     const canvasHeight = notes.length * pixelSize;
 
@@ -35,6 +39,7 @@ const DrawGrid = forwardRef<HTMLDivElement, Props>(
       pixelSize,
       lines,
       onLineComplete,
+      loopLength,
       onLongPress: (rowIndex, step, clientX, clientY) => {
         setPopoverData({ rowIndex, step, clientX, clientY });
         setKey((prev) => prev + 1);
