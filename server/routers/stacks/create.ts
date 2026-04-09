@@ -33,12 +33,6 @@ export const stackCreateRouter = router({
             },
           },
 
-          screen: {
-            create: {
-              gridLengthInBars: 32,
-            },
-          },
-
           destination: {
             create: {
               volumePercent: 75,
@@ -49,7 +43,6 @@ export const stackCreateRouter = router({
 
         include: {
           transport: true,
-          screen: true,
           destination: true,
         },
       });
