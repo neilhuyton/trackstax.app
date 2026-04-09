@@ -72,7 +72,7 @@ export type NoteName = (typeof NOTE_NAMES)[number];
 export type SamplerEvent = {
   time: string;
   note: NoteName;
-  duration?: string;
+  duration: string;
 };
 
 export type SamplerPattern = SamplerEvent[];
