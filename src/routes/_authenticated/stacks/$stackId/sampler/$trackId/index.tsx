@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import SamplerAdmin from "@/features/sampler/SamplerAdmin";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
+import { useSampler } from "@/features/grid/hooks/useSampler";
 
 const SamplerAdminPage = () => {
   const { trackId } = Route.useParams();
@@ -11,6 +12,9 @@ const SamplerAdminPage = () => {
     (t) => t.id === trackId && t.type === "sampler",
   );
 
+  const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
+  const { trigger } = useSampler(trackId, sampleUrl);
+
   if (!samplerTrack) {
     return (
       <div className="h-full flex items-center justify-center text-neutral-400 bg-[#1a1a1a]">
@@ -19,7 +23,13 @@ const SamplerAdminPage = () => {
     );
   }
 
-  return <SamplerAdmin trackId={trackId} samplerTrack={samplerTrack} />;
+  return (
+    <SamplerAdmin
+      trackId={trackId}
+      samplerTrack={samplerTrack}
+      trigger={trigger}
+    />
+  );
 };
 
 export const Route = createFileRoute(
@@ -27,3 +37,5 @@ export const Route = createFileRoute(
 )({
   component: SamplerAdminPage,
 });
+
+export default SamplerAdminPage;

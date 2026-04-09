@@ -1,7 +1,7 @@
 import { type Track } from "@/types";
 import TrackDialog from "./Dialog";
 import useTracksStore from "./hooks/useTracksStore";
-import { AddTrackButton } from "./AddTrackButton"; // ← changed
+import { AddTrackButton } from "./AddTrackButton";
 
 const TrackList = () => {
   const { tracks, trackErrors } = useTracksStore();

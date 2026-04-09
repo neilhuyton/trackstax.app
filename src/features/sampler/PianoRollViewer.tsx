@@ -62,6 +62,7 @@ export default function PianoRollViewer({
     onAddNote(result.time, result.note, result.duration);
   };
 
+  // Sync horizontal scroll between header and grid
   useEffect(() => {
     const grid = gridScrollRef.current;
     const header = headerScrollRef.current;
@@ -101,9 +102,28 @@ export default function PianoRollViewer({
     };
   }, []);
 
+  // Scroll main grid vertically to middle on first load to match SideNotes
+  useEffect(() => {
+    const grid = gridScrollRef.current;
+    if (!grid) return;
+
+    const timeoutId = setTimeout(() => {
+      const middlePosition = (grid.scrollHeight - grid.clientHeight) / 2;
+      if (middlePosition > 0) {
+        grid.scrollTop = middlePosition;
+      }
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <PianoRollBars currentBar={currentBar} ref={headerScrollRef} />
+      <PianoRollBars
+        currentBar={currentBar}
+        loopLength={loopLength}
+        ref={headerScrollRef}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <SideNotes

@@ -3,20 +3,25 @@ import { useAuthStore } from "@/store/authStore";
 import { useStack } from "@/features/stacks/hooks/useStackRead";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import SamplerToolbar from "./SamplerToolbar";
-import SamplerZoneSelector from "./SamplerZoneSelector";
 import SamplerEnvelopeControl from "./SamplerEnvelopeControl";
 import { useSamplerEnvelopeStore } from "./hooks/useSamplerEnvelopeStore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { useTRPC } from "@/trpc";
 import { useDebouncedMutation } from "./hooks/useDebouncedMutation";
+import SamplerKeyboard from "./SamplerKeyboard";
 
 type Props = {
   trackId: string;
   samplerTrack: Track;
+  trigger?: (note: string, duration?: string) => void;
 };
 
-export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
+export default function SamplerAdmin({
+  trackId,
+  samplerTrack,
+  trigger,
+}: Props) {
   const stackId = useStackIdStore((state) => state.stackId);
   const { data: stack } = useStack(stackId);
   const userId = useAuthStore((s) => s.user?.id);
@@ -33,13 +38,21 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
     400,
   );
 
-  const isUserDraggingRef = useRef(false);
+  useEffect(() => {
+    if (samplerTrack?.samplerTrack) {
+      const st = samplerTrack.samplerTrack;
+      if (typeof st.attackMs === "number" && st.attackMs >= 0) {
+        setAttack(st.attackMs);
+      }
+      if (typeof st.releaseMs === "number" && st.releaseMs >= 0) {
+        setRelease(st.releaseMs);
+      }
+    }
+  }, [samplerTrack, setAttack, setRelease]);
 
   const handleAttackChange = useCallback(
     (value: number) => {
       const safeValue = Math.max(0, value);
-
-      isUserDraggingRef.current = true;
       setAttack(safeValue);
 
       const currentTrack = tracks?.find((t) => t.id === trackId);
@@ -59,10 +72,6 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
         attackMs: safeValue,
         releaseMs,
       });
-
-      setTimeout(() => {
-        isUserDraggingRef.current = false;
-      }, 600);
     },
     [
       setAttack,
@@ -77,8 +86,6 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
   const handleReleaseChange = useCallback(
     (value: number) => {
       const safeValue = Math.max(0, value);
-
-      isUserDraggingRef.current = true;
       setRelease(safeValue);
 
       const currentTrack = tracks?.find((t) => t.id === trackId);
@@ -98,10 +105,6 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
         attackMs,
         releaseMs: safeValue,
       });
-
-      setTimeout(() => {
-        isUserDraggingRef.current = false;
-      }, 600);
     },
     [
       setRelease,
@@ -112,6 +115,10 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
       storeUpdateTrack,
     ],
   );
+
+  const sampleFilename = samplerTrack?.samplerTrack?.sampleUrl
+    ? samplerTrack.samplerTrack.sampleUrl.split("/").pop() || "No sample"
+    : "No sample loaded";
 
   if (!stack || !userId) {
     return (
@@ -126,6 +133,10 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
       <SamplerToolbar stackId={stackId} trackId={trackId} />
 
       <div className="flex-1 p-3 flex flex-col gap-3 overflow-hidden">
+        <div className="bg-zinc-900 border border-neutral-700 rounded px-4 py-2 text-sm font-mono text-neutral-300 truncate">
+          {sampleFilename}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <SamplerEnvelopeControl
             label="ATTACK"
@@ -143,10 +154,10 @@ export default function SamplerAdmin({ trackId, samplerTrack }: Props) {
           />
         </div>
 
-        <SamplerZoneSelector
+        <SamplerKeyboard
           trackId={trackId}
           stackId={stackId}
-          samplerTrack={samplerTrack}
+          trigger={trigger}
         />
       </div>
     </div>
