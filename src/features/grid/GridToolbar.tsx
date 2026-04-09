@@ -12,20 +12,19 @@ const GridToolbar = () => {
   const navigate = useNavigate();
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
-  const totalBars = 32;
-
+  const MAX_BARS = 200;
   const pageSize = 8;
-  const totalPages = Math.ceil(totalBars / pageSize);
+  const totalPages = Math.ceil(MAX_BARS / pageSize);
   const currentPage = Math.max(0, Math.min(page, totalPages - 1));
 
   const startBar = currentPage * pageSize + 1;
-  const endBar = Math.min((currentPage + 1) * pageSize, totalBars);
+  const endBar = Math.min((currentPage + 1) * pageSize, MAX_BARS);
 
   const canGoPrev = currentPage > 0;
   const canGoNext = currentPage < totalPages - 1;
 
-  useGridEndStop(totalBars);
-  useGridAutoPage(totalBars);
+  useGridEndStop(MAX_BARS);
+  useGridAutoPage(MAX_BARS);
 
   const goToPage = (newPage: number) => {
     const clamped = Math.max(0, Math.min(newPage, totalPages - 1));
@@ -78,7 +77,7 @@ const GridToolbar = () => {
 
         <div className="text-sm text-neutral-400 min-w-[140px] text-center">
           Bars <span className="text-white font-medium">{startBar}</span>–
-          {endBar} of {totalBars}
+          {endBar}
         </div>
 
         <button
