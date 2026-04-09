@@ -14,9 +14,9 @@ import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 interface PlayersStore {
-  playersRef: React.MutableRefObject<Tone.Players | null>;
-  channelsRef: React.MutableRefObject<PlayerChannel[]>;
-  eventIdsRef: React.MutableRefObject<number[]>;
+  playersRef: React.RefObject<Tone.Players | null>;
+  channelsRef: React.RefObject<PlayerChannel[]>;
+  eventIdsRef: React.RefObject<number[]>;
   stopAndClearAll: () => void;
   setupAllTracks: (
     isLoop: boolean,
