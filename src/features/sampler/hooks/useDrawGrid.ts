@@ -1,11 +1,7 @@
-import { useRef, useEffect, useCallback } from "react";
-import type { NoteName } from "@/types";
+import { useRef, useEffect, useCallback, useState } from "react";
+import type { Line, NoteName } from "@/types";
 
-type Line = {
-  rowIndex: number;
-  startStep: number;
-  endStep: number;
-};
+import { redrawPianoRollCanvas } from "../utils/pianoRollCanvasUtils";
 
 type UseDrawGridProps = {
   notes: readonly NoteName[];
@@ -17,12 +13,13 @@ type UseDrawGridProps = {
     startStep: number,
     endStep: number,
   ) => void;
+  onLongPress: (
+    rowIndex: number,
+    step: number,
+    clientX: number,
+    clientY: number,
+  ) => void;
 };
-
-const HOLD_DELAY = 90;
-const MOVE_THRESHOLD = 4;
-const AUTO_SCROLL_SPEED = 12;
-const EDGE_THRESHOLD = 60; // pixels from edge to start auto-scroll
 
 export function useDrawGrid({
   notes,
@@ -30,6 +27,7 @@ export function useDrawGrid({
   pixelSize = 28,
   lines,
   onLineComplete,
+  onLongPress,
 }: UseDrawGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -41,70 +39,7 @@ export function useDrawGrid({
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const rows = notes.length;
-  const cols = totalSteps;
-  const canvasWidth = cols * pixelSize;
-  const canvasHeight = rows * pixelSize;
-
-  const redrawCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-
-    for (let bar = 0; bar < Math.ceil(cols / 16); bar++) {
-      const isEvenBar = bar % 2 === 0;
-      const barStartX = bar * 16 * pixelSize;
-      const barWidth = Math.min(16 * pixelSize, canvasWidth - barStartX);
-
-      ctx.fillStyle = isEvenBar ? "#18181b" : "#1f1f23";
-      ctx.fillRect(barStartX, 0, barWidth, canvasHeight);
-    }
-
-    ctx.strokeStyle = "#3f3f46";
-    ctx.lineWidth = 1;
-
-    for (let x = 0; x <= cols; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * pixelSize, 0);
-      ctx.lineTo(x * pixelSize, canvasHeight);
-      ctx.stroke();
-    }
-    for (let y = 0; y <= rows; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * pixelSize);
-      ctx.lineTo(canvasWidth, y * pixelSize);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = "#8b5cf6";
-    lines.forEach((line) => {
-      const startX = line.startStep * pixelSize;
-      const width = (line.endStep - line.startStep + 1) * pixelSize;
-      const y = line.rowIndex * pixelSize;
-
-      ctx.fillRect(startX + 1, y + 1, width - 2, pixelSize - 2);
-    });
-  }, [lines, cols, rows, pixelSize, canvasHeight, canvasWidth]);
-
-  const drawPixel = useCallback(
-    (step: number, rowIndex: number) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const x = step * pixelSize;
-      const y = rowIndex * pixelSize;
-
-      ctx.fillStyle = "#8b5cf6";
-      ctx.fillRect(x + 1, y + 1, pixelSize - 2, pixelSize - 2);
-    },
-    [pixelSize],
-  );
+  const [selectedCell, setSelectedCell] = useState<{ rowIndex: number; step: number } | null>(null);
 
   const getGridPos = useCallback(
     (clientX: number, clientY: number) => {
@@ -116,11 +51,11 @@ export function useDrawGrid({
       const rowIndex = Math.floor((clientY - rect.top) / pixelSize);
 
       return {
-        step: Math.max(0, Math.min(cols - 1, step)),
-        rowIndex: Math.max(0, Math.min(rows - 1, rowIndex)),
+        step: Math.max(0, Math.min(totalSteps - 1, step)),
+        rowIndex: Math.max(0, Math.min(notes.length - 1, rowIndex)),
       };
     },
-    [pixelSize, cols, rows],
+    [pixelSize, totalSteps, notes.length],
   );
 
   const clearHoldTimer = useCallback(() => {
@@ -151,51 +86,12 @@ export function useDrawGrid({
       }
 
       if (isHold) {
-        isDrawingRef.current = true;
-        lockedRowRef.current = pos.rowIndex;
-        minColRef.current = pos.step;
-        maxColRef.current = pos.step;
-        drawPixel(pos.step, pos.rowIndex);
+        setSelectedCell({ rowIndex: pos.rowIndex, step: pos.step });
+        onLongPress(pos.rowIndex, pos.step, clientX, clientY);
+        return;
       }
     },
-    [getGridPos, lines, onLineComplete, drawPixel],
-  );
-
-  const onMove = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!isDrawingRef.current || lockedRowRef.current === null) return;
-
-      const { step } = getGridPos(clientX, clientY);
-      if (step < 0) return;
-
-      const lockedRow = lockedRowRef.current;
-      const newMin = Math.min(minColRef.current, step);
-      const newMax = Math.max(maxColRef.current, step);
-
-      for (let s = newMin; s <= newMax; s++) {
-        drawPixel(s, lockedRow);
-      }
-
-      minColRef.current = newMin;
-      maxColRef.current = newMax;
-
-      // Auto-scroll when near edge
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const scrollContainer = canvas.parentElement?.parentElement; // the scrollable div
-      if (!scrollContainer) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const distanceToRight = rect.right - clientX;
-      const distanceToLeft = clientX - rect.left;
-
-      if (distanceToRight < EDGE_THRESHOLD) {
-        scrollContainer.scrollLeft += AUTO_SCROLL_SPEED;
-      } else if (distanceToLeft < EDGE_THRESHOLD) {
-        scrollContainer.scrollLeft -= AUTO_SCROLL_SPEED;
-      }
-    },
-    [getGridPos, drawPixel],
+    [getGridPos, lines, onLineComplete, onLongPress],
   );
 
   const finishDrawing = useCallback(
@@ -225,8 +121,18 @@ export function useDrawGrid({
   );
 
   useEffect(() => {
-    redrawCanvas();
-  }, [redrawCanvas]);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    redrawPianoRollCanvas(
+      canvas,
+      lines,
+      selectedCell,
+      notes,
+      totalSteps,
+      pixelSize,
+    );
+  }, [lines, selectedCell, notes, totalSteps, pixelSize]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -243,18 +149,17 @@ export function useDrawGrid({
           isDrawing = true;
           handleTapOrHold(e.clientX, e.clientY, true);
         }
-      }, HOLD_DELAY);
+      }, 160);
     };
 
     const handlePointerMove = (e: PointerEvent) => {
       if (isDrawing) {
         e.preventDefault();
-        onMove(e.clientX, e.clientY);
       } else if (touchStartRef.current) {
         const dx = Math.abs(e.clientX - touchStartRef.current.x);
         const dy = Math.abs(e.clientY - touchStartRef.current.y);
 
-        if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+        if (dx > 4 || dy > 4) {
           clearHoldTimer();
         }
       }
@@ -278,19 +183,11 @@ export function useDrawGrid({
       touchStartRef.current = null;
     };
 
-    canvas.addEventListener("pointerdown", handlePointerDown, {
-      passive: false,
-    });
-    canvas.addEventListener("pointermove", handlePointerMove, {
-      passive: false,
-    });
+    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
+    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
     canvas.addEventListener("pointerup", handlePointerUp, { passive: false });
-    canvas.addEventListener("pointerleave", handlePointerUp, {
-      passive: false,
-    });
-    canvas.addEventListener("pointercancel", handlePointerUp, {
-      passive: false,
-    });
+    canvas.addEventListener("pointerleave", handlePointerUp, { passive: false });
+    canvas.addEventListener("pointercancel", handlePointerUp, { passive: false });
 
     canvas.style.touchAction = "pan-x pan-y";
 
@@ -302,7 +199,7 @@ export function useDrawGrid({
       canvas.removeEventListener("pointerleave", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [handleTapOrHold, onMove, finishDrawing, clearHoldTimer]);
+  }, [handleTapOrHold, finishDrawing, clearHoldTimer]);
 
   return { canvasRef };
 }

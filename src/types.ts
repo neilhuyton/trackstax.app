@@ -179,3 +179,9 @@ export type SampleLibraryNavigation = {
   goToSubcategory: (subcategory: string) => void;
   goBack: () => void;
 };
+
+export type Line = {
+  rowIndex: number;
+  startStep: number;
+  endStep: number;
+};
