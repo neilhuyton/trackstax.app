@@ -77,8 +77,16 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
 
   const trigger = useCallback(
     (note = "C3", duration = "8n", time?: number) => {
-      if (!samplerRef.current || !isLoaded) return;
-      samplerRef.current.triggerAttackRelease(note, duration, time);
+      const sampler = samplerRef.current;
+      if (!sampler || !isLoaded) return;
+
+      const currentAttack = useSamplerEnvelopeStore.getState().attackMs;
+      const currentRelease = useSamplerEnvelopeStore.getState().releaseMs;
+
+      sampler.attack = Math.max(0, Number(currentAttack) || 10) / 1000;
+      sampler.release = Math.max(0.001, Number(currentRelease) || 200) / 1000;
+
+      sampler.triggerAttackRelease(note, duration, time);
     },
     [isLoaded],
   );

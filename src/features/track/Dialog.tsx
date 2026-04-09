@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaCircleExclamation, FaSpinner, FaMusic } from "react-icons/fa6";
+import { FaCircleExclamation, FaSpinner } from "react-icons/fa6";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import ConfirmDialog from "./ConfirmDialog";
 
 import { useNavigate } from "@tanstack/react-router";
 import { toClientTrack } from "../utils/track-utils";
+import { KeyboardMusic } from "lucide-react";
 
 type TrackDialogProps = {
   track: Track;
@@ -128,14 +129,14 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
               />
             )}
 
-            {/* Piano Roll Icon - Plain div to avoid nested button */}
+            {/* Piano Roll Icon */}
             {isSampler && (
               <div
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent opening the main dialog
+                  e.stopPropagation();
                   openPianoRoll();
                 }}
-                className="ml-2 h-7 w-7 flex items-center justify-center text-violet-400 hover:text-violet-300 hover:bg-violet-950/50 rounded-md transition-colors cursor-pointer flex-shrink-0"
+                className="ml-2 h-7 w-7 flex items-center justify-center text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800 rounded-md transition-colors cursor-pointer flex-shrink-0"
                 title="Edit Piano Roll"
                 role="button"
                 tabIndex={0}
@@ -146,7 +147,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                   }
                 }}
               >
-                <FaMusic className="h-4 w-4" />
+                <KeyboardMusic className="h-5 w-5" />
               </div>
             )}
           </Button>
@@ -200,7 +201,7 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
                     onClick={openPianoRoll}
                     className="col-span-3"
                   >
-                    <FaMusic className="mr-2" />
+                    <KeyboardMusic className="mr-2 h-5 w-5" />
                     Open Piano Roll Editor
                   </Button>
                 </div>

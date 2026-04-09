@@ -123,8 +123,8 @@ export type Track = {
   samplerTrack: {
     pattern: SamplerPattern;
     sampleUrl: string | null;
-    attackMs: number;
-    releaseMs: number;
+    attackMs?: number;
+    releaseMs?: number;
   } | null;
 };
 

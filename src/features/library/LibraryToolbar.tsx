@@ -1,8 +1,10 @@
-import type { SampleLibraryNavigation } from "@/types";
-import { toTitleCase } from "../utils/string-utils";
 import { useNavigate } from "@tanstack/react-router";
-import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import { useSearch } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
+import useStackIdStore from "../stacks/hooks/useStackIdStore";
+import { toTitleCase } from "../utils/string-utils";
+import type { SampleLibraryNavigation } from "@/types";
 
 type LibraryToolbarProps = {
   navigation: SampleLibraryNavigation;
@@ -26,22 +28,36 @@ export const LibraryToolbar = ({
   const navigate = useNavigate();
   const stackId = useStackIdStore((state) => state.stackId);
 
-  const handleBackToGrid = () => {
-    if (stackId) {
-      navigate({
-        to: "/stacks/$stackId",
-        params: { stackId },
-        search: { page: 0 },
-        replace: true,
-      });
-    }
-  };
+  const searchParams = useSearch({
+    from: "/_authenticated/stacks/$stackId/library/$trackId/",
+  });
+
+  const params = useParams({
+    from: "/_authenticated/stacks/$stackId/library/$trackId/",
+  });
+
+  const returnTo = (searchParams as { returnTo?: string }).returnTo;
+  const currentTrackId = params.trackId;
 
   const handleBack = () => {
     if (navigation.currentCollection) {
       navigation.goBack();
+      return;
+    }
+
+    if (returnTo === "sampler") {
+      navigate({
+        to: "/stacks/$stackId/sampler/$trackId",
+        params: { stackId: stackId!, trackId: currentTrackId },
+        replace: true,
+      });
     } else {
-      handleBackToGrid();
+      navigate({
+        to: "/stacks/$stackId",
+        params: { stackId: stackId! },
+        search: { page: 0 },
+        replace: true,
+      });
     }
   };
 
@@ -57,7 +73,6 @@ export const LibraryToolbar = ({
 
   return (
     <div className="h-10 flex items-center px-4 border-neutral-800 gap-4 bg-neutral-950">
-      {/* Left side - Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium min-w-0 flex-1">
         <button
           onClick={handleBack}
@@ -88,23 +103,23 @@ export const LibraryToolbar = ({
 
       {showSearchAndBpm && (
         <div className="flex items-center gap-4 flex-shrink-0">
-          {/* Search Input - height matched to select without changing the select */}
           <div className="w-60">
             <input
               type="text"
               placeholder="Search filename..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-700 rounded px-3  text-sm 
+              className="w-full bg-neutral-900 border border-neutral-700 rounded px-3 text-sm 
                          focus:outline-none focus:border-neutral-600 
                          hover:border-neutral-600 transition-colors
                          box-border leading-none h-[28px]"
             />
           </div>
 
-          {/* BPM Select */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-400 whitespace-nowrap">BPM</span>
+            <span className="text-sm text-neutral-400 whitespace-nowrap">
+              BPM
+            </span>
 
             <div className="relative">
               <select
@@ -127,7 +142,6 @@ export const LibraryToolbar = ({
                 ))}
               </select>
 
-              {/* Custom Chevron */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-400">
                 <ChevronDown className="h-4 w-4" />
               </div>

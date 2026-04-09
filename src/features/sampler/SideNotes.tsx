@@ -17,7 +17,7 @@ export default function SideNotes({ notes, scrollRef, trigger }: Props) {
     [trigger],
   );
 
-  // Sync vertical scroll
+  // Sync vertical scroll with grid
   useEffect(() => {
     const grid = scrollRef.current;
     const keyboard = keyboardRef.current;
@@ -31,6 +31,15 @@ export default function SideNotes({ notes, scrollRef, trigger }: Props) {
 
     return () => grid.removeEventListener("scroll", syncScroll);
   }, [scrollRef]);
+
+  // Scroll to middle of keyboard on mount
+  useEffect(() => {
+    const keyboard = keyboardRef.current;
+    if (!keyboard) return;
+
+    const middlePosition = (keyboard.scrollHeight - keyboard.clientHeight) / 2;
+    keyboard.scrollTop = middlePosition;
+  }, []);
 
   const isBlackKey = (note: NoteName): boolean =>
     note.includes("#") || note.includes("b");

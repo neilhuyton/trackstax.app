@@ -1,14 +1,13 @@
 import { useMemo, forwardRef } from "react";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
 
-const BAR_COUNT = 8;
-
 type Props = {
   currentBar?: number;
+  loopLength: number;
 };
 
 const PianoRollBars = forwardRef<HTMLDivElement, Props>(
-  ({ currentBar: propCurrentBar }, ref) => {
+  ({ currentBar: propCurrentBar, loopLength }, ref) => {
     const { position } = usePositionStore();
 
     const currentBar = useMemo(() => {
@@ -26,7 +25,13 @@ const PianoRollBars = forwardRef<HTMLDivElement, Props>(
       return -1;
     }, [position, propCurrentBar]);
 
-    const bars = useMemo(() => Array.from({ length: BAR_COUNT }), []);
+    // Calculate which bar in the loop is currently active (cycles 0 to loopLength-1)
+    const activeLoopBar = useMemo(() => {
+      if (currentBar < 0) return -1;
+      return currentBar % loopLength;
+    }, [currentBar, loopLength]);
+
+    const bars = useMemo(() => Array.from({ length: 8 }), []);
 
     return (
       <div className="flex border-b border-zinc-700 bg-zinc-900">
@@ -38,7 +43,9 @@ const PianoRollBars = forwardRef<HTMLDivElement, Props>(
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {bars.map((_, i) => {
-            const isActive = currentBar === i;
+            const isInLoop = i < loopLength;
+            const isActive = isInLoop && activeLoopBar === i;
+
             return (
               <div
                 key={i}
@@ -47,9 +54,11 @@ const PianoRollBars = forwardRef<HTMLDivElement, Props>(
                 text-xs font-medium border-r border-zinc-700 last:border-r-0
                 transition-colors shrink-0
                 ${
-                  isActive
-                    ? "bg-neutral-500 text-white"
-                    : "bg-zinc-950 text-neutral-400"
+                  isInLoop
+                    ? isActive
+                      ? "bg-neutral-500 text-white"
+                      : "bg-zinc-950 text-neutral-400"
+                    : "bg-zinc-900 text-neutral-600"
                 }
               `}
                 style={{ width: "448px" }}
