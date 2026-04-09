@@ -39,7 +39,10 @@ export function useDrawGrid({
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const [selectedCell, setSelectedCell] = useState<{ rowIndex: number; step: number } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{
+    rowIndex: number;
+    step: number;
+  } | null>(null);
 
   const getGridPos = useCallback(
     (clientX: number, clientY: number) => {
@@ -183,11 +186,19 @@ export function useDrawGrid({
       touchStartRef.current = null;
     };
 
-    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
-    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
+    canvas.addEventListener("pointerdown", handlePointerDown, {
+      passive: false,
+    });
+    canvas.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
     canvas.addEventListener("pointerup", handlePointerUp, { passive: false });
-    canvas.addEventListener("pointerleave", handlePointerUp, { passive: false });
-    canvas.addEventListener("pointercancel", handlePointerUp, { passive: false });
+    canvas.addEventListener("pointerleave", handlePointerUp, {
+      passive: false,
+    });
+    canvas.addEventListener("pointercancel", handlePointerUp, {
+      passive: false,
+    });
 
     canvas.style.touchAction = "pan-x pan-y";
 
@@ -201,5 +212,5 @@ export function useDrawGrid({
     };
   }, [handleTapOrHold, finishDrawing, clearHoldTimer]);
 
-  return { canvasRef };
+  return { canvasRef, setSelectedCell };
 }

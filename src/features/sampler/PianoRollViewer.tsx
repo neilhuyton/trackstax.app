@@ -110,11 +110,11 @@ export default function PianoRollViewer({
           trigger={trigger}
         />
         <DrawGrid
+          ref={gridScrollRef}
           notes={NOTE_NAMES}
           totalSteps={TOTAL_STEPS}
           lines={lines}
           onLineComplete={handleLineComplete}
-          ref={gridScrollRef}
         />
       </div>
     </div>

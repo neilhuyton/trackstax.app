@@ -1,7 +1,8 @@
-import { forwardRef, useState, useRef, useEffect } from "react";
+import { forwardRef, useState } from "react";
 import type { Line, NoteName } from "@/types";
 import PianoRollPopover from "./PianoRollPopover";
 import { useDrawGrid } from "./hooks/useDrawGrid";
+import { getDurationInSteps } from "./utils/pianoRollUtils";
 
 type Props = {
   notes: readonly NoteName[];
@@ -28,10 +29,7 @@ const DrawGrid = forwardRef<HTMLDivElement, Props>(
       clientY: number;
     } | null>(null);
 
-    const gridScrollRef = useRef<HTMLDivElement>(null);
-    const headerScrollRef = useRef<HTMLDivElement>(null);
-
-    const { canvasRef } = useDrawGrid({
+    const { canvasRef, setSelectedCell } = useDrawGrid({
       notes,
       totalSteps,
       pixelSize,
@@ -43,72 +41,17 @@ const DrawGrid = forwardRef<HTMLDivElement, Props>(
       },
     });
 
-    useEffect(() => {
-      const grid = gridScrollRef.current;
-      const header = headerScrollRef.current;
-      if (!grid || !header) return;
-
-      let rafId: number;
-
-      const syncHeader = () => {
-        if (header.scrollLeft !== grid.scrollLeft) {
-          header.scrollLeft = grid.scrollLeft;
-        }
-      };
-
-      const syncGrid = () => {
-        if (grid.scrollLeft !== header.scrollLeft) {
-          grid.scrollLeft = header.scrollLeft;
-        }
-      };
-
-      const throttledSyncHeader = () => {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(syncHeader);
-      };
-
-      const throttledSyncGrid = () => {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(syncGrid);
-      };
-
-      grid.addEventListener("scroll", throttledSyncHeader, { passive: true });
-      header.addEventListener("scroll", throttledSyncGrid, { passive: true });
-
-      return () => {
-        cancelAnimationFrame(rafId);
-        grid.removeEventListener("scroll", throttledSyncHeader);
-        header.removeEventListener("scroll", throttledSyncGrid);
-      };
-    }, []);
-
-    useEffect(() => {
-      const container = gridScrollRef.current;
-      if (!container) return;
-
-      const handleScroll = () => {
-        setPopoverData(null);
-      };
-
-      container.addEventListener("scroll", handleScroll, { passive: true });
-
-      return () => {
-        container.removeEventListener("scroll", handleScroll);
-      };
-    }, []);
+    const clearSelection = () => {
+      setSelectedCell(null);
+      setPopoverData(null);
+    };
 
     return (
       <div className="flex flex-col h-full overflow-hidden">
-        <div
-          ref={headerScrollRef}
-          className="overflow-x-auto overflow-y-hidden bg-zinc-900 border-b border-zinc-800"
-        >
-          {/* PianoRollBars is rendered by parent */}
-        </div>
+        <div className="overflow-x-auto overflow-y-hidden bg-zinc-900 border-b border-zinc-800" />
 
         <div
           ref={(el) => {
-            gridScrollRef.current = el;
             if (typeof ref === "function") ref(el);
             else if (ref) ref.current = el;
           }}
@@ -139,10 +82,17 @@ const DrawGrid = forwardRef<HTMLDivElement, Props>(
           key={key}
           popoverData={popoverData}
           notes={notes}
+          lines={lines}
+          onConfirm={(rowIndex, startStep, duration) => {
+            const durationSteps = getDurationInSteps(duration);
+            onLineComplete(rowIndex, startStep, startStep + durationSteps - 1);
+            clearSelection();
+          }}
           onDelete={(rowIndex, step) => {
             onLineComplete(rowIndex, step, step - 1);
+            clearSelection();
           }}
-          onClose={() => setPopoverData(null)}
+          onClose={() => clearSelection()}
         />
       </div>
     );
