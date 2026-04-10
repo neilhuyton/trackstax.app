@@ -14,7 +14,7 @@ export const stackReadRouter = router({
           orderBy: { sortOrder: "asc" },
           include: {
             audioTrack: true,
-            durations: true,
+            samplerTrack: true,
           },
         },
       },
@@ -36,7 +36,7 @@ export const stackReadRouter = router({
             orderBy: { sortOrder: "asc" },
             include: {
               audioTrack: true,
-              durations: true,
+              samplerTrack: true,
             },
           },
         },

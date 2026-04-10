@@ -1,50 +1,96 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as Tone from "tone";
-import usePositionStore from "@/features/position/hooks/usePositionStore";
-import useTransportStore from "@/features/transport/hooks/useTransportStore";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 export const useGridAutoPage = (totalBars: number) => {
   const navigate = useNavigate();
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
-  const { position } = usePositionStore();
   const { isPlay, isRecord } = useTransportStore();
 
   const pageSize = 8;
   const totalPages = Math.ceil(totalBars / pageSize);
-  const currentPage = Math.max(0, Math.min(page, totalPages - 1));
-  const canGoNext = currentPage < totalPages - 1;
+
+  const lastAutoPagedToRef = useRef(page);
+  const allowAutoPageRef = useRef(true);
 
   useEffect(() => {
-    if (!position || (!isPlay && !isRecord)) return;
+    allowAutoPageRef.current = false;
+    lastAutoPagedToRef.current = page;
+  }, [page]);
 
-    let currentBar = 0;
+  useEffect(() => {
+    if (!isPlay && !isRecord) {
+      allowAutoPageRef.current = true;
+      lastAutoPagedToRef.current = page;
+      return;
+    }
 
-    try {
-      const pos = Tone.getTransport().position as string;
+    const interval = setInterval(() => {
+      let currentBar = 0;
 
-      if (typeof pos === "string" && pos.includes(":")) {
-        const [barsStr] = pos.split(":");
-        currentBar = parseInt(barsStr, 10);
-      } else {
-        const bbs = Tone.TransportTime(position).toBarsBeatsSixteenths();
-        currentBar = parseInt(bbs.split(":")[0], 10);
+      try {
+        const pos = Tone.getTransport().position as string;
+        if (typeof pos === "string" && pos.includes(":")) {
+          const [barsStr] = pos.split(":");
+          currentBar = parseInt(barsStr, 10);
+        }
+      } catch {
+        // fail silently
       }
-      if (isNaN(currentBar)) currentBar = 0;
-    } catch {
-      currentBar = 0;
-    }
 
-    const nextPageStartBar = (currentPage + 1) * pageSize;
+      if (isNaN(currentBar)) return;
 
-    if (currentBar >= nextPageStartBar && canGoNext) {
-      const newPage = currentPage + 1;
-      navigate({
-        to: ".",
-        search: { page: newPage },
-        replace: true,
-      });
-    }
-  }, [position, currentPage, canGoNext, isPlay, isRecord, navigate]);
+      const threshold = (page + 1) * pageSize;
+
+      if (
+        currentBar >= threshold &&
+        allowAutoPageRef.current &&
+        page === lastAutoPagedToRef.current &&
+        page < totalPages - 1
+      ) {
+        const nextPage = page + 1;
+
+        navigate({
+          to: ".",
+          search: { page: nextPage },
+          replace: true,
+        });
+
+        lastAutoPagedToRef.current = nextPage;
+        allowAutoPageRef.current = false;
+      }
+
+      const playheadPage = Math.floor(currentBar / pageSize);
+      if (playheadPage > page) {
+        allowAutoPageRef.current = false;
+      }
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, [isPlay, isRecord, page, navigate, totalPages, pageSize]);
+
+  useEffect(() => {
+    if (!isPlay && !isRecord) return;
+
+    const reenable = setInterval(() => {
+      let currentBar = 0;
+      try {
+        const [barsStr] = (Tone.getTransport().position as string).split(":");
+        currentBar = parseInt(barsStr, 10);
+      } catch {
+        // fail silently
+      }
+
+      if (!isNaN(currentBar)) {
+        const playheadPage = Math.floor(currentBar / pageSize);
+        if (playheadPage === page) {
+          allowAutoPageRef.current = true;
+        }
+      }
+    }, 200);
+
+    return () => clearInterval(reenable);
+  }, [isPlay, isRecord, page, pageSize]);
 };

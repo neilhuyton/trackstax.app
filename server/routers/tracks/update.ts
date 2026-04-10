@@ -2,10 +2,6 @@ import { protectedProcedure, router } from "../../trpc-base";
 import { z } from "zod";
 
 const trackInclude = {
-  durations: {
-    omit: { trackId: true },
-    orderBy: { start: "asc" },
-  },
   audioTrack: {
     omit: { trackId: true },
   },

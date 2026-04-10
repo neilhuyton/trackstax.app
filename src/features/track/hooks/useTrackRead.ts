@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc";
+import { toClientTracks } from "@/features/utils/prisma-transformer";
 
 export function useTrackRead(stackId: string) {
   const trpc = useTRPC();
@@ -18,7 +19,7 @@ export function useTrackRead(stackId: string) {
   );
 
   return {
-    tracks: query.data,
+    tracks: toClientTracks(query.data), // ensure clean types
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

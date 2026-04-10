@@ -23,8 +23,8 @@ import { useMutation } from "@tanstack/react-query";
 import ConfirmDialog from "./ConfirmDialog";
 
 import { useNavigate } from "@tanstack/react-router";
-import { toClientTrack } from "../utils/track-utils";
 import { KeyboardMusic } from "lucide-react";
+import { toClientTrack } from "../utils/prisma-transformer";
 
 type TrackDialogProps = {
   track: Track;
@@ -48,24 +48,36 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     setFormValues({ label: track?.label ?? "" });
   }, [track]);
 
-  const updateTrackMutation = useMutation(
-    trpc.track.update.mutationOptions({
-      onSuccess: (updatedTrack) => {
-        storeUpdateTrack(toClientTrack(updatedTrack));
-        setIsOpen(false);
-      },
-    }),
-  );
+  const updateTrackMutation = useMutation({
+    mutationFn: async (input: { id: string; label: string }): Promise<unknown> => {
+      const mutateFn = (trpc.track.update as unknown as { 
+        mutate: (input: { id: string; label: string }) => Promise<unknown> 
+      }).mutate;
 
-  const deleteTrackMutation = useMutation(
-    trpc.track.delete.mutationOptions({
-      onSuccess: () => {
-        if (track?.id) storeDeleteTrack(track.id);
-        setIsDeleteConfirmOpen(false);
-        setIsOpen(false);
-      },
-    }),
-  );
+      return mutateFn(input);
+    },
+
+    onSuccess: (updatedTrack: unknown) => {
+      storeUpdateTrack(toClientTrack(updatedTrack));
+      setIsOpen(false);
+    },
+  });
+
+  const deleteTrackMutation = useMutation({
+    mutationFn: async (input: { id: string }): Promise<unknown> => {
+      const mutateFn = (trpc.track.delete as unknown as { 
+        mutate: (input: { id: string }) => Promise<unknown> 
+      }).mutate;
+
+      return mutateFn(input);
+    },
+
+    onSuccess: () => {
+      if (track?.id) storeDeleteTrack(track.id);
+      setIsDeleteConfirmOpen(false);
+      setIsOpen(false);
+    },
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -129,7 +141,6 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
               />
             )}
 
-            {/* Piano Roll Icon */}
             {isSampler && (
               <div
                 onClick={(e) => {

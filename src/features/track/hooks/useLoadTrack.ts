@@ -12,11 +12,7 @@ import useTracksStore from "@/features/track/hooks/useTracksStore";
 export function useLoadTrack(tracks: Track[], stack: Stack) {
   const { storeAddTrack } = useTracksStore();
 
-  const createTrackMutation = useMutation(
-    trpc.track.create.mutationOptions({
-      onError: (error) => console.error("Failed to create track:", error),
-    }),
-  );
+  const createTrackMutation = useMutation(trpc.track.create.mutationOptions());
 
   const loadTrack = async (sample: Sample) => {
     const safeDownloadUrl = sample.downloadUrl.replace(/#/g, "%23");
@@ -30,7 +26,7 @@ export function useLoadTrack(tracks: Track[], stack: Stack) {
 
     const baseTrack = createNewTrack(null, sample.downloadUrl, tracks, stack);
 
-    const createdTrack = await createTrackMutation.mutateAsync({
+    const created = await createTrackMutation.mutateAsync({
       stackId: stack.id,
       type: "audio",
       label: baseTrack.label,
@@ -46,14 +42,13 @@ export function useLoadTrack(tracks: Track[], stack: Stack) {
     });
 
     const newTrack = buildClientTrackFromServer(
-      baseTrack,
-      createdTrack,
+      created,
       sample.filename,
       sample.downloadUrl,
       duration,
     );
 
-    storeAddTrack(newTrack as Track);
+    storeAddTrack(newTrack);
     return newTrack;
   };
 
