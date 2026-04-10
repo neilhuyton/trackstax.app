@@ -79,7 +79,7 @@ export const useTransportControls = ({
       Tone.getTransport().position = stopPosition ?? "0:0:0";
     }
 
-    Tone.getTransport().start();
+    Tone.getTransport().start("+0.05");
     setIsPlay(true);
   }, [
     started,

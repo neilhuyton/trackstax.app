@@ -16,7 +16,7 @@ export function useSamplerPattern() {
       try {
         transport.clear(id);
       } catch {
-        // ignore errors when clearing
+        // fail silently
       }
     });
     eventIdsRef.current = [];
@@ -75,7 +75,6 @@ export function useSamplerPattern() {
     [clearAllScheduledEvents],
   );
 
-  // Cleanup on unmount
   useEffect(() => {
     return clearAllScheduledEvents;
   }, [clearAllScheduledEvents]);

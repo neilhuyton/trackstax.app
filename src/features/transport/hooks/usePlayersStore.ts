@@ -12,12 +12,14 @@ import {
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
+import useTransportStore from "./useTransportStore";
 
 interface PlayersStore {
   playersRef: React.RefObject<Tone.Players | null>;
   channelsRef: React.RefObject<PlayerChannel[]>;
   eventIdsRef: React.RefObject<number[]>;
   stopAndClearAll: () => void;
+  updateTrackSchedule: (trackId: string) => void;
   setupAllTracks: (
     isLoop: boolean,
     loopStart: number,
@@ -155,6 +157,45 @@ export const usePlayersStore = create<PlayersStore>(() => {
     }
   };
 
+  const updateTrackSchedule = (trackId: string) => {
+    const tracks = useTracksStore.getState().tracks;
+    const track = tracks.find((t) => t.id === trackId);
+    if (!track || track.type !== "audio" || !track.audioTrack) return;
+
+    const transportState = useTransportStore.getState();
+    const isLoop = transportState.isLoop;
+    const loopStart = transportState.loopStart;
+    const loopEnd = transportState.loopEnd;
+
+    const player = playersRef.current?.player(trackId);
+    if (!player) return;
+
+    eventIdsRef.current = eventIdsRef.current.filter((id) => {
+      try {
+        Tone.getTransport().clear(id);
+        return false;
+      } catch {
+        // fail silently
+        return true;
+      }
+    });
+
+    const channel = getOrCreateChannel(track);
+    const soloTracks = tracks.filter((t) => t.isSolo);
+    const shouldMuteBySolo =
+      soloTracks.length > 0 && !soloTracks.some((t) => t.id === trackId);
+    const isMuted = track.isMute || shouldMuteBySolo;
+
+    channel.volume.value = isMuted
+      ? -Infinity
+      : calcVolumeLevel(track.volumePercent);
+    channel.mute = isMuted;
+
+    track.durations.forEach((duration) =>
+      setupAudioDurations(track, duration, player, isLoop, loopStart, loopEnd),
+    );
+  };
+
   const setupAllTracks = async (
     isLoop: boolean,
     loopStart: number,
@@ -227,6 +268,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
     channelsRef,
     eventIdsRef,
     stopAndClearAll,
+    updateTrackSchedule,
     setupAllTracks,
     cleanup,
   };

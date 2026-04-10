@@ -33,29 +33,33 @@ const GridBars = () => {
     return -1;
   }, [position]);
 
-  const getBgColor = (i: number) => {
-    const globalBar = visibleStartBar + i;
+  const getBgColor = useMemo(() => {
+    return (i: number) => {
+      const globalBar = visibleStartBar + i;
 
-    if (globalBar === currentBar && currentBar >= 0) {
-      return "bg-neutral-500";
-    }
+      if (globalBar === currentBar && currentBar >= 0) {
+        return "bg-neutral-500";
+      }
 
-    if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
-      return "bg-neutral-700";
-    }
+      if (isLoop && globalBar >= loopStart && globalBar < loopEnd) {
+        return "bg-neutral-700";
+      }
 
-    return "bg-neutral-900";
-  };
+      return "bg-neutral-900";
+    };
+  }, [visibleStartBar, currentBar, isLoop, loopStart, loopEnd]);
 
-  const getTextColor = (i: number) => {
-    const globalBar = visibleStartBar + i;
+  const getTextColor = useMemo(() => {
+    return (i: number) => {
+      const globalBar = visibleStartBar + i;
 
-    if (globalBar === currentBar && currentBar >= 0) {
-      return "text-white font-extrabold";
-    }
+      if (globalBar === currentBar && currentBar >= 0) {
+        return "text-white font-extrabold";
+      }
 
-    return "text-neutral-300 font-light";
-  };
+      return "text-neutral-300 font-light";
+    };
+  }, [visibleStartBar, currentBar]);
 
   if (isError) return null;
 

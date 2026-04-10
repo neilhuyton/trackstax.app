@@ -6,6 +6,7 @@ import { type Track } from "@/types";
 
 import useTracksStore from "./hooks/useTracksStore";
 import MasterVolumeDialog from "@/features/transport/MasterVolumeDialog";
+import { memo } from "react";
 
 export const TrackTools = () => {
   const { tracks } = useTracksStore();
@@ -56,4 +57,4 @@ export const TrackTools = () => {
   );
 };
 
-export default TrackTools;
+export default memo(TrackTools);

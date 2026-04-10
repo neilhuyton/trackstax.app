@@ -11,6 +11,9 @@ interface TransportStore {
   recordEnd: number;
   masterVolumePercent: number;
   masterMuted: boolean;
+  isLoop: boolean;
+  loopStart: number;
+  loopEnd: number;
 
   setIsPlay: (newIsPlay: boolean) => void;
   setIsForward: (newIsForward: boolean) => void;
@@ -22,6 +25,9 @@ interface TransportStore {
   setRecordEnd: (newRecordEnd: number) => void;
   setMasterVolumePercent: (percent: number) => void;
   setMasterMute: (mute: boolean) => void;
+  setIsLoop: (isLoop: boolean) => void;
+  setLoopStart: (loopStart: number) => void;
+  setLoopEnd: (loopEnd: number) => void;
 }
 
 const useTransportStore = create<TransportStore>((set) => ({
@@ -35,6 +41,9 @@ const useTransportStore = create<TransportStore>((set) => ({
   recordEnd: 0,
   masterVolumePercent: 100,
   masterMuted: false,
+  isLoop: false,
+  loopStart: 0,
+  loopEnd: 0,
 
   setIsPlay: (newIsPlay: boolean) => set({ isPlay: newIsPlay }),
   setIsForward: (newIsForward: boolean) => set({ isForward: newIsForward }),
@@ -48,6 +57,9 @@ const useTransportStore = create<TransportStore>((set) => ({
   setMasterVolumePercent: (percent: number) =>
     set({ masterVolumePercent: Math.max(0, Math.min(100, percent)) }),
   setMasterMute: (mute: boolean) => set({ masterMuted: mute }),
+  setIsLoop: (isLoop: boolean) => set({ isLoop }),
+  setLoopStart: (loopStart: number) => set({ loopStart }),
+  setLoopEnd: (loopEnd: number) => set({ loopEnd }),
 }));
 
 export default useTransportStore;

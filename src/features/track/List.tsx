@@ -2,6 +2,7 @@ import { type Track } from "@/types";
 import TrackDialog from "./Dialog";
 import useTracksStore from "./hooks/useTracksStore";
 import { AddTrackButton } from "./AddTrackButton";
+import { memo } from "react";
 
 const TrackList = () => {
   const { tracks, trackErrors } = useTracksStore();
@@ -38,4 +39,4 @@ const TrackList = () => {
   );
 };
 
-export default TrackList;
+export default memo(TrackList);
