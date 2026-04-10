@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as Tone from "tone";
 import { useNavigate } from "@tanstack/react-router";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,9 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { formatPosition, isPositionZero, toPosition } from "@/utils";
 import usePositionStore from "../position/hooks/usePositionStore";
+import useTransportStore from "./hooks/useTransportStore";
+import { usePlayersStore } from "./hooks/usePlayersStore";
 
 const calculateScrollAndPosition = (bar: string) => {
   const numValue = Number(bar);
@@ -27,8 +27,9 @@ const calculateScrollAndPosition = (bar: string) => {
 
 export const TransportPositionDialog = () => {
   const navigate = useNavigate();
-
   const { position, setPosition, setStopPosition } = usePositionStore();
+  const { incrementSamplerRescheduleKey, setIsPlay } = useTransportStore();
+  const { stopAndClearAll } = usePlayersStore();
 
   const pos = formatPosition(position);
   const [isOpen, setIsOpen] = useState(false);
@@ -69,9 +70,14 @@ export const TransportPositionDialog = () => {
 
       const { newPos } = calculateScrollAndPosition(String(submittedBar - 1));
 
+      Tone.getTransport().stop();
+      stopAndClearAll();
+      incrementSamplerRescheduleKey();
+
       Tone.getTransport().position = newPos;
       setPosition(newPos);
       setStopPosition(newPos);
+      setIsPlay(false);
 
       const pageSize = 8;
       const targetPage = Math.floor((submittedBar - 1) / pageSize);
@@ -85,7 +91,15 @@ export const TransportPositionDialog = () => {
       setNewBar(String(submittedBar));
       setIsOpen(false);
     },
-    [newBar, setPosition, setStopPosition, navigate],
+    [
+      newBar,
+      setPosition,
+      setStopPosition,
+      navigate,
+      incrementSamplerRescheduleKey,
+      setIsPlay,
+      stopAndClearAll,
+    ],
   );
 
   return (

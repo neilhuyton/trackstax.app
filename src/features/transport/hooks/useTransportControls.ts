@@ -33,7 +33,7 @@ export const useTransportControls = ({
   const [started, setStarted] = useState(false);
 
   const { setPosition, setStopPosition } = usePositionStore();
-  const { setIsPlay } = useTransportStore();
+  const { setIsPlay, incrementSamplerRescheduleKey } = useTransportStore();
   const { stopAndClearAll } = usePlayersStore();
 
   useMasterVolume();
@@ -50,6 +50,7 @@ export const useTransportControls = ({
     Tone.getTransport().position = pos;
 
     stopAndClearAll();
+    incrementSamplerRescheduleKey();
   }, [
     isLoop,
     loopStart,
@@ -57,6 +58,7 @@ export const useTransportControls = ({
     setPosition,
     setStopPosition,
     stopAndClearAll,
+    incrementSamplerRescheduleKey,
   ]);
 
   const handlePlay = useCallback(async () => {
@@ -81,6 +83,7 @@ export const useTransportControls = ({
 
     Tone.getTransport().start("+0.05");
     setIsPlay(true);
+    incrementSamplerRescheduleKey();
   }, [
     started,
     stopPosition,
@@ -90,6 +93,7 @@ export const useTransportControls = ({
     setIsPlay,
     setPosition,
     setStopPosition,
+    incrementSamplerRescheduleKey,
   ]);
 
   useEffect(() => {

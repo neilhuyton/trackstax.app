@@ -14,6 +14,7 @@ interface TransportStore {
   isLoop: boolean;
   loopStart: number;
   loopEnd: number;
+  samplerRescheduleKey: number;
 
   setIsPlay: (newIsPlay: boolean) => void;
   setIsForward: (newIsForward: boolean) => void;
@@ -28,6 +29,7 @@ interface TransportStore {
   setIsLoop: (isLoop: boolean) => void;
   setLoopStart: (loopStart: number) => void;
   setLoopEnd: (loopEnd: number) => void;
+  incrementSamplerRescheduleKey: () => void;
 }
 
 const useTransportStore = create<TransportStore>((set) => ({
@@ -44,6 +46,7 @@ const useTransportStore = create<TransportStore>((set) => ({
   isLoop: false,
   loopStart: 0,
   loopEnd: 0,
+  samplerRescheduleKey: 0,
 
   setIsPlay: (newIsPlay: boolean) => set({ isPlay: newIsPlay }),
   setIsForward: (newIsForward: boolean) => set({ isForward: newIsForward }),
@@ -60,6 +63,8 @@ const useTransportStore = create<TransportStore>((set) => ({
   setIsLoop: (isLoop: boolean) => set({ isLoop }),
   setLoopStart: (loopStart: number) => set({ loopStart }),
   setLoopEnd: (loopEnd: number) => set({ loopEnd }),
+  incrementSamplerRescheduleKey: () =>
+    set((state) => ({ samplerRescheduleKey: state.samplerRescheduleKey + 1 })),
 }));
 
 export default useTransportStore;

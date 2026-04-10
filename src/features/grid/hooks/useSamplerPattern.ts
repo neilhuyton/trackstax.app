@@ -46,10 +46,11 @@ export function useSamplerPattern() {
       loopLength: number,
       trigger: (note?: string, duration?: string, time?: number) => void,
       clickedBar?: number,
+      forceReschedule = false,
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      if (clickedBar !== undefined) {
+      if (!forceReschedule && clickedBar !== undefined) {
         const { isPlay } = useTransportStore.getState();
         if (isPlay) {
           const pos = Tone.getTransport().position as string;

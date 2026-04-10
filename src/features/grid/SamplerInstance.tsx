@@ -3,6 +3,7 @@ import useTracksStore from "@/features/track/hooks/useTracksStore";
 import type { SamplerEvent } from "@/types";
 import { useSampler } from "./hooks/useSampler";
 import { useSamplerPattern } from "./hooks/useSamplerPattern";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 type Props = {
   trackId: string;
@@ -10,6 +11,9 @@ type Props = {
 
 export default function SamplerInstance({ trackId }: Props) {
   const { tracks, lastClickedBar } = useTracksStore();
+  const samplerRescheduleKey = useTransportStore(
+    (state) => state.samplerRescheduleKey,
+  );
   const track = tracks.find((t) => t.id === trackId);
   const sampleUrl = track?.samplerTrack?.sampleUrl ?? null;
   const { trigger } = useSampler(trackId, sampleUrl);
@@ -20,6 +24,7 @@ export default function SamplerInstance({ trackId }: Props) {
   >(null);
   const prevPatternRef = useRef<SamplerEvent[]>([]);
   const prevDurationsRef = useRef<{ start: number; stop: number }[]>([]);
+  const prevRescheduleKeyRef = useRef<number>(0);
 
   useEffect(() => {
     if (!track || !trigger) return;
@@ -33,8 +38,15 @@ export default function SamplerInstance({ trackId }: Props) {
     const durationsChanged =
       JSON.stringify(durations) !== JSON.stringify(prevDurationsRef.current);
     const triggerChanged = trigger !== prevTriggerRef.current;
+    const rescheduleChanged =
+      samplerRescheduleKey !== prevRescheduleKeyRef.current;
 
-    if (patternChanged || durationsChanged || triggerChanged) {
+    if (
+      patternChanged ||
+      durationsChanged ||
+      triggerChanged ||
+      rescheduleChanged
+    ) {
       schedulePatternForTrack(
         track.id,
         pattern,
@@ -42,13 +54,21 @@ export default function SamplerInstance({ trackId }: Props) {
         loopLength,
         trigger,
         lastClickedBar ?? undefined,
+        rescheduleChanged,
       );
 
       prevPatternRef.current = [...pattern];
       prevDurationsRef.current = [...durations];
       prevTriggerRef.current = trigger;
+      prevRescheduleKeyRef.current = samplerRescheduleKey;
     }
-  }, [track, trigger, schedulePatternForTrack, lastClickedBar]);
+  }, [
+    track,
+    trigger,
+    schedulePatternForTrack,
+    lastClickedBar,
+    samplerRescheduleKey,
+  ]);
 
   return null;
 }
