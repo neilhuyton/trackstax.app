@@ -8,18 +8,33 @@ type Duration = {
 };
 
 export function useSamplerPattern() {
-  const eventIdsRef = useRef<number[]>([]);
+  const eventMapRef = useRef<Map<string, number[]>>(new Map());
 
-  const clearAllScheduledEvents = useCallback(() => {
+  const clearTrackEvents = useCallback((trackId: string) => {
+    const eventIds = eventMapRef.current.get(trackId) || [];
     const transport = Tone.getTransport();
-    eventIdsRef.current.forEach((id) => {
+    eventIds.forEach((id) => {
       try {
         transport.clear(id);
       } catch {
         // fail silently
       }
     });
-    eventIdsRef.current = [];
+    eventMapRef.current.delete(trackId);
+  }, []);
+
+  const clearAllScheduledEvents = useCallback(() => {
+    const transport = Tone.getTransport();
+    eventMapRef.current.forEach((eventIds) => {
+      eventIds.forEach((id) => {
+        try {
+          transport.clear(id);
+        } catch {
+          // fail silently
+        }
+      });
+    });
+    eventMapRef.current.clear();
   }, []);
 
   const schedulePatternForTrack = useCallback(
@@ -32,7 +47,10 @@ export function useSamplerPattern() {
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      clearAllScheduledEvents();
+      // Always clear previous events for this track first
+      clearTrackEvents(trackId);
+
+      const newEventIds: number[] = [];
 
       durations.forEach(({ start, stop }) => {
         for (let bar = start; bar < stop; bar += loopLength) {
@@ -67,12 +85,14 @@ export function useSamplerPattern() {
               trigger(event.note, event.duration || "16n", time);
             }, scheduleTime);
 
-            eventIdsRef.current.push(id);
+            newEventIds.push(id);
           });
         }
       });
+
+      eventMapRef.current.set(trackId, newEventIds);
     },
-    [clearAllScheduledEvents],
+    [clearTrackEvents],
   );
 
   useEffect(() => {
@@ -81,6 +101,6 @@ export function useSamplerPattern() {
 
   return {
     schedulePatternForTrack,
-    clearAllScheduledEvents,
+    clearTrackEvents,
   };
 }

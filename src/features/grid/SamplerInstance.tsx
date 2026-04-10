@@ -10,7 +10,7 @@ type Props = {
 
 export default function SamplerInstance({ trackId }: Props) {
   const { tracks } = useTracksStore();
-  const { schedulePatternForTrack } = useSamplerPattern();
+  const { schedulePatternForTrack, clearTrackEvents } = useSamplerPattern();
 
   const track = tracks.find((t) => t.id === trackId);
 
@@ -37,13 +37,15 @@ export default function SamplerInstance({ trackId }: Props) {
     const triggerChanged = trigger !== prevTriggerRef.current;
 
     if (patternChanged || durationsChanged || triggerChanged) {
+      // Always clear old events for this track before adding new ones
+      clearTrackEvents(trackId);
       schedulePatternForTrack(trackId, pattern, durations, loopLength, trigger);
 
       prevPatternRef.current = [...pattern];
       prevDurationsRef.current = [...durations];
       prevTriggerRef.current = trigger;
     }
-  }, [track, trigger, trackId, schedulePatternForTrack]);
+  }, [track, trigger, trackId, schedulePatternForTrack, clearTrackEvents]);
 
   return null;
 }

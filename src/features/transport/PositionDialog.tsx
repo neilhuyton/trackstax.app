@@ -46,7 +46,7 @@ export const TransportPositionDialog = () => {
     };
     const intervalId = Tone.getTransport().scheduleRepeat(
       updatePosition,
-      "0:1:0",
+      "1:0:0",
     );
     return () => {
       Tone.getTransport().clear(intervalId);

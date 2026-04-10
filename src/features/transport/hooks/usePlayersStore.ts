@@ -70,7 +70,11 @@ export const usePlayersStore = create<PlayersStore>(() => {
     id: string,
     downloadUrl: string | null | undefined,
   ) => {
-    if (!playersRef.current?.has(id) && downloadUrl) {
+    if (!playersRef.current) {
+      playersRef.current = new Tone.Players().toDestination();
+    }
+
+    if (!playersRef.current.has(id) && downloadUrl) {
       await new Promise<void>((resolve) => {
         playersRef.current!.add(id, downloadUrl, () => resolve());
       });
@@ -167,8 +171,11 @@ export const usePlayersStore = create<PlayersStore>(() => {
     const loopStart = transportState.loopStart;
     const loopEnd = transportState.loopEnd;
 
-    const player = playersRef.current?.player(trackId);
-    if (!player) return;
+    if (!playersRef.current || !playersRef.current.has(trackId)) {
+      return;
+    }
+
+    const player = playersRef.current.player(trackId);
 
     eventIdsRef.current = eventIdsRef.current.filter((id) => {
       try {
