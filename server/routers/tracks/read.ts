@@ -16,10 +16,6 @@ export const trackReadRouter = router({
           sortOrder: "asc",
         },
         include: {
-          durations: {
-            omit: { trackId: true },
-            orderBy: { start: "asc" },
-          },
           audioTrack: {
             omit: { trackId: true },
           },

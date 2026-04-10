@@ -69,6 +69,12 @@ export const NOTE_NAMES = [
 
 export type NoteName = (typeof NOTE_NAMES)[number];
 
+export type Duration = {
+  id?: string;
+  start: number;
+  stop: number;
+};
+
 export type SamplerEvent = {
   time: string;
   note: NoteName;
@@ -77,6 +83,7 @@ export type SamplerEvent = {
 
 export type SamplerPattern = SamplerEvent[];
 
+// Clean client-facing Track type (no Prisma Json recursion)
 export type Track = {
   id: string;
   type: "audio" | "sampler";
@@ -98,13 +105,7 @@ export type Track = {
   createdAt: string;
   updatedAt: string;
 
-  durations: Array<{
-    id: string;
-    start: number;
-    stop: number;
-    createdAt: string;
-    updatedAt: string;
-  }>;
+  durations: Duration[];
 
   audioTrack: {
     id: string;
@@ -123,21 +124,13 @@ export type Track = {
   samplerTrack: {
     pattern: SamplerPattern;
     sampleUrl: string | null;
-    attackMs?: number;
-    releaseMs?: number;
+    attackMs: number;
+    releaseMs: number;
   } | null;
 };
 
-export type Duration = Track["durations"][number];
 export type Stack = RouterOutput["stack"]["getById"];
-
 export type CreatedTrack = RouterOutput["track"]["create"];
-export type UpdatedTrack = RouterOutput["track"]["update"];
-
-export type DurationInput = Omit<
-  Duration,
-  "track" | "trackId" | "createdAt" | "updatedAt"
->;
 
 export interface AudioTrack {
   id: string;

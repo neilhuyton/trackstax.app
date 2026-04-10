@@ -15,9 +15,9 @@ import useTransportStore from "@/features/transport/hooks/useTransportStore";
 import { usePlayersStore } from "@/features/transport/hooks/usePlayersStore";
 import { useTransportRead } from "@/features/transport/hooks/useTransportRead";
 import { useTrackRead } from "@/features/track/hooks/useTrackRead";
-import { toClientTracks } from "@/features/utils/track-utils";
 import { useQueryClient } from "@tanstack/react-query";
 import SamplerPlayer from "@/features/grid/SamplerPlayer";
+import { toClientTracks } from "@/features/utils/prisma-transformer";
 
 export const Route = createFileRoute("/_authenticated/stacks/$stackId")({
   loader: async ({ params, context: { queryClient } }) => {

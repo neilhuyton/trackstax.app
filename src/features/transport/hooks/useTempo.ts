@@ -30,14 +30,14 @@ const useTempo = (tracks: Track[]) => {
         await queryClient.cancelQueries({ queryKey: tracksQueryKey });
       },
 
-      onError: (error) => {
+      onError: (error: unknown) => {
         console.error("Failed to update track loop lengths:", error);
       },
 
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey: tracksQueryKey });
       },
-    }),
+    })
   );
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const useTempo = (tracks: Track[]) => {
             ...t.audioTrack,
             loopLength: newLoopLength,
           },
-        };
+        } as Track;
       });
 
       setTracks(updatedTracks);
@@ -76,6 +76,7 @@ const useTempo = (tracks: Track[]) => {
 
       if (updates.length > 0) {
         const trackToUpdate = updates[0];
+
         updateTrackMutation.mutate({
           id: trackToUpdate.id,
           loopLength: trackToUpdate.loopLength,

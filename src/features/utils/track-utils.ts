@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 
 import { COLORS } from "@/consts";
 import type { Track, Duration, SamplerPattern } from "@/types";
+import { toClientTrack } from "./prisma-transformer";
 
 const createClientAudioTrack = (
   filename: string,
@@ -60,13 +61,7 @@ export const modifyDurations = (
     } else if (next !== -1) {
       sorted[next] = { ...sorted[next], start };
     } else if (spanIndex === -1) {
-      sorted.push({
-        id: uuid(),
-        start,
-        stop,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      sorted.push({ id: uuid(), start, stop });
     }
   } else if (spanIndex !== -1) {
     const span = sorted[spanIndex];
@@ -80,13 +75,7 @@ export const modifyDurations = (
       sorted[spanIndex] = { ...span, stop: bar };
     } else {
       sorted[spanIndex] = { ...span, stop: bar };
-      sorted.push({
-        id: uuid(),
-        start: bar + 1,
-        stop: span.stop,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      sorted.push({ id: uuid(), start: bar + 1, stop: span.stop });
     }
   }
 
@@ -198,140 +187,19 @@ export const createNewTrack = (
   };
 };
 
-type RawServerTrack = {
-  id: string;
-  type: string;
-  label: string;
-  color: string;
-  sortOrder: number;
-  isMute: boolean;
-  isSolo: boolean;
-  isFavourite: boolean;
-  volumePercent: number;
-  low: number;
-  mid: number;
-  high: number;
-  lowFrequency: number;
-  highFrequency: number;
-  isBypass: boolean;
-  loopLength: number;
-  stackId: string;
-  createdAt: string;
-  updatedAt: string;
-  durations?: Array<{
-    id: string;
-    start: number;
-    stop: number;
-    createdAt: string;
-    updatedAt: string;
-  }>;
-  audioTrack?: {
-    id: string;
-    filename: string;
-    downloadUrl: string | null;
-    offset: number;
-    duration: number;
-    pitch: number;
-    timestretch: number;
-    fullDuration: number;
-    sampleId: string | null;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-  samplerTrack?: {
-    pattern?: unknown;
-    sampleUrl?: string | null;
-    attackMs?: number;
-    releaseMs?: number;
-  } | null;
-};
-
-const normalizeSamplerTrack = (
-  samplerTrack?: RawServerTrack["samplerTrack"],
-): NonNullable<Track["samplerTrack"]> => {
-  if (!samplerTrack) return DEFAULT_SAMPLER_TRACK;
-
-  return {
-    pattern: Array.isArray(samplerTrack.pattern)
-      ? (samplerTrack.pattern as SamplerPattern)
-      : [],
-    sampleUrl: samplerTrack.sampleUrl ?? null,
-    attackMs:
-      typeof samplerTrack.attackMs === "number" ? samplerTrack.attackMs : 10,
-    releaseMs:
-      typeof samplerTrack.releaseMs === "number" ? samplerTrack.releaseMs : 200,
-  };
-};
-
-const SERVER_DEFAULTS = {
-  isMute: false,
-  isSolo: false,
-  isFavourite: false,
-  volumePercent: 75,
-  low: 0,
-  mid: 0,
-  high: 0,
-  lowFrequency: 0,
-  highFrequency: 0,
-  isBypass: false,
-} as const;
-
-export const toClientTrack = (serverTrack: RawServerTrack): Track => ({
-  id: serverTrack.id,
-  type: serverTrack.type as "audio" | "sampler",
-  label: serverTrack.label,
-  color: serverTrack.color,
-  sortOrder: serverTrack.sortOrder,
-  isMute: serverTrack.isMute,
-  isSolo: serverTrack.isSolo,
-  isFavourite: serverTrack.isFavourite,
-  volumePercent: serverTrack.volumePercent,
-  low: serverTrack.low,
-  mid: serverTrack.mid,
-  high: serverTrack.high,
-  lowFrequency: serverTrack.lowFrequency,
-  highFrequency: serverTrack.highFrequency,
-  isBypass: serverTrack.isBypass,
-  loopLength: serverTrack.loopLength ?? 4,
-  stackId: serverTrack.stackId,
-  createdAt: serverTrack.createdAt,
-  updatedAt: serverTrack.updatedAt,
-  durations: serverTrack.durations ?? [],
-  audioTrack: serverTrack.audioTrack ?? null,
-  samplerTrack: normalizeSamplerTrack(serverTrack.samplerTrack),
-});
-
-export const toClientTracks = (serverTracks: RawServerTrack[]): Track[] =>
-  serverTracks.map(toClientTrack);
 
 export const buildClientTrackFromServer = (
-  baseTrack: CreateNewTrackInput,
-  createdTrack: RawServerTrack,
+  created: unknown,
   filename: string,
   downloadUrl: string,
   duration: number,
 ): Track => {
-  const audioTrack =
-    createdTrack.audioTrack ??
-    createClientAudioTrack(filename, downloadUrl, duration);
+  const serverTrack = toClientTrack(created);
 
   return {
-    ...baseTrack,
-    id: createdTrack.id,
-    durations: createdTrack.durations ?? [],
-    audioTrack,
-    samplerTrack: normalizeSamplerTrack(createdTrack.samplerTrack),
-    ...SERVER_DEFAULTS,
-    isMute: createdTrack.isMute ?? SERVER_DEFAULTS.isMute,
-    isSolo: createdTrack.isSolo ?? SERVER_DEFAULTS.isSolo,
-    isFavourite: createdTrack.isFavourite ?? SERVER_DEFAULTS.isFavourite,
-    volumePercent: createdTrack.volumePercent ?? SERVER_DEFAULTS.volumePercent,
-    low: createdTrack.low ?? SERVER_DEFAULTS.low,
-    mid: createdTrack.mid ?? SERVER_DEFAULTS.mid,
-    high: createdTrack.high ?? SERVER_DEFAULTS.high,
-    lowFrequency: createdTrack.lowFrequency ?? SERVER_DEFAULTS.lowFrequency,
-    highFrequency: createdTrack.highFrequency ?? SERVER_DEFAULTS.highFrequency,
-    isBypass: createdTrack.isBypass ?? SERVER_DEFAULTS.isBypass,
-    loopLength: createdTrack.loopLength ?? baseTrack.loopLength ?? 4,
+    ...serverTrack,
+    audioTrack:
+      serverTrack.audioTrack ??
+      createClientAudioTrack(filename, downloadUrl, duration),
   };
 };

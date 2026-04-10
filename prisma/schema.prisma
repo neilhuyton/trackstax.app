@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider      = "prisma-client-js"
   output        = "../node_modules/.prisma/client"
@@ -97,34 +95,20 @@ model Track {
   isBypass      Boolean
   loopLength    Int     @default(4)
 
-  stackId String @db.Uuid
+  durations     Json    @default("[]")
 
-  stack      Stack       @relation(fields: [stackId], references: [id], onDelete: Cascade)
-  durations  Duration[]
-  audioTrack AudioTrack? @relation("TrackToAudioTrack")
-  samplerTrack SamplerTrack? @relation("TrackToSamplerTrack")
+  stackId       String  @db.Uuid
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  stack         Stack   @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  audioTrack    AudioTrack? @relation("TrackToAudioTrack")
+  samplerTrack  SamplerTrack? @relation("TrackToSamplerTrack")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
 
   @@index([stackId, sortOrder])
   @@index([stackId])
   @@map("tracks")
-}
-
-model Duration {
-  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  start Int
-  stop  Int
-
-  trackId String? @db.Uuid
-  track   Track?  @relation(fields: [trackId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([trackId])
-  @@map("durations")
 }
 
 model AudioTrack {
@@ -156,7 +140,6 @@ model SamplerTrack {
   pattern        Json
   sampleUrl      String?
 
-  // New fields for envelope
   attackMs       Int    @default(10)
   releaseMs      Int    @default(200)
 

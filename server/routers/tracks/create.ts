@@ -11,7 +11,6 @@ export const trackCreateRouter = router({
         label: z.string().min(1).max(100),
         color: z.string().min(1).max(50),
 
-        // Audio-only fields
         filename: z.string().min(1).optional(),
         downloadUrl: z
           .string()
@@ -63,7 +62,8 @@ export const trackCreateRouter = router({
           highFrequency: 0,
           isBypass: false,
 
-          // Create AudioTrack only for audio
+          durations: [],
+
           audioTrack:
             input.type === "audio" && input.filename
               ? {
@@ -80,7 +80,6 @@ export const trackCreateRouter = router({
                 }
               : undefined,
 
-          // Create SamplerTrack for sampler tracks
           samplerTrack:
             input.type === "sampler"
               ? {
@@ -93,10 +92,6 @@ export const trackCreateRouter = router({
               : undefined,
         },
         include: {
-          durations: {
-            omit: { trackId: true },
-            orderBy: { start: "asc" },
-          },
           audioTrack: {
             omit: { trackId: true },
           },
