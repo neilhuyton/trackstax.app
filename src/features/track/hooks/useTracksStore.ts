@@ -28,6 +28,7 @@ interface TracksStore {
   tracks: Track[];
   isLoading: boolean;
   isError: boolean;
+  lastClickedBar: number | null;
   setTrackErrors: (trackErrors: TrackError[]) => void;
   setVolume: (volume: Volume) => void;
   setEq: (eq: Eq) => void;
@@ -39,6 +40,7 @@ interface TracksStore {
   storeUpdateTrack: (track: Track) => void;
   storeDeleteTrack: (id: string) => void;
   storeDeleteTracks: (tracksToDelete: Track[]) => void;
+  setLastClickedBar: (bar: number | null) => void;
 }
 
 const useTracksStore = create<TracksStore>((set) => ({
@@ -56,6 +58,8 @@ const useTracksStore = create<TracksStore>((set) => ({
   tracks: [],
   isLoading: false,
   isError: false,
+  lastClickedBar: null,
+
   setTrackErrors: (trackErrors) => set({ trackErrors }),
   setVolume: (volume) => set({ volume }),
   setEq: (eq) => set({ eq }),
@@ -94,6 +98,7 @@ const useTracksStore = create<TracksStore>((set) => ({
         (t) => !tracksToDelete.some((t2) => t.id === t2.id),
       ),
     })),
+  setLastClickedBar: (bar) => set({ lastClickedBar: bar }),
 }));
 
 export default useTracksStore;

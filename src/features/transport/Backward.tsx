@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import * as Tone from "tone";
-
 import { FaBackward } from "react-icons/fa6";
-
 import { Button } from "@/components/ui/button";
-
 import { backwardPosition } from "@/utils";
 import usePositionStore from "../position/hooks/usePositionStore";
 import useStackIdStore from "../stacks/hooks/useStackIdStore";
@@ -14,12 +11,11 @@ import { useNavigate } from "@tanstack/react-router";
 
 export const TransportBackward = () => {
   const navigate = useNavigate();
-
   const pageSize = 8;
-
   const stackId = useStackIdStore((state) => state.stackId);
   const { transport, isError } = useTransportRead(stackId);
-  const { isBackward, setIsBackward } = useTransportStore();
+  const { isBackward, setIsBackward, incrementSamplerRescheduleKey } =
+    useTransportStore();
   const { isLoop } = transport || {};
   const { position, setPosition, setStopPosition } = usePositionStore();
 
@@ -61,10 +57,18 @@ export const TransportBackward = () => {
         search: { page: targetPage },
         replace: true,
       });
+
+      incrementSamplerRescheduleKey();
     } catch {
       // fail silently
     }
-  }, [setIsBackward, setPosition, setStopPosition, navigate]);
+  }, [
+    setIsBackward,
+    setPosition,
+    setStopPosition,
+    navigate,
+    incrementSamplerRescheduleKey,
+  ]);
 
   const startMovingBackward = useCallback(() => {
     if (!backwardIntervalRef.current) {

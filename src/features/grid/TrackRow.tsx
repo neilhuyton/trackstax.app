@@ -1,6 +1,7 @@
 import { entryColors } from "@/consts";
 import { type Track } from "@/types";
 import { getIsActive } from "@/features/utils/track-utils";
+import { memo } from "react";
 
 type GridTrackRowProps = {
   track: Track;
@@ -11,7 +12,7 @@ type GridTrackRowProps = {
   onShowMenu: (e: React.MouseEvent, trackId: string, globalBar: number) => void;
 };
 
-export const GridTrackRow = ({
+const GridTrackRow = ({
   track,
   visibleStartBar,
   visibleBarCount,
@@ -53,6 +54,4 @@ export const GridTrackRow = ({
   );
 };
 
-GridTrackRow.displayName = "GridTrackRow";
-
-export default GridTrackRow;
+export default memo(GridTrackRow);

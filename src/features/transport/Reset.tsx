@@ -15,13 +15,15 @@ export const TransportReset = () => {
   const stackId = useStackIdStore((state) => state.stackId);
   const { setPosition, setStopPosition } = usePositionStore();
   const { transport, isError } = useTransportRead(stackId);
-  const { isPlay, setIsReset } = useTransportStore();
+  const { isPlay, setIsReset, incrementSamplerRescheduleKey } =
+    useTransportStore();
   const { stopAndClearAll, setupAllTracks } = usePlayersStore();
 
   const handleReset = async () => {
     Tone.getTransport().stop();
 
     stopAndClearAll();
+    incrementSamplerRescheduleKey();
 
     const position = transport?.isLoop
       ? toPosition(transport.loopStart)

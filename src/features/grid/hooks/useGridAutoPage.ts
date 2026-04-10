@@ -1,13 +1,14 @@
 import { useEffect, useRef } from "react";
-import * as Tone from "tone";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import useTransportStore from "@/features/transport/hooks/useTransportStore";
+import usePositionStore from "@/features/position/hooks/usePositionStore";
 
 export const useGridAutoPage = (totalBars: number) => {
   const navigate = useNavigate();
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
 
   const { isPlay, isRecord } = useTransportStore();
+  const { position } = usePositionStore();
 
   const pageSize = 8;
   const totalPages = Math.ceil(totalBars / pageSize);
@@ -31,9 +32,9 @@ export const useGridAutoPage = (totalBars: number) => {
       let currentBar = 0;
 
       try {
-        const pos = Tone.getTransport().position as string;
-        if (typeof pos === "string" && pos.includes(":")) {
-          const [barsStr] = pos.split(":");
+        const posString = String(position);
+        if (posString.includes(":")) {
+          const [barsStr] = posString.split(":");
           currentBar = parseInt(barsStr, 10);
         }
       } catch {
@@ -66,10 +67,10 @@ export const useGridAutoPage = (totalBars: number) => {
       if (playheadPage > page) {
         allowAutoPageRef.current = false;
       }
-    }, 40);
+    }, 80);
 
     return () => clearInterval(interval);
-  }, [isPlay, isRecord, page, navigate, totalPages, pageSize]);
+  }, [isPlay, isRecord, page, navigate, totalPages, pageSize, position]);
 
   useEffect(() => {
     if (!isPlay && !isRecord) return;
@@ -77,8 +78,11 @@ export const useGridAutoPage = (totalBars: number) => {
     const reenable = setInterval(() => {
       let currentBar = 0;
       try {
-        const [barsStr] = (Tone.getTransport().position as string).split(":");
-        currentBar = parseInt(barsStr, 10);
+        const posString = String(position);
+        if (posString.includes(":")) {
+          const [barsStr] = posString.split(":");
+          currentBar = parseInt(barsStr, 10);
+        }
       } catch {
         // fail silently
       }
@@ -92,5 +96,5 @@ export const useGridAutoPage = (totalBars: number) => {
     }, 200);
 
     return () => clearInterval(reenable);
-  }, [isPlay, isRecord, page, pageSize]);
+  }, [isPlay, isRecord, page, pageSize, position]);
 };

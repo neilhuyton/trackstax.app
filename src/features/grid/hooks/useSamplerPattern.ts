@@ -1,6 +1,7 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 type Duration = {
   start: number;
@@ -8,31 +9,63 @@ type Duration = {
 };
 
 export function useSamplerPattern() {
-  const eventIdsRef = useRef<number[]>([]);
+  const eventMapRef = useRef<Map<string, number[]>>(new Map());
 
-  const clearAllScheduledEvents = useCallback(() => {
+  const clearTrackEvents = useCallback((trackId: string) => {
+    const eventIds = eventMapRef.current.get(trackId) || [];
     const transport = Tone.getTransport();
-    eventIdsRef.current.forEach((id) => {
+    eventIds.forEach((id) => {
       try {
         transport.clear(id);
       } catch {
-        // ignore errors when clearing
+        // fail silently
       }
     });
-    eventIdsRef.current = [];
+    eventMapRef.current.delete(trackId);
   }, []);
 
-  const schedulePatternForTrack = useCallback(
+  const clearAllScheduledEvents = useCallback(() => {
+    const transport = Tone.getTransport();
+    eventMapRef.current.forEach((eventIds) => {
+      eventIds.forEach((id) => {
+        try {
+          transport.clear(id);
+        } catch {
+          // fail silently
+        }
+      });
+    });
+    eventMapRef.current.clear();
+  }, []);
+
+  const updateSamplerSchedule = useCallback(
     (
       trackId: string,
       pattern: SamplerEvent[],
       durations: Duration[],
       loopLength: number,
-      trigger: (note: string, duration?: string, time?: number) => void,
+      trigger: (note?: string, duration?: string, time?: number) => void,
+      clickedBar?: number,
+      forceReschedule = false,
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      clearAllScheduledEvents();
+      if (!forceReschedule && clickedBar !== undefined) {
+        const { isPlay } = useTransportStore.getState();
+        if (isPlay) {
+          const pos = Tone.getTransport().position as string;
+          const [barsStr] = pos.split(":");
+          const currentBar = parseInt(barsStr, 10);
+
+          if (clickedBar < currentBar) {
+            return;
+          }
+        }
+      }
+
+      clearTrackEvents(trackId);
+
+      const newEventIds: number[] = [];
 
       durations.forEach(({ start, stop }) => {
         for (let bar = start; bar < stop; bar += loopLength) {
@@ -67,21 +100,22 @@ export function useSamplerPattern() {
               trigger(event.note, event.duration || "16n", time);
             }, scheduleTime);
 
-            eventIdsRef.current.push(id);
+            newEventIds.push(id);
           });
         }
       });
+
+      eventMapRef.current.set(trackId, newEventIds);
     },
-    [clearAllScheduledEvents],
+    [clearTrackEvents],
   );
 
-  // Cleanup on unmount
   useEffect(() => {
     return clearAllScheduledEvents;
   }, [clearAllScheduledEvents]);
 
   return {
-    schedulePatternForTrack,
-    clearAllScheduledEvents,
+    schedulePatternForTrack: updateSamplerSchedule,
+    clearTrackEvents,
   };
 }

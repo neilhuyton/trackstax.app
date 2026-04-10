@@ -7,8 +7,8 @@ interface PositionStore {
   position: Tone.Unit.Time;
   stopPosition: Tone.Unit.Time;
 
-  setPosition: (newIsPlay: Tone.Unit.Time) => void;
-  setStopPosition: (newIsForward: Tone.Unit.Time) => void;
+  setPosition: (newPosition: Tone.Unit.Time) => void;
+  setStopPosition: (newStopPosition: Tone.Unit.Time) => void;
 }
 
 const usePositionStore = create<PositionStore>((set) => ({
