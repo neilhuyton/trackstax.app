@@ -1,21 +1,19 @@
 import { useEffect, useRef } from "react";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import type { SamplerEvent } from "@/types";
-import { useSamplerPattern } from "./hooks/useSamplerPattern";
 import { useSampler } from "./hooks/useSampler";
+import { useSamplerPattern } from "./hooks/useSamplerPattern";
 
 type Props = {
   trackId: string;
 };
 
 export default function SamplerInstance({ trackId }: Props) {
-  const { tracks } = useTracksStore();
-  const { schedulePatternForTrack, clearTrackEvents } = useSamplerPattern();
-
+  const { tracks, lastClickedBar } = useTracksStore();
   const track = tracks.find((t) => t.id === trackId);
-
   const sampleUrl = track?.samplerTrack?.sampleUrl ?? null;
   const { trigger } = useSampler(trackId, sampleUrl);
+  const { schedulePatternForTrack } = useSamplerPattern();
 
   const prevTriggerRef = useRef<
     ((note?: string, duration?: string, time?: number) => void) | null
@@ -37,15 +35,20 @@ export default function SamplerInstance({ trackId }: Props) {
     const triggerChanged = trigger !== prevTriggerRef.current;
 
     if (patternChanged || durationsChanged || triggerChanged) {
-      // Always clear old events for this track before adding new ones
-      clearTrackEvents(trackId);
-      schedulePatternForTrack(trackId, pattern, durations, loopLength, trigger);
+      schedulePatternForTrack(
+        track.id,
+        pattern,
+        durations,
+        loopLength,
+        trigger,
+        lastClickedBar ?? undefined,
+      );
 
       prevPatternRef.current = [...pattern];
       prevDurationsRef.current = [...durations];
       prevTriggerRef.current = trigger;
     }
-  }, [track, trigger, trackId, schedulePatternForTrack, clearTrackEvents]);
+  }, [track, trigger, schedulePatternForTrack, lastClickedBar]);
 
   return null;
 }

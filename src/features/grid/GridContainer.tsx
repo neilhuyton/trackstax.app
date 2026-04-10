@@ -13,7 +13,8 @@ const GridContainer = () => {
   const { page = 0 } = useSearch({ from: "/_authenticated/stacks/$stackId/" });
   const pageSize = 8;
 
-  const { tracks, trackErrors, storeUpdateTrack } = useTracksStore();
+  const { tracks, trackErrors, storeUpdateTrack, setLastClickedBar } =
+    useTracksStore();
   const { updateTrackSchedule } = usePlayersStore();
   const visibleStartBar = page * pageSize;
 
@@ -35,6 +36,8 @@ const GridContainer = () => {
 
     if (track.type === "audio") {
       updateTrackSchedule(trackId);
+    } else if (track.type === "sampler") {
+      setLastClickedBar(bar);
     }
   };
 

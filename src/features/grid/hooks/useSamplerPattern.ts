@@ -1,6 +1,7 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
+import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 type Duration = {
   start: number;
@@ -37,17 +38,30 @@ export function useSamplerPattern() {
     eventMapRef.current.clear();
   }, []);
 
-  const schedulePatternForTrack = useCallback(
+  const updateSamplerSchedule = useCallback(
     (
       trackId: string,
       pattern: SamplerEvent[],
       durations: Duration[],
       loopLength: number,
-      trigger: (note: string, duration?: string, time?: number) => void,
+      trigger: (note?: string, duration?: string, time?: number) => void,
+      clickedBar?: number,
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      // Always clear previous events for this track first
+      if (clickedBar !== undefined) {
+        const { isPlay } = useTransportStore.getState();
+        if (isPlay) {
+          const pos = Tone.getTransport().position as string;
+          const [barsStr] = pos.split(":");
+          const currentBar = parseInt(barsStr, 10);
+
+          if (clickedBar < currentBar) {
+            return;
+          }
+        }
+      }
+
       clearTrackEvents(trackId);
 
       const newEventIds: number[] = [];
@@ -100,7 +114,7 @@ export function useSamplerPattern() {
   }, [clearAllScheduledEvents]);
 
   return {
-    schedulePatternForTrack,
+    schedulePatternForTrack: updateSamplerSchedule,
     clearTrackEvents,
   };
 }
