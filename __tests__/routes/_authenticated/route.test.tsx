@@ -1,13 +1,28 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { useAuthStore } from "@/store/authStore"; // ← import real hook
+import { useAuthStore } from "@/store/authStore";
 import { renderWithProviders } from "../../utils/test-helpers";
 import { APP_CONFIG } from "@/appConfig";
 import type { User, Session } from "@supabase/supabase-js";
 
-vi.mock("@/lib/supabase"); // if you have other mocks needed
+vi.mock("@/lib/supabase", () => ({
+  supabase: {
+    auth: {
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+      refreshSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+  },
+}));
 
 describe("Authenticated Layout Route (/_authenticated)", () => {
   const user = userEvent.setup();
@@ -15,7 +30,6 @@ describe("Authenticated Layout Route (/_authenticated)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Reset to a clean authenticated state (same as your working profile test)
     useAuthStore.setState({
       user: {
         id: "test-user",
