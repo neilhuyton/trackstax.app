@@ -1,3 +1,4 @@
+import * as Tone from "tone";
 import { useEffect, useRef } from "react";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import type { SamplerEvent } from "@/types";
@@ -41,27 +42,38 @@ export default function SamplerInstance({ trackId }: Props) {
     const rescheduleChanged =
       samplerRescheduleKey !== prevRescheduleKeyRef.current;
 
-    if (
-      patternChanged ||
-      durationsChanged ||
-      triggerChanged ||
-      rescheduleChanged
-    ) {
-      schedulePatternForTrack(
-        track.id,
-        pattern,
-        durations,
-        loopLength,
-        trigger,
-        lastClickedBar ?? undefined,
-        rescheduleChanged,
-      );
+    const shouldReschedule =
+      patternChanged || durationsChanged || triggerChanged || rescheduleChanged;
 
-      prevPatternRef.current = [...pattern];
-      prevDurationsRef.current = [...durations];
-      prevTriggerRef.current = trigger;
-      prevRescheduleKeyRef.current = samplerRescheduleKey;
+    if (!shouldReschedule) return;
+
+    if (
+      !rescheduleChanged &&
+      lastClickedBar !== null &&
+      lastClickedBar !== undefined
+    ) {
+      const { isPlay } = useTransportStore.getState();
+      if (isPlay) {
+        const pos = Tone.getTransport().position as string;
+        const [barsStr] = pos.split(":");
+        const currentBar = parseInt(barsStr, 10);
+
+        if (lastClickedBar < currentBar) {
+          prevPatternRef.current = [...pattern];
+          prevDurationsRef.current = [...durations];
+          prevTriggerRef.current = trigger;
+          prevRescheduleKeyRef.current = samplerRescheduleKey;
+          return;
+        }
+      }
     }
+
+    schedulePatternForTrack(track.id, pattern, durations, loopLength, trigger);
+
+    prevPatternRef.current = [...pattern];
+    prevDurationsRef.current = [...durations];
+    prevTriggerRef.current = trigger;
+    prevRescheduleKeyRef.current = samplerRescheduleKey;
   }, [
     track,
     trigger,
