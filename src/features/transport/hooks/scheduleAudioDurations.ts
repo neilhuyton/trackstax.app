@@ -11,6 +11,36 @@ import { usePlayersCore } from "./usePlayersCore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import usePositionStore from "@/features/position/hooks/usePositionStore";
 
+const schedulePlayerStart = (
+  player: Tone.Player,
+  trackOffsetSeconds: number,
+  transportOffset: number | string,
+  trackDurationSeconds: number,
+  scheduleTime: number | string,
+  eventIds: number[],
+) => {
+  const eventId = Tone.getTransport().schedule((time) => {
+    const transportOffsetSeconds =
+      typeof transportOffset === "string"
+        ? Tone.Time(transportOffset).toSeconds()
+        : transportOffset;
+
+    let playbackOffset = 0;
+    let adjustedTime = time;
+
+    if (trackOffsetSeconds < 0) {
+      adjustedTime = time + Math.abs(trackOffsetSeconds);
+    } else {
+      playbackOffset = trackOffsetSeconds;
+    }
+
+    const totalOffset = playbackOffset + transportOffsetSeconds;
+    player.start(adjustedTime, totalOffset, trackDurationSeconds);
+  }, scheduleTime);
+
+  eventIds.push(eventId);
+};
+
 export const setupAudioDurations = (
   track: Track,
   duration: Duration,
@@ -26,6 +56,7 @@ export const setupAudioDurations = (
   const trackOffsetSeconds = audioTrack.offset;
   const trackDurationSeconds = audioTrack.duration;
   const loopLength = track.loopLength;
+
   const stopPosition = usePositionStore.getState().stopPosition;
   const lastClickedBar = useTracksStore.getState().lastClickedBar;
 
@@ -34,6 +65,8 @@ export const setupAudioDurations = (
   if (!eventIdsRef.current.has(track.id)) {
     eventIdsRef.current.set(track.id, []);
   }
+
+  const eventIds = eventIdsRef.current.get(track.id)!;
 
   for (
     let subLoopStart = start;
@@ -47,6 +80,7 @@ export const setupAudioDurations = (
     let subLoopEnd = subLoopStart + loopLength;
     if (stop < subLoopEnd) subLoopEnd = stop;
 
+    // Calculate transport offset for non-looping or looping cases
     if (!isLoop) {
       const [bars] = (stopPosition?.toString() ?? "0:0:0").split(":");
       if (
@@ -57,9 +91,7 @@ export const setupAudioDurations = (
         startPosition = cleanPosition(stopPosition ?? "0:0:0");
         transportOffset = positionDiff(startPosition, `${subLoopStart}:0:0`);
       }
-    }
-
-    if (isLoop) {
+    } else {
       if (subLoopEnd >= loopEnd) subLoopEnd = loopEnd;
       if (subLoopStart < loopStart && subLoopEnd > loopStart) {
         startPosition = toPosition(loopStart);
@@ -67,6 +99,7 @@ export const setupAudioDurations = (
       }
     }
 
+    // Check if we should play from current position (for seamless toggle)
     const [currentPositionBar] = (
       cleanPosition(Tone.getTransport().position) ?? "0:0:0"
     ).split(":");
@@ -79,56 +112,35 @@ export const setupAudioDurations = (
       playFromPosition = cleanPosition(Tone.getTransport().position ?? "0:0:0");
     }
 
+    // Schedule immediate play if we're in the middle of the bar that was just toggled
     if (playFromPosition) {
-      const eventId = Tone.getTransport().schedule((time) => {
-        const transportOffsetSeconds =
-          typeof transportOffset === "string"
-            ? Tone.Time(transportOffset).toSeconds()
-            : transportOffset;
-
-        let playbackOffset = 0;
-        let adjustedTime = time;
-
-        if (trackOffsetSeconds < 0) {
-          adjustedTime = time + Math.abs(trackOffsetSeconds);
-        } else {
-          playbackOffset = trackOffsetSeconds;
-        }
-
-        const totalOffset = playbackOffset + transportOffsetSeconds;
-        player.start(adjustedTime, totalOffset, trackDurationSeconds);
-      }, playFromPosition);
-
-      eventIdsRef.current.get(track.id)!.push(eventId);
+      schedulePlayerStart(
+        player,
+        trackOffsetSeconds,
+        transportOffset,
+        trackDurationSeconds,
+        playFromPosition,
+        eventIds,
+      );
     }
 
-    const startEventId = Tone.getTransport().schedule((time) => {
-      const transportOffsetSeconds =
-        typeof transportOffset === "string"
-          ? Tone.Time(transportOffset).toSeconds()
-          : transportOffset;
+    // Always schedule the normal start
+    schedulePlayerStart(
+      player,
+      trackOffsetSeconds,
+      transportOffset,
+      trackDurationSeconds,
+      startPosition,
+      eventIds,
+    );
 
-      let playbackOffset = 0;
-      let adjustedTime = time;
-
-      if (trackOffsetSeconds < 0) {
-        adjustedTime = time + Math.abs(trackOffsetSeconds);
-      } else {
-        playbackOffset = trackOffsetSeconds;
-      }
-
-      const totalOffset = playbackOffset + transportOffsetSeconds;
-      player.start(adjustedTime, totalOffset, trackDurationSeconds);
-    }, startPosition);
-
-    eventIdsRef.current.get(track.id)!.push(startEventId);
-
+    // Schedule the stop
     const endEventId = Tone.getTransport().schedule((time) => {
       const adjustedStopTime =
         trackOffsetSeconds < 0 ? time + Math.abs(trackOffsetSeconds) : time;
       player.stop(adjustedStopTime);
     }, barsToEndTime(subLoopEnd));
 
-    eventIdsRef.current.get(track.id)!.push(endEventId);
+    eventIds.push(endEventId);
   }
 };
