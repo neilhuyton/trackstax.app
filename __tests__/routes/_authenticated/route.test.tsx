@@ -2,90 +2,55 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/authStore"; // ← import real hook
 import { renderWithProviders } from "../../utils/test-helpers";
-import { suppressActWarnings } from "../../utils/act-suppress";
 import { APP_CONFIG } from "@/appConfig";
-import type { AuthState } from "@steel-cut/steel-lib";
-import type { User } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
-suppressActWarnings();
-
-vi.mock("@/store/authStore", () => {
-  const mockHook = vi.fn();
-  return {
-    useAuthStore: mockHook,
-  };
-});
-
-const createMockAuthState = (
-  overrides: Partial<AuthState> = {},
-): AuthState => ({
-  user: null,
-  session: null,
-  loading: false,
-  error: null,
-  isInitialized: true,
-  lastRefreshFailed: false,
-  initialize: vi.fn().mockResolvedValue(undefined),
-  signIn: vi.fn().mockResolvedValue({ error: null }),
-  signUp: vi.fn().mockResolvedValue({ error: null }),
-  signOut: vi.fn().mockResolvedValue(undefined),
-  waitUntilReady: vi.fn().mockResolvedValue(null),
-  updateUserEmail: vi.fn(),
-  changeUserEmail: vi.fn().mockResolvedValue({ error: null }),
-  updateUserPassword: vi.fn().mockResolvedValue({ error: null }),
-  setSession: vi.fn(),
-  setLastRefreshFailed: vi.fn(),
-  ...overrides,
-});
-
-const createMockUser = (overrides: Partial<User> = {}): User => ({
-  id: "user-123",
-  email: "test@example.com",
-  app_metadata: {},
-  user_metadata: {},
-  aud: "authenticated",
-  created_at: "2025-01-01T00:00:00Z",
-  role: "authenticated",
-  email_confirmed_at: "2025-01-01T00:00:00Z",
-  phone: undefined,
-  confirmation_sent_at: undefined,
-  confirmed_at: "2025-01-01T00:00:00Z",
-  recovery_sent_at: undefined,
-  last_sign_in_at: "2025-01-01T00:00:00Z",
-  updated_at: "2025-01-01T00:00:00Z",
-  identities: undefined,
-  factors: undefined,
-  ...overrides,
-});
+vi.mock("@/lib/supabase"); // if you have other mocks needed
 
 describe("Authenticated Layout Route (/_authenticated)", () => {
+  const user = userEvent.setup();
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(useAuthStore).mockImplementation((selector) => {
-      const state = createMockAuthState();
-      return selector ? selector(state) : state;
-    });
-
-    Object.defineProperty(useAuthStore, "getState", {
-      value: vi.fn().mockReturnValue(createMockAuthState()),
-      writable: true,
+    // Reset to a clean authenticated state (same as your working profile test)
+    useAuthStore.setState({
+      user: {
+        id: "test-user",
+        app_metadata: {},
+        user_metadata: {},
+        aud: "authenticated",
+        role: "authenticated",
+        created_at: new Date().toISOString(),
+      } as User,
+      session: {
+        access_token: "mock-token",
+        refresh_token: "mock-refresh",
+        expires_in: 3600,
+        token_type: "bearer",
+        user: {
+          id: "test-user",
+          app_metadata: {},
+          user_metadata: {},
+          aud: "authenticated",
+          role: "authenticated",
+          created_at: new Date().toISOString(),
+        } as User,
+      } as Session,
+      loading: false,
+      error: null,
+      isInitialized: true,
+      lastRefreshFailed: false,
+      initialize: vi.fn().mockResolvedValue(undefined),
+      signIn: vi.fn(),
+      signOut: vi.fn(),
     });
   });
 
   it("shows loading screen when loading is true", async () => {
-    const loadingState = createMockAuthState({ loading: true });
-
-    vi.mocked(useAuthStore).mockImplementation((selector) =>
-      selector ? selector(loadingState) : loadingState,
-    );
-
-    Object.defineProperty(useAuthStore, "getState", {
-      value: vi.fn().mockReturnValue(loadingState),
-      writable: true,
-    });
+    useAuthStore.setState({ loading: true });
 
     renderWithProviders({
       initialEntries: [APP_CONFIG.defaultAuthenticatedPath],
@@ -97,16 +62,7 @@ describe("Authenticated Layout Route (/_authenticated)", () => {
   });
 
   it("does not redirect immediately when loading is true", async () => {
-    const loadingState = createMockAuthState({ loading: true });
-
-    vi.mocked(useAuthStore).mockImplementation((selector) =>
-      selector ? selector(loadingState) : loadingState,
-    );
-
-    Object.defineProperty(useAuthStore, "getState", {
-      value: vi.fn().mockReturnValue(loadingState),
-      writable: true,
-    });
+    useAuthStore.setState({ loading: true });
 
     const { router } = renderWithProviders({
       initialEntries: [APP_CONFIG.defaultAuthenticatedPath],
@@ -120,22 +76,6 @@ describe("Authenticated Layout Route (/_authenticated)", () => {
   });
 
   it("renders ProfileIcon in the header when authenticated", async () => {
-    const mockUser = createMockUser();
-
-    const authState = createMockAuthState({
-      user: mockUser,
-      loading: false,
-    });
-
-    vi.mocked(useAuthStore).mockImplementation((selector) =>
-      selector ? selector(authState) : authState,
-    );
-
-    Object.defineProperty(useAuthStore, "getState", {
-      value: vi.fn().mockReturnValue(authState),
-      writable: true,
-    });
-
     renderWithProviders({
       initialEntries: [APP_CONFIG.defaultAuthenticatedPath],
     });
@@ -148,24 +88,6 @@ describe("Authenticated Layout Route (/_authenticated)", () => {
   });
 
   it("navigates to /profile when ProfileIcon is clicked", async () => {
-    const user = userEvent.setup();
-
-    const mockUser = createMockUser();
-
-    const authState = createMockAuthState({
-      user: mockUser,
-      loading: false,
-    });
-
-    vi.mocked(useAuthStore).mockImplementation((selector) =>
-      selector ? selector(authState) : authState,
-    );
-
-    Object.defineProperty(useAuthStore, "getState", {
-      value: vi.fn().mockReturnValue(authState),
-      writable: true,
-    });
-
     const { router } = renderWithProviders({
       initialEntries: [APP_CONFIG.defaultAuthenticatedPath],
     });
