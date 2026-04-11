@@ -17,7 +17,7 @@ import useTransportStore from "./useTransportStore";
 interface PlayersStore {
   playersRef: React.RefObject<Tone.Players | null>;
   channelsRef: React.RefObject<PlayerChannel[]>;
-  eventIdsRef: React.RefObject<number[]>;
+  eventIdsRef: React.RefObject<Map<string, number[]>>;
   stopAndClearAll: () => void;
   updateTrackSchedule: (
     trackId: string,
@@ -35,7 +35,7 @@ interface PlayersStore {
 export const usePlayersStore = create<PlayersStore>(() => {
   const playersRef = { current: null as Tone.Players | null };
   const channelsRef = { current: [] as PlayerChannel[] };
-  const eventIdsRef = { current: [] as number[] };
+  const eventIdsRef = { current: new Map<string, number[]>() };
 
   const stopAndClearAll = () => {
     const players = playersRef.current;
@@ -52,8 +52,11 @@ export const usePlayersStore = create<PlayersStore>(() => {
     }
 
     Tone.getTransport().pause();
-    eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
-    eventIdsRef.current.length = 0;
+
+    eventIdsRef.current.forEach((ids) => {
+      ids.forEach((id) => Tone.getTransport().clear(id));
+    });
+    eventIdsRef.current.clear();
   };
 
   const getOrCreateChannel = (track: Track): Tone.Channel => {
@@ -68,6 +71,18 @@ export const usePlayersStore = create<PlayersStore>(() => {
       channelsRef.current.push(channelEntry);
     }
     return channelEntry.channel;
+  };
+
+  const clearTrackEvents = (trackId: string) => {
+    const ids = eventIdsRef.current.get(trackId) || [];
+    ids.forEach((id) => {
+      try {
+        Tone.getTransport().clear(id);
+      } catch {
+        // fail silently
+      }
+    });
+    eventIdsRef.current.delete(trackId);
   };
 
   const setupPlayer = async (
@@ -103,6 +118,10 @@ export const usePlayersStore = create<PlayersStore>(() => {
     const stopPosition = usePositionStore.getState().stopPosition;
     const lastClickedBar = useTracksStore.getState().lastClickedBar;
 
+    if (!eventIdsRef.current.has(track.id)) {
+      eventIdsRef.current.set(track.id, []);
+    }
+
     for (
       let subLoopStart = start;
       subLoopStart < stop;
@@ -113,7 +132,6 @@ export const usePlayersStore = create<PlayersStore>(() => {
       let playFromPosition: number | string | undefined;
 
       let subLoopEnd = subLoopStart + loopLength;
-
       if (stop < subLoopEnd) subLoopEnd = stop;
 
       if (!isLoop) {
@@ -142,41 +160,16 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
       if (
         lastClickedBar === Number(currentPositionBar) &&
-        Number(currentPositionBar) >= start &&
-        Number(currentPositionBar) < stop
+        Number(currentPositionBar) >= subLoopStart &&
+        Number(currentPositionBar) < subLoopEnd
       ) {
         playFromPosition = cleanPosition(
           Tone.getTransport().position ?? "0:0:0",
         );
       }
 
-      // set a new schedule for part way through bars
       if (playFromPosition) {
-        eventIdsRef.current.push(
-          Tone.getTransport().schedule((time) => {
-            const transportOffsetSeconds =
-              typeof transportOffset === "string"
-                ? Tone.Time(transportOffset).toSeconds()
-                : transportOffset;
-
-            let playbackOffset = 0;
-            let adjustedTime = time;
-
-            if (trackOffsetSeconds < 0) {
-              adjustedTime = time + Math.abs(trackOffsetSeconds);
-            } else {
-              playbackOffset = trackOffsetSeconds;
-            }
-
-            const totalOffset = playbackOffset + transportOffsetSeconds;
-            player.start(adjustedTime, totalOffset, trackDurationSeconds);
-          }, playFromPosition),
-        );
-      }
-
-      // set start point of current schedule
-      eventIdsRef.current.push(
-        Tone.getTransport().schedule((time) => {
+        const eventId = Tone.getTransport().schedule((time) => {
           const transportOffsetSeconds =
             typeof transportOffset === "string"
               ? Tone.Time(transportOffset).toSeconds()
@@ -193,17 +186,39 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
           const totalOffset = playbackOffset + transportOffsetSeconds;
           player.start(adjustedTime, totalOffset, trackDurationSeconds);
-        }, startPosition),
-      );
+        }, playFromPosition);
 
-      // set end point of current schedule
-      eventIdsRef.current.push(
-        Tone.getTransport().schedule((time) => {
-          const adjustedStopTime =
-            trackOffsetSeconds < 0 ? time + Math.abs(trackOffsetSeconds) : time;
-          player.stop(adjustedStopTime);
-        }, barsToEndTime(subLoopEnd)),
-      );
+        eventIdsRef.current.get(track.id)!.push(eventId);
+      }
+
+      const startEventId = Tone.getTransport().schedule((time) => {
+        const transportOffsetSeconds =
+          typeof transportOffset === "string"
+            ? Tone.Time(transportOffset).toSeconds()
+            : transportOffset;
+
+        let playbackOffset = 0;
+        let adjustedTime = time;
+
+        if (trackOffsetSeconds < 0) {
+          adjustedTime = time + Math.abs(trackOffsetSeconds);
+        } else {
+          playbackOffset = trackOffsetSeconds;
+        }
+
+        const totalOffset = playbackOffset + transportOffsetSeconds;
+        player.start(adjustedTime, totalOffset, trackDurationSeconds);
+      }, startPosition);
+
+      eventIdsRef.current.get(track.id)!.push(startEventId);
+
+      const endEventId = Tone.getTransport().schedule((time) => {
+        const adjustedStopTime =
+          trackOffsetSeconds < 0 ? time + Math.abs(trackOffsetSeconds) : time;
+        player.stop(adjustedStopTime);
+      }, barsToEndTime(subLoopEnd));
+
+      eventIdsRef.current.get(track.id)!.push(endEventId);
     }
   };
 
@@ -227,15 +242,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
     const player = playersRef.current.player(trackId);
 
-    eventIdsRef.current = eventIdsRef.current.filter((id) => {
-      try {
-        Tone.getTransport().clear(id);
-        return false;
-      } catch {
-        // fail silently
-        return true;
-      }
-    });
+    clearTrackEvents(trackId);
 
     const isTurningOffMidPlay = toggledBar !== undefined && wasActive === true;
 
@@ -269,12 +276,11 @@ export const usePlayersStore = create<PlayersStore>(() => {
     loopStart: number,
     loopEnd: number,
   ) => {
-    const { tracks, addTrackError } = useTracksStore.getState();
+    const { tracks } = useTracksStore.getState();
     const stackId = useStackIdStore.getState().stackId;
     if (!stackId) return;
 
-    eventIdsRef.current.forEach((id) => Tone.getTransport().clear(id));
-    eventIdsRef.current.length = 0;
+    eventIdsRef.current.clear();
 
     const soloTracks = tracks.filter((t) => t.isSolo);
 
@@ -292,9 +298,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
         try {
           player = playersRef.current.player(track.id);
         } catch {
-          // player lookup failed
-          addTrackError({ trackId: track.id, message: "Player not found" });
-          continue;
+          // fail silently
         }
 
         if (!player) continue;
@@ -314,6 +318,10 @@ export const usePlayersStore = create<PlayersStore>(() => {
           ? -Infinity
           : calcVolumeLevel(track.volumePercent);
         channel.mute = isMuted;
+
+        if (!eventIdsRef.current.has(track.id)) {
+          eventIdsRef.current.set(track.id, []);
+        }
 
         track.durations.forEach((duration) =>
           setupAudioDurations(
