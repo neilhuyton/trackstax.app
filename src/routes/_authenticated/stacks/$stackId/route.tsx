@@ -13,7 +13,6 @@ import { useEffect } from "react";
 import * as Tone from "tone";
 import useTransportStore from "@/features/transport/hooks/useTransportStore";
 import { usePlayersStore } from "@/features/transport/hooks/usePlayersStore";
-import { useTransportRead } from "@/features/transport/hooks/useTransportRead";
 import { useTrackRead } from "@/features/track/hooks/useTrackRead";
 import { useQueryClient } from "@tanstack/react-query";
 import SamplerPlayer from "@/features/grid/SamplerPlayer";
@@ -49,13 +48,8 @@ function StackLayout() {
   const localTracks = useTracksStore((state) => state.tracks);
   const setTracks = useTracksStore((state) => state.setTracks);
 
-  const { stopAndClearAll, setupAllTracks } = usePlayersStore();
-  const { transport } = useTransportRead(stackId);
+  const { stopAndClearAll } = usePlayersStore();
   const { tracks: serverTracks } = useTrackRead(stackId);
-
-  const isLoop = transport?.isLoop ?? false;
-  const loopStart = transport?.loopStart ?? 0;
-  const loopEnd = transport?.loopEnd ?? 0;
 
   useStackIdStore.setState({ stackId });
 
@@ -74,13 +68,11 @@ function StackLayout() {
       const typedTracks = toClientTracks(serverTracks);
       setTracks(typedTracks);
     }
-  }, [serverTracks, setTracks, localTracks.length]);
-
-  useEffect(() => {
-    if (localTracks.length > 0 && stackId) {
-      setupAllTracks(isLoop, loopStart, loopEnd);
-    }
-  }, [localTracks, stackId, setupAllTracks, isLoop, loopStart, loopEnd]);
+  }, [
+    serverTracks,
+    setTracks,
+    localTracks.length,
+  ]);
 
   // Load master volume from DB once when entering a new stack
   useEffect(() => {

@@ -1,7 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
-import useTransportStore from "@/features/transport/hooks/useTransportStore";
 
 type Duration = {
   start: number;
@@ -45,27 +44,16 @@ export function useSamplerPattern() {
       durations: Duration[],
       loopLength: number,
       trigger: (note?: string, duration?: string, time?: number) => void,
-      clickedBar?: number,
-      forceReschedule = false,
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
-
-      if (!forceReschedule && clickedBar !== undefined) {
-        const { isPlay } = useTransportStore.getState();
-        if (isPlay) {
-          const pos = Tone.getTransport().position as string;
-          const [barsStr] = pos.split(":");
-          const currentBar = parseInt(barsStr, 10);
-
-          if (clickedBar < currentBar) {
-            return;
-          }
-        }
-      }
 
       clearTrackEvents(trackId);
 
       const newEventIds: number[] = [];
+      const transport = Tone.getTransport();
+      const pos = transport.position as string;
+      const [currentBarsStr] = pos.split(":");
+      const currentBar = parseInt(currentBarsStr, 10);
 
       durations.forEach(({ start, stop }) => {
         for (let bar = start; bar < stop; bar += loopLength) {
@@ -89,6 +77,8 @@ export function useSamplerPattern() {
             const absoluteTimeInBars = bar + eventTime;
             if (absoluteTimeInBars >= endBar) return;
 
+            if (absoluteTimeInBars < currentBar) return;
+
             const whole = Math.floor(absoluteTimeInBars);
             const frac = absoluteTimeInBars - whole;
             const beats = Math.floor(frac * 4);
@@ -96,7 +86,7 @@ export function useSamplerPattern() {
 
             const scheduleTime = `${whole}:${beats}:${sixteenths}`;
 
-            const id = Tone.getTransport().schedule((time: number) => {
+            const id = transport.schedule((time: number) => {
               trigger(event.note, event.duration || "16n", time);
             }, scheduleTime);
 

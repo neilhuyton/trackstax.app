@@ -35,7 +35,8 @@ const GridContainer = () => {
     });
 
     if (track.type === "audio") {
-      updateTrackSchedule(trackId);
+      setLastClickedBar(bar);
+      updateTrackSchedule(trackId, bar, wasActive);
     } else if (track.type === "sampler") {
       setLastClickedBar(bar);
     }
