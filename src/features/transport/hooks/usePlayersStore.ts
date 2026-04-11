@@ -95,18 +95,19 @@ export const usePlayersStore = create<PlayersStore>(() => {
     const { start, stop } = duration;
     const trackOffsetSeconds = audioTrack.offset;
     const trackDurationSeconds = audioTrack.duration;
-    const timestretch = audioTrack.timestretch;
-    const adjustedLoopLength = track.loopLength / timestretch;
+    const loopLength = track.loopLength;
     const stopPosition = usePositionStore.getState().stopPosition;
 
     for (
       let subLoopStart = start;
       subLoopStart < stop;
-      subLoopStart += adjustedLoopLength
+      subLoopStart += loopLength
     ) {
       let transportOffset: number | string = "0:0:0";
       let startPosition: number | string = toPosition(subLoopStart);
-      let subLoopEnd = subLoopStart + adjustedLoopLength;
+      let playFromPosition: number | string = toPosition(subLoopStart);
+
+      let subLoopEnd = subLoopStart + loopLength;
 
       if (stop < subLoopEnd) subLoopEnd = stop;
 
@@ -130,6 +131,51 @@ export const usePlayersStore = create<PlayersStore>(() => {
         }
       }
 
+      // what are we doing?
+      // if a bar is activated while the playhead is playing it, it should add it to the schedule along with and "merged" durations
+      // it should also play the audio from the current playhead position
+
+      // if the clicked bar is currently being played
+      // is the clicked bar on or off?
+
+      // is the current duration the one being currently played?
+
+      const [currentPositionBar] = (
+        cleanPosition(Tone.getTransport().position) ?? "0:0:0"
+      ).split(":");
+
+      if (
+        Number(currentPositionBar) >= start &&
+        Number(currentPositionBar) < stop
+      ) {
+        playFromPosition = cleanPosition(
+          Tone.getTransport().position ?? "0:0:0",
+        );
+      }
+
+      // set a new schedule for part way through bars
+      eventIdsRef.current.push(
+        Tone.getTransport().schedule((time) => {
+          const transportOffsetSeconds =
+            typeof transportOffset === "string"
+              ? Tone.Time(transportOffset).toSeconds()
+              : transportOffset;
+
+          let playbackOffset = 0;
+          let adjustedTime = time;
+
+          if (trackOffsetSeconds < 0) {
+            adjustedTime = time + Math.abs(trackOffsetSeconds);
+          } else {
+            playbackOffset = trackOffsetSeconds;
+          }
+
+          const totalOffset = playbackOffset + transportOffsetSeconds;
+          player.start(adjustedTime, totalOffset, trackDurationSeconds);
+        }, playFromPosition),
+      );
+
+      // set start point of current schedule
       eventIdsRef.current.push(
         Tone.getTransport().schedule((time) => {
           const transportOffsetSeconds =
@@ -151,6 +197,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
         }, startPosition),
       );
 
+      // set end point of current schedule
       eventIdsRef.current.push(
         Tone.getTransport().schedule((time) => {
           const adjustedStopTime =

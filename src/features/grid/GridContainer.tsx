@@ -23,6 +23,7 @@ const GridContainer = () => {
   );
 
   const handleToggle = (trackId: string, bar: number, wasActive: boolean) => {
+    console.log("handleToggle");
     const track = tracks?.find((t) => t.id === trackId);
     if (!track) return;
 
@@ -35,6 +36,7 @@ const GridContainer = () => {
     });
 
     if (track.type === "audio") {
+      setLastClickedBar(bar);
       updateTrackSchedule(trackId);
     } else if (track.type === "sampler") {
       setLastClickedBar(bar);

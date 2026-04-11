@@ -73,18 +73,6 @@ export const barsToEndTime = (bars: number) => {
   return Tone.TransportTime(`${bars}m`).toSeconds() - 0.001;
 };
 
-export const positionToEndTime = (position: Tone.Unit.Time) => {
-  return Tone.TransportTime(position).toSeconds() - 0.001;
-};
-
-export const positionToTest = (position: Tone.Unit.Time) => {
-  return Tone.TransportTime(position).toSeconds() + 0.01;
-};
-
-export const positionToTime = (position: Tone.Unit.Time) => {
-  return Tone.TransportTime(position).toSeconds();
-};
-
 export const isPositionZero = (position: Tone.Unit.Time): boolean => {
   return position.toString().includes("0:0:0");
 };
