@@ -48,36 +48,32 @@ export const TrackDialog = ({ track, trackError }: TrackDialogProps) => {
     setFormValues({ label: track?.label ?? "" });
   }, [track]);
 
-  const updateTrackMutation = useMutation({
-    mutationFn: async (input: { id: string; label: string }): Promise<unknown> => {
-      const mutateFn = (trpc.track.update as unknown as { 
-        mutate: (input: { id: string; label: string }) => Promise<unknown> 
-      }).mutate;
+  const updateTrackMutation = useMutation(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    trpc.track.update.mutationOptions({
+      onSuccess: (updatedTrack) => {
+        storeUpdateTrack(toClientTrack(updatedTrack));
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error("Failed to update track label:", error);
+      },
+    }),
+  );
 
-      return mutateFn(input);
-    },
-
-    onSuccess: (updatedTrack: unknown) => {
-      storeUpdateTrack(toClientTrack(updatedTrack));
-      setIsOpen(false);
-    },
-  });
-
-  const deleteTrackMutation = useMutation({
-    mutationFn: async (input: { id: string }): Promise<unknown> => {
-      const mutateFn = (trpc.track.delete as unknown as { 
-        mutate: (input: { id: string }) => Promise<unknown> 
-      }).mutate;
-
-      return mutateFn(input);
-    },
-
-    onSuccess: () => {
-      if (track?.id) storeDeleteTrack(track.id);
-      setIsDeleteConfirmOpen(false);
-      setIsOpen(false);
-    },
-  });
+  const deleteTrackMutation = useMutation(
+    trpc.track.delete.mutationOptions({
+      onSuccess: () => {
+        if (track?.id) storeDeleteTrack(track.id);
+        setIsDeleteConfirmOpen(false);
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error("Failed to delete track:", error);
+      },
+    }),
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

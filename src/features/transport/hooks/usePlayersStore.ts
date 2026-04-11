@@ -19,7 +19,11 @@ interface PlayersStore {
   channelsRef: React.RefObject<PlayerChannel[]>;
   eventIdsRef: React.RefObject<number[]>;
   stopAndClearAll: () => void;
-  updateTrackSchedule: (trackId: string) => void;
+  updateTrackSchedule: (
+    trackId: string,
+    toggledBar?: number,
+    wasActive?: boolean,
+  ) => void;
   setupAllTracks: (
     isLoop: boolean,
     loopStart: number,
@@ -97,6 +101,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
     const trackDurationSeconds = audioTrack.duration;
     const loopLength = track.loopLength;
     const stopPosition = usePositionStore.getState().stopPosition;
+    const lastClickedBar = useTracksStore.getState().lastClickedBar;
 
     for (
       let subLoopStart = start;
@@ -105,7 +110,7 @@ export const usePlayersStore = create<PlayersStore>(() => {
     ) {
       let transportOffset: number | string = "0:0:0";
       let startPosition: number | string = toPosition(subLoopStart);
-      let playFromPosition: number | string = toPosition(subLoopStart);
+      let playFromPosition: number | string | undefined;
 
       let subLoopEnd = subLoopStart + loopLength;
 
@@ -131,20 +136,12 @@ export const usePlayersStore = create<PlayersStore>(() => {
         }
       }
 
-      // what are we doing?
-      // if a bar is activated while the playhead is playing it, it should add it to the schedule along with and "merged" durations
-      // it should also play the audio from the current playhead position
-
-      // if the clicked bar is currently being played
-      // is the clicked bar on or off?
-
-      // is the current duration the one being currently played?
-
       const [currentPositionBar] = (
         cleanPosition(Tone.getTransport().position) ?? "0:0:0"
       ).split(":");
 
       if (
+        lastClickedBar === Number(currentPositionBar) &&
         Number(currentPositionBar) >= start &&
         Number(currentPositionBar) < stop
       ) {
@@ -154,26 +151,28 @@ export const usePlayersStore = create<PlayersStore>(() => {
       }
 
       // set a new schedule for part way through bars
-      eventIdsRef.current.push(
-        Tone.getTransport().schedule((time) => {
-          const transportOffsetSeconds =
-            typeof transportOffset === "string"
-              ? Tone.Time(transportOffset).toSeconds()
-              : transportOffset;
+      if (playFromPosition) {
+        eventIdsRef.current.push(
+          Tone.getTransport().schedule((time) => {
+            const transportOffsetSeconds =
+              typeof transportOffset === "string"
+                ? Tone.Time(transportOffset).toSeconds()
+                : transportOffset;
 
-          let playbackOffset = 0;
-          let adjustedTime = time;
+            let playbackOffset = 0;
+            let adjustedTime = time;
 
-          if (trackOffsetSeconds < 0) {
-            adjustedTime = time + Math.abs(trackOffsetSeconds);
-          } else {
-            playbackOffset = trackOffsetSeconds;
-          }
+            if (trackOffsetSeconds < 0) {
+              adjustedTime = time + Math.abs(trackOffsetSeconds);
+            } else {
+              playbackOffset = trackOffsetSeconds;
+            }
 
-          const totalOffset = playbackOffset + transportOffsetSeconds;
-          player.start(adjustedTime, totalOffset, trackDurationSeconds);
-        }, playFromPosition),
-      );
+            const totalOffset = playbackOffset + transportOffsetSeconds;
+            player.start(adjustedTime, totalOffset, trackDurationSeconds);
+          }, playFromPosition),
+        );
+      }
 
       // set start point of current schedule
       eventIdsRef.current.push(
@@ -208,7 +207,11 @@ export const usePlayersStore = create<PlayersStore>(() => {
     }
   };
 
-  const updateTrackSchedule = (trackId: string) => {
+  const updateTrackSchedule = (
+    trackId: string,
+    toggledBar?: number,
+    wasActive?: boolean,
+  ) => {
     const tracks = useTracksStore.getState().tracks;
     const track = tracks.find((t) => t.id === trackId);
     if (!track || track.type !== "audio" || !track.audioTrack) return;
@@ -233,6 +236,17 @@ export const usePlayersStore = create<PlayersStore>(() => {
         return true;
       }
     });
+
+    const isTurningOffMidPlay = toggledBar !== undefined && wasActive === true;
+
+    if (isTurningOffMidPlay && Tone.getTransport().state === "started") {
+      const currentPos = cleanPosition(Tone.getTransport().position ?? "0:0:0");
+      const [currentBar] = currentPos.split(":");
+
+      if (Number(currentBar) === toggledBar) {
+        player.stop(Tone.now());
+      }
+    }
 
     const channel = getOrCreateChannel(track);
     const soloTracks = tracks.filter((t) => t.isSolo);
@@ -270,16 +284,16 @@ export const usePlayersStore = create<PlayersStore>(() => {
 
     for (const track of tracks) {
       if (track.type === "audio" && track.audioTrack) {
-        const { id, downloadUrl } = track.audioTrack;
+        const { downloadUrl } = track.audioTrack;
 
-        await setupPlayer(id, downloadUrl);
+        await setupPlayer(track.id, downloadUrl);
 
         let player: Tone.Player | undefined;
         try {
-          player = playersRef.current.player(id);
+          player = playersRef.current.player(track.id);
         } catch {
           // player lookup failed
-          addTrackError({ trackId: id, message: "Player not found" });
+          addTrackError({ trackId: track.id, message: "Player not found" });
           continue;
         }
 
