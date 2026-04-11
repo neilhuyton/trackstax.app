@@ -1,6 +1,7 @@
 import * as Tone from "tone";
 import { usePlayersCore } from "./usePlayersCore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
+import { clearAllSamplerEvents } from "@/features/grid/hooks/useSamplerPattern";
 
 export const stopAndClearAll = () => {
   const { playersRef, eventIdsRef } = usePlayersCore.getState();
@@ -18,10 +19,18 @@ export const stopAndClearAll = () => {
     });
   }
 
+  clearAllSamplerEvents();
+
   Tone.getTransport().pause();
 
   eventIdsRef.current.forEach((ids) => {
-    ids.forEach((id) => Tone.getTransport().clear(id));
+    ids.forEach((id) => {
+      try {
+        Tone.getTransport().clear(id);
+      } catch {
+        // fail silently
+      }
+    });
   });
   eventIdsRef.current.clear();
 };
