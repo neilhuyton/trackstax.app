@@ -7,8 +7,12 @@ type Duration = {
   stop: number;
 };
 
+const globalSamplerEventMapRef = { current: new Map<string, number[]>() };
+
 export function useSamplerPattern() {
-  const eventMapRef = useRef<Map<string, number[]>>(new Map());
+  const eventMapRef = useRef<Map<string, number[]>>(
+    globalSamplerEventMapRef.current,
+  );
 
   const clearTrackEvents = useCallback((trackId: string) => {
     const eventIds = eventMapRef.current.get(trackId) || [];
@@ -76,7 +80,6 @@ export function useSamplerPattern() {
 
             const absoluteTimeInBars = bar + eventTime;
             if (absoluteTimeInBars >= endBar) return;
-
             if (absoluteTimeInBars < currentBar) return;
 
             const whole = Math.floor(absoluteTimeInBars);
@@ -107,5 +110,20 @@ export function useSamplerPattern() {
   return {
     schedulePatternForTrack: updateSamplerSchedule,
     clearTrackEvents,
+    clearAllScheduledEvents,
   };
 }
+
+export const clearAllSamplerEvents = () => {
+  const transport = Tone.getTransport();
+  globalSamplerEventMapRef.current.forEach((eventIds) => {
+    eventIds.forEach((id) => {
+      try {
+        transport.clear(id);
+      } catch {
+        // fail silently
+      }
+    });
+  });
+  globalSamplerEventMapRef.current.clear();
+};
