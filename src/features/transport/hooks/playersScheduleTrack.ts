@@ -1,11 +1,12 @@
 import * as Tone from "tone";
-import { calcVolumeLevel, cleanPosition } from "@/utils";
+import { calcVolumeLevel } from "@/utils";
 import { usePlayersCore } from "./usePlayersCore";
 import { clearAudioTrackEvents } from "./tracksCleanup";
 import { getOrCreateChannel } from "./playersSetup";
 import { setupAudioDurations } from "./playersScheduleAudioDurations";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import useTransportStore from "./useTransportStore";
+import { getCurrentTransportBar } from "@/features/utils/getCurrentBar";
 
 export const updateTrackSchedule = (
   trackId: string,
@@ -29,15 +30,25 @@ export const updateTrackSchedule = (
 
   const player = playersRef.current.player(trackId);
 
-  clearAudioTrackEvents(trackId);
+  const isPlaying = Tone.getTransport().state === "started";
+  let shouldReschedule = true;
+
+  if (isPlaying && toggledBar !== undefined) {
+    const currentBar = getCurrentTransportBar();
+    if (toggledBar < currentBar) {
+      shouldReschedule = false;
+    }
+  }
+
+  if (shouldReschedule) {
+    clearAudioTrackEvents(trackId);
+  }
 
   const isTurningOffMidPlay = toggledBar !== undefined && wasActive === true;
 
   if (isTurningOffMidPlay && Tone.getTransport().state === "started") {
-    const currentPos = cleanPosition(Tone.getTransport().position ?? "0:0:0");
-    const [currentBar] = currentPos.split(":");
-
-    if (Number(currentBar) === toggledBar) {
+    const currentBar = getCurrentTransportBar();
+    if (currentBar === toggledBar) {
       player.stop(Tone.now());
     }
   }
@@ -53,7 +64,9 @@ export const updateTrackSchedule = (
     : calcVolumeLevel(track.volumePercent);
   channel.mute = isMuted;
 
-  track.durations.forEach((duration) =>
-    setupAudioDurations(track, duration, player, isLoop, loopStart, loopEnd),
-  );
+  if (shouldReschedule) {
+    track.durations.forEach((duration) =>
+      setupAudioDurations(track, duration, player, isLoop, loopStart, loopEnd),
+    );
+  }
 };

@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
+import { getCurrentTransportBar } from "@/features/utils/getCurrentBar";
 
 type Duration = {
   start: number;
@@ -55,9 +56,7 @@ export function useSamplerPattern() {
 
       const newEventIds: number[] = [];
       const transport = Tone.getTransport();
-      const pos = transport.position as string;
-      const [currentBarsStr] = pos.split(":");
-      const currentBar = parseInt(currentBarsStr, 10);
+      const currentBar = getCurrentTransportBar();
 
       durations.forEach(({ start, stop }) => {
         for (let bar = start; bar < stop; bar += loopLength) {
