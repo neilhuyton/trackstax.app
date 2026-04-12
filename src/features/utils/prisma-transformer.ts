@@ -1,5 +1,10 @@
-// src/features/utils/prisma-transformer.ts
-import type { Track, Duration, SamplerPattern } from "@/types";
+import type {
+  Track,
+  Duration,
+  SamplerPattern,
+  SamplerZone,
+  NoteName,
+} from "@/types";
 
 export const toClientTrack = (serverData: unknown): Track => {
   if (!serverData || typeof serverData !== "object") {
@@ -8,42 +13,72 @@ export const toClientTrack = (serverData: unknown): Track => {
 
   const d = serverData as Record<string, unknown>;
 
-  // Only sanitize the two JSON fields that cause recursion
   const durations: Duration[] = Array.isArray(d.durations)
     ? (d.durations as Duration[])
     : [];
 
   let samplerTrack: Track["samplerTrack"] = null;
+
   if (d.samplerTrack && typeof d.samplerTrack === "object") {
     const st = d.samplerTrack as Record<string, unknown>;
+
+    const rawZones = Array.isArray(st.zones) ? st.zones : [];
+
+    const zones: SamplerZone[] = rawZones
+      .map((zone: unknown): SamplerZone | null => {
+        if (!zone || typeof zone !== "object") return null;
+
+        const z = zone as Record<string, unknown>;
+
+        const id = typeof z.id === "string" ? z.id : "";
+        const sampleUrl = typeof z.sampleUrl === "string" ? z.sampleUrl : "";
+        const lowNote =
+          typeof z.lowNote === "string" ? (z.lowNote as NoteName) : "C4";
+        const highNote =
+          typeof z.highNote === "string" ? (z.highNote as NoteName) : "C4";
+        const rootNote =
+          typeof z.rootNote === "string" ? (z.rootNote as NoteName) : "C4"; // fallback for old data
+
+        if (!id || !sampleUrl) return null;
+
+        return {
+          id,
+          sampleUrl,
+          lowNote,
+          highNote,
+          rootNote,
+        };
+      })
+      .filter((zone): zone is SamplerZone => zone !== null);
+
     samplerTrack = {
       pattern: Array.isArray(st.pattern) ? (st.pattern as SamplerPattern) : [],
-      sampleUrl: typeof st.sampleUrl === "string" ? st.sampleUrl : null,
       attackMs: typeof st.attackMs === "number" ? st.attackMs : 10,
       releaseMs: typeof st.releaseMs === "number" ? st.releaseMs : 200,
+      zones,
     };
   }
 
   return {
-    id: d.id as string,
+    id: typeof d.id === "string" ? d.id : "",
     type: (d.type as "audio" | "sampler") ?? "audio",
-    label: d.label as string,
-    color: d.color as string,
-    sortOrder: d.sortOrder as number,
+    label: typeof d.label === "string" ? d.label : "",
+    color: typeof d.color === "string" ? d.color : "",
+    sortOrder: typeof d.sortOrder === "number" ? d.sortOrder : 0,
     isMute: Boolean(d.isMute),
     isSolo: Boolean(d.isSolo),
     isFavourite: Boolean(d.isFavourite),
-    volumePercent: (d.volumePercent as number) ?? 75,
-    low: (d.low as number) ?? 0,
-    mid: (d.mid as number) ?? 0,
-    high: (d.high as number) ?? 0,
-    lowFrequency: (d.lowFrequency as number) ?? 0,
-    highFrequency: (d.highFrequency as number) ?? 0,
+    volumePercent: typeof d.volumePercent === "number" ? d.volumePercent : 75,
+    low: typeof d.low === "number" ? d.low : 0,
+    mid: typeof d.mid === "number" ? d.mid : 0,
+    high: typeof d.high === "number" ? d.high : 0,
+    lowFrequency: typeof d.lowFrequency === "number" ? d.lowFrequency : 0,
+    highFrequency: typeof d.highFrequency === "number" ? d.highFrequency : 0,
     isBypass: Boolean(d.isBypass),
-    loopLength: (d.loopLength as number) ?? 4,
-    stackId: d.stackId as string,
-    createdAt: d.createdAt as string,
-    updatedAt: d.updatedAt as string,
+    loopLength: typeof d.loopLength === "number" ? d.loopLength : 4,
+    stackId: typeof d.stackId === "string" ? d.stackId : "",
+    createdAt: typeof d.createdAt === "string" ? d.createdAt : "",
+    updatedAt: typeof d.updatedAt === "string" ? d.updatedAt : "",
 
     durations,
     audioTrack: (d.audioTrack as Track["audioTrack"]) ?? null,

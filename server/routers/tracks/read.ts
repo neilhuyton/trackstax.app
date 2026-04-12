@@ -22,9 +22,9 @@ export const trackReadRouter = router({
           samplerTrack: {
             select: {
               pattern: true,
-              sampleUrl: true,
               attackMs: true,
               releaseMs: true,
+              zones: true,
             },
           },
         },

@@ -83,7 +83,14 @@ export type SamplerEvent = {
 
 export type SamplerPattern = SamplerEvent[];
 
-// Clean client-facing Track type (no Prisma Json recursion)
+export type SamplerZone = {
+  id: string;
+  sampleUrl: string;
+  lowNote: NoteName;
+  highNote: NoteName;
+  rootNote: NoteName;
+};
+
 export type Track = {
   id: string;
   type: "audio" | "sampler";
@@ -123,9 +130,9 @@ export type Track = {
 
   samplerTrack: {
     pattern: SamplerPattern;
-    sampleUrl: string | null;
     attackMs: number;
     releaseMs: number;
+    zones: SamplerZone[];
   } | null;
 };
 

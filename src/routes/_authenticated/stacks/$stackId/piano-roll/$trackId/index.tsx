@@ -21,8 +21,7 @@ const PianoRollPage = () => {
     [samplerTrack?.samplerTrack?.pattern],
   );
 
-  const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
-  const { trigger } = useSampler(trackId, sampleUrl);
+  const { trigger } = useSampler(trackId);
 
   const { handleAddNote, handleRemoveNote } = usePatternActions({
     samplerTrack,

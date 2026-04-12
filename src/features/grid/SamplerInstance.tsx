@@ -4,7 +4,7 @@ import type { SamplerEvent } from "@/types";
 import { useSampler } from "./hooks/useSampler";
 import { useSamplerPattern } from "./hooks/useSamplerPattern";
 import useTransportStore from "@/features/transport/hooks/useTransportStore";
-import { getCurrentTransportBar } from "../utils/getCurrentBar";
+import { getCurrentTransportBar } from "../utils/getCurrentTransportBar";
 
 type Props = {
   trackId: string;
@@ -15,9 +15,9 @@ export default function SamplerInstance({ trackId }: Props) {
   const samplerRescheduleKey = useTransportStore(
     (state) => state.samplerRescheduleKey,
   );
+
   const track = tracks.find((t) => t.id === trackId);
-  const sampleUrl = track?.samplerTrack?.sampleUrl ?? null;
-  const { trigger } = useSampler(trackId, sampleUrl);
+  const { trigger } = useSampler(trackId);
   const { schedulePatternForTrack } = useSamplerPattern();
 
   const prevTriggerRef = useRef<

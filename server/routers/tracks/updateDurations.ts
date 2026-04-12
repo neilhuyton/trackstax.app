@@ -28,7 +28,6 @@ export const trackDurationsRouter = router({
           samplerTrack: {
             select: {
               pattern: true,
-              sampleUrl: true,
               attackMs: true,
               releaseMs: true,
             },

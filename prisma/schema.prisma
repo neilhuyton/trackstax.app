@@ -138,10 +138,9 @@ model AudioTrack {
 model SamplerTrack {
   id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   pattern        Json
-  sampleUrl      String?
-
   attackMs       Int    @default(10)
   releaseMs      Int    @default(200)
+  zones          Json   @default("[]")
 
   trackId        String @unique @db.Uuid
 

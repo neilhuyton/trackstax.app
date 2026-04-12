@@ -12,8 +12,7 @@ const SamplerAdminPage = () => {
     (t) => t.id === trackId && t.type === "sampler",
   );
 
-  const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
-  const { trigger } = useSampler(trackId, sampleUrl);
+  const { trigger } = useSampler(trackId);
 
   if (!samplerTrack) {
     return (

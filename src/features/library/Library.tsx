@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
-import type { Track, Stack } from "@/types";
+import {
+  type Track,
+  type Stack,
+  type SamplerZone,
+  type NoteName,
+  NOTE_NAMES,
+} from "@/types";
 import type { Sample } from "./hooks/useSampleLibrary";
 import { useAudioPreview } from "./hooks/useAudioPreview";
 import {
@@ -25,7 +31,7 @@ type TrackLibraryProps = {
   tracks: Track[];
   stack: Stack;
   trackId: string;
-  samplerTrack?: Track;
+  // samplerTrack is no longer needed here
 };
 
 export const TrackLibrary = ({
@@ -33,13 +39,12 @@ export const TrackLibrary = ({
   tracks,
   stack,
   trackId,
-  samplerTrack,
 }: TrackLibraryProps) => {
   const navigation = useSampleLibraryNavigation();
   const preview = useAudioPreview();
   const { loadTrack } = useLoadTrack(tracks, stack);
   const navigate = useNavigate();
-  const { storeAddTrack, storeUpdateTrack } = useTracksStore();
+  const { storeAddTrack } = useTracksStore(); // storeUpdateTrack removed
 
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({});
   const [bpmFilter, setBpmFilter] = useState<number | null>(null);
@@ -63,7 +68,7 @@ export const TrackLibrary = ({
   const createSamplerMutation = useMutation(
     trpc.track.create.mutationOptions(),
   );
-  const updateSamplerSampleMutation = useMutation(
+  const updateZonesMutation = useMutation(
     trpc.sampler.updateSample.mutationOptions(),
   );
 
@@ -77,11 +82,41 @@ export const TrackLibrary = ({
       const searchParams = new URLSearchParams(window.location.search);
       const mode = searchParams.get("mode");
       const returnTo = searchParams.get("returnTo");
+      const lowNoteParam = searchParams.get("lowNote");
+      const highNoteParam = searchParams.get("highNote");
 
-      const isNewSampler =
-        trackId === "new" && searchParams.get("type") === "sampler";
+      // ZONE CREATION FLOW - Return to sampler with sample + range
+      if (returnTo === "sampler-zone" && lowNoteParam && highNoteParam) {
+        const lowIndex = NOTE_NAMES.indexOf(lowNoteParam as NoteName);
+        const highIndex = NOTE_NAMES.indexOf(highNoteParam as NoteName);
 
-      if (isNewSampler) {
+        const finalLowNote =
+          lowIndex < highIndex
+            ? (lowNoteParam as NoteName)
+            : (highNoteParam as NoteName);
+
+        const finalHighNote =
+          lowIndex < highIndex
+            ? (highNoteParam as NoteName)
+            : (lowNoteParam as NoteName);
+
+        navigate({
+          to: "/stacks/$stackId/sampler/$trackId",
+          params: { stackId: stack.id, trackId },
+          search: {
+            returnTo: "sampler-zone",
+            sampleUrl: sample.downloadUrl,
+            lowNote: finalLowNote,
+            highNote: finalHighNote,
+          },
+          replace: true,
+        });
+
+        return;
+      }
+
+      // CREATE NEW SAMPLER TRACK
+      else if (trackId === "new" && mode === "sampler") {
         const baseTrack = createNewTrack(
           null,
           null,
@@ -90,6 +125,7 @@ export const TrackLibrary = ({
           undefined,
           true,
         );
+
         const created = await createSamplerMutation.mutateAsync({
           stackId: stack.id,
           type: "sampler",
@@ -97,18 +133,30 @@ export const TrackLibrary = ({
           color: baseTrack.color,
         });
 
-        await updateSamplerSampleMutation.mutateAsync({
-          trackId: created.id,
+        const defaultZone: SamplerZone = {
+          id: crypto.randomUUID(),
           sampleUrl: sample.downloadUrl,
+          lowNote: "C1",
+          highNote: "B5",
+          rootNote: "C4",
+        };
+
+        await updateZonesMutation.mutateAsync({
+          trackId: created.id,
+          zones: [defaultZone],
         });
 
         const newTrack: Track = {
-          ...created,
-          type: "sampler" as const,
-          audioTrack: null,
+          ...baseTrack,
+          id: created.id,
+          stackId: stack.id,
+          createdAt: created.createdAt ?? new Date().toISOString(),
+          updatedAt: created.updatedAt ?? new Date().toISOString(),
           samplerTrack: {
             pattern: [],
-            sampleUrl: sample.downloadUrl,
+            attackMs: 10,
+            releaseMs: 200,
+            zones: [defaultZone],
           },
         };
 
@@ -118,28 +166,9 @@ export const TrackLibrary = ({
           to: "/stacks/$stackId/sampler/$trackId",
           params: { stackId: stack.id, trackId: created.id },
         });
-      } else if (mode === "select-sample" && returnTo === "sampler") {
-        await updateSamplerSampleMutation.mutateAsync({
-          trackId,
-          sampleUrl: sample.downloadUrl,
-        });
-
-        if (samplerTrack) {
-          storeUpdateTrack({
-            ...samplerTrack,
-            samplerTrack: {
-              pattern: samplerTrack.samplerTrack?.pattern ?? [],
-              sampleUrl: sample.downloadUrl,
-            },
-          });
-        }
-
-        navigate({
-          to: "/stacks/$stackId/sampler/$trackId",
-          params: { stackId: stack.id, trackId },
-          replace: true,
-        });
-      } else {
+      }
+      // NORMAL LOAD TRACK
+      else {
         await loadTrack(sample);
       }
     } catch (error) {

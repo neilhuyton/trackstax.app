@@ -34,9 +34,9 @@ export const usePatternActions = ({
         ...samplerTrack,
         samplerTrack: {
           pattern: newPattern,
-          sampleUrl: samplerTrack.samplerTrack.sampleUrl ?? null,
           attackMs: samplerTrack.samplerTrack.attackMs ?? 10,
           releaseMs: samplerTrack.samplerTrack.releaseMs ?? 200,
+          zones: samplerTrack.samplerTrack.zones ?? [],
         },
       };
 

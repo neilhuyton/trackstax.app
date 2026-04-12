@@ -102,7 +102,7 @@ export const updateTrackDurations = (
 
 const DEFAULT_SAMPLER_TRACK = {
   pattern: [] as SamplerPattern,
-  sampleUrl: null as string | null,
+  // sampleUrl: null as string | null,
   attackMs: 10,
   releaseMs: 200,
 } as const;
