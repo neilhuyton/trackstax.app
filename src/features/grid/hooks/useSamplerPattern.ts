@@ -14,7 +14,7 @@ export function useSamplerPattern() {
     globalSamplerEventMapRef.current,
   );
 
-  const clearTrackEvents = useCallback((trackId: string) => {
+  const clearSamplerTrackEvents = useCallback((trackId: string) => {
     const eventIds = eventMapRef.current.get(trackId) || [];
     const transport = Tone.getTransport();
     eventIds.forEach((id) => {
@@ -51,7 +51,7 @@ export function useSamplerPattern() {
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      clearTrackEvents(trackId);
+      clearSamplerTrackEvents(trackId);
 
       const newEventIds: number[] = [];
       const transport = Tone.getTransport();
@@ -100,7 +100,7 @@ export function useSamplerPattern() {
 
       eventMapRef.current.set(trackId, newEventIds);
     },
-    [clearTrackEvents],
+    [clearSamplerTrackEvents],
   );
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export function useSamplerPattern() {
 
   return {
     schedulePatternForTrack: updateSamplerSchedule,
-    clearTrackEvents,
+    clearSamplerTrackEvents,
     clearAllScheduledEvents,
   };
 }

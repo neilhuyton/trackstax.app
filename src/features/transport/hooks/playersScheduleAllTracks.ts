@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import { calcVolumeLevel } from "@/utils";
 import { usePlayersCore } from "./usePlayersCore";
 import { getOrCreateChannel, setupPlayer } from "./playersSetup";
-import { setupAudioDurations } from "./scheduleAudioDurations";
+import { setupAudioDurations } from "./playersScheduleAudioDurations";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import * as Tone from "tone";
 import type { PlayerChannel } from "@/types";
 import { usePlayersCore } from "./usePlayersCore";
-import { stopAndClearAll, cleanup } from "./playersCleanup";
+import { stopAndClearAll, cleanup } from "./tracksCleanup";
 import { updateTrackSchedule, setupAllTracks } from "./playersSchedule";
 
 interface PlayersStore {

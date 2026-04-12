@@ -1,9 +1,9 @@
 import * as Tone from "tone";
 import { calcVolumeLevel, cleanPosition } from "@/utils";
 import { usePlayersCore } from "./usePlayersCore";
-import { clearTrackEvents } from "./playersCleanup";
+import { clearAudioTrackEvents } from "./tracksCleanup";
 import { getOrCreateChannel } from "./playersSetup";
-import { setupAudioDurations } from "./scheduleAudioDurations";
+import { setupAudioDurations } from "./playersScheduleAudioDurations";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import useTransportStore from "./useTransportStore";
 
@@ -29,7 +29,7 @@ export const updateTrackSchedule = (
 
   const player = playersRef.current.player(trackId);
 
-  clearTrackEvents(trackId);
+  clearAudioTrackEvents(trackId);
 
   const isTurningOffMidPlay = toggledBar !== undefined && wasActive === true;
 
