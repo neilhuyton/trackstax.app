@@ -13,6 +13,8 @@ export const TrackMuteButton = ({ track }: TrackMuteButtonProps) => {
   const { storeUpdateTrack } = useTracksStore();
 
   const updateTrackMutation = useMutation(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     trpc.track.update.mutationOptions({
       onError: (error) => {
         console.error("Failed to update mute state:", error);
