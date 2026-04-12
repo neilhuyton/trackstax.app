@@ -35,7 +35,7 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
     channelRef.current = channel;
 
     const sampler = new Tone.Sampler({
-      urls: { C3: sampleUrl },
+      urls: { C4: sampleUrl },
       curve: "linear",
       onload: () => setIsLoaded(true),
       onerror: (err) => console.error(`Sampler failed for ${trackId}`, err),
@@ -76,7 +76,7 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
   }, [tracks, trackId]);
 
   const trigger = useCallback(
-    (note = "C3", duration = "8n", time?: number) => {
+    (note = "C4", duration = "8n", time?: number) => {
       const sampler = samplerRef.current;
       if (!sampler || !isLoaded) return;
 

@@ -2,21 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import PianoRollViewer from "@/features/sampler/PianoRollViewer";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useSampler } from "@/features/grid/hooks/useSampler";
-import { useMemo } from "react";
-import type { SamplerEvent, Track } from "@/types";
-import { trpc } from "@/trpc";
-import { useMutation } from "@tanstack/react-query";
-
-import {
-  addNoteToPattern,
-  removeNoteFromPattern,
-} from "@/features/sampler/utils/pianoRollUtils";
+import { useMemo, useRef } from "react";
+import type { SamplerEvent } from "@/types";
 
 import PianoRollToolbar from "@/features/sampler/PianoRollToolbar";
+import { useMidiImport } from "@/features/sampler/hooks/useMidiImport";
+import { usePatternActions } from "@/features/sampler/hooks/usePatternActions";
 
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
-  const { tracks, storeUpdateTrack } = useTracksStore();
+  const { tracks } = useTracksStore();
 
   const samplerTrack = tracks?.find(
     (t) => t.id === trackId && t.type === "sampler",
@@ -30,41 +25,20 @@ const PianoRollPage = () => {
   const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
   const { trigger } = useSampler(trackId, sampleUrl);
 
-  const updatePatternMutation = useMutation(
-    trpc.sampler.updatePattern.mutationOptions(),
-  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const updatePattern = (newPattern: SamplerEvent[]) => {
-    if (!samplerTrack || !samplerTrack.samplerTrack) return;
+  // MIDI Import
+  const { handleMidiLoad } = useMidiImport({
+    samplerTrack,
+    trackId,
+  });
 
-    const updatedTrack: Track = {
-      ...samplerTrack,
-      samplerTrack: {
-        pattern: newPattern,
-        sampleUrl: samplerTrack.samplerTrack.sampleUrl ?? null,
-        attackMs: samplerTrack.samplerTrack.attackMs ?? 10,
-        releaseMs: samplerTrack.samplerTrack.releaseMs ?? 200,
-      },
-    };
-
-    storeUpdateTrack(updatedTrack);
-    updatePatternMutation.mutate({ trackId, pattern: newPattern });
-  };
-
-  const handleAddNote = (time: string, note: string, duration = "0:0:0") => {
-    const latestPattern = addNoteToPattern(
-      currentPattern,
-      time,
-      note,
-      duration,
-    );
-    updatePattern(latestPattern);
-  };
-
-  const handleRemoveNote = (time: string, note: string) => {
-    const latestPattern = removeNoteFromPattern(currentPattern, time, note);
-    updatePattern(latestPattern);
-  };
+  // Pattern actions (add / remove / update)
+  const { handleAddNote, handleRemoveNote } = usePatternActions({
+    samplerTrack,
+    currentPattern,
+    trackId,
+  });
 
   if (!samplerTrack) {
     return (
@@ -76,7 +50,7 @@ const PianoRollPage = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#1a1a1a] relative">
-      <PianoRollToolbar />
+      <PianoRollToolbar onMidiLoadClick={() => fileInputRef.current?.click()} />
 
       <div className="flex-1 overflow-hidden">
         <PianoRollViewer
@@ -87,6 +61,14 @@ const PianoRollPage = () => {
           loopLength={samplerTrack.loopLength}
         />
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".mid,.midi"
+        onChange={handleMidiLoad}
+        className="hidden"
+      />
     </div>
   );
 };
