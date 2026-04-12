@@ -10,6 +10,14 @@ export const AddTrackButton = () => {
     navigate({
       to: "/stacks/$stackId/add-track",
       params: { stackId },
+      search: {
+        page: 0,
+        returnTo: undefined,
+        sampleUrl: undefined,
+        filename: undefined,
+        lowNote: undefined,
+        highNote: undefined,
+      },
     });
   };
 

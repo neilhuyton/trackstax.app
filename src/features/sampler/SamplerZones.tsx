@@ -45,20 +45,21 @@ export default function SamplerZones({
     trpc.sampler.updateSample.mutationOptions(),
   );
 
-  // Sync zones from store when they change
+  // Sync zones from store
   useEffect(() => {
     if (samplerTrackData?.zones) {
       setZones(samplerTrackData.zones);
     }
   }, [samplerTrackData?.zones]);
 
-  // Handle return from Library with selected sample
+  // Handle return from Library for sampler-zone
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const returnTo = searchParams.get("returnTo");
-    const sampleUrl = searchParams.get("sampleUrl");
-    const lowNoteParam = searchParams.get("lowNote");
-    const highNoteParam = searchParams.get("highNote");
+    const urlSearchParams = new URLSearchParams(window.location.search);
+
+    const returnTo = urlSearchParams.get("returnTo");
+    const sampleUrl = urlSearchParams.get("sampleUrl");
+    const lowNoteParam = urlSearchParams.get("lowNote") as NoteName | null;
+    const highNoteParam = urlSearchParams.get("highNote") as NoteName | null;
 
     if (
       returnTo === "sampler-zone" &&
@@ -68,18 +69,27 @@ export default function SamplerZones({
     ) {
       setPendingZone({
         sampleUrl,
-        lowNote: lowNoteParam as NoteName,
-        highNote: highNoteParam as NoteName,
+        lowNote: lowNoteParam,
+        highNote: highNoteParam,
       });
       setSelectedRootNote("C4");
 
+      // Clean URL
       navigate({
         to: "/stacks/$stackId/sampler/$trackId",
         params: { stackId: track?.stackId || "", trackId },
+        search: {
+          page: 0,
+          returnTo: undefined,
+          sampleUrl: undefined,
+          filename: undefined,
+          lowNote: undefined,
+          highNote: undefined,
+        },
         replace: true,
       });
     }
-  }, [navigate, track, trackId]);
+  }, [navigate, track?.stackId, trackId]);
 
   const confirmNewZone = useCallback(async () => {
     if (!pendingZone || !track || !samplerTrackData) return;
@@ -123,7 +133,7 @@ export default function SamplerZones({
     zones,
     storeUpdateTrack,
     updateZonesMutation,
-    trackId, // ← This was missing
+    trackId,
   ]);
 
   const cancelNewZone = useCallback(() => {
@@ -174,17 +184,27 @@ export default function SamplerZones({
       to: "/stacks/$stackId/library/$trackId",
       params: { stackId: track.stackId, trackId },
       search: {
+        page: 0,
         returnTo: "sampler-zone",
         lowNote,
         highNote,
+        sampleUrl: undefined,
+        filename: undefined,
       },
     });
 
     clearZoneSelection();
     setIsCreatingZone(false);
-  }, [selectedNotes, track, navigate, clearZoneSelection, setIsCreatingZone]);
+  }, [
+    selectedNotes,
+    track,
+    navigate,
+    clearZoneSelection,
+    setIsCreatingZone,
+    trackId,
+  ]);
 
-  // Show root note selector after returning from library
+  // Pending zone UI (root note selector)
   if (pendingZone) {
     return (
       <div className="bg-zinc-900 border border-neutral-700 rounded p-4">
@@ -221,7 +241,7 @@ export default function SamplerZones({
     );
   }
 
-  // Normal zones UI
+  // Normal UI
   return (
     <div className="bg-zinc-900 border border-neutral-700 rounded p-4">
       <div className="flex items-center justify-between mb-3">
