@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
+import { getCurrentTransportBar } from "@/features/utils/getCurrentBar";
 
 type Duration = {
   start: number;
@@ -14,7 +15,7 @@ export function useSamplerPattern() {
     globalSamplerEventMapRef.current,
   );
 
-  const clearTrackEvents = useCallback((trackId: string) => {
+  const clearSamplerTrackEvents = useCallback((trackId: string) => {
     const eventIds = eventMapRef.current.get(trackId) || [];
     const transport = Tone.getTransport();
     eventIds.forEach((id) => {
@@ -51,13 +52,11 @@ export function useSamplerPattern() {
     ) => {
       if (!trigger || pattern.length === 0 || durations.length === 0) return;
 
-      clearTrackEvents(trackId);
+      clearSamplerTrackEvents(trackId);
 
       const newEventIds: number[] = [];
       const transport = Tone.getTransport();
-      const pos = transport.position as string;
-      const [currentBarsStr] = pos.split(":");
-      const currentBar = parseInt(currentBarsStr, 10);
+      const currentBar = getCurrentTransportBar();
 
       durations.forEach(({ start, stop }) => {
         for (let bar = start; bar < stop; bar += loopLength) {
@@ -100,7 +99,7 @@ export function useSamplerPattern() {
 
       eventMapRef.current.set(trackId, newEventIds);
     },
-    [clearTrackEvents],
+    [clearSamplerTrackEvents],
   );
 
   useEffect(() => {
@@ -109,7 +108,7 @@ export function useSamplerPattern() {
 
   return {
     schedulePatternForTrack: updateSamplerSchedule,
-    clearTrackEvents,
+    clearSamplerTrackEvents,
     clearAllScheduledEvents,
   };
 }

@@ -1,2 +1,2 @@
-export { updateTrackSchedule } from "./scheduleTrack";
-export { setupAllTracks } from "./scheduleAllTracks";
+export { updateTrackSchedule } from "./playersScheduleTrack";
+export { setupAllTracks } from "./playersScheduleAllTracks";

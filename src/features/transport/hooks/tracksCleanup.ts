@@ -35,7 +35,7 @@ export const stopAndClearAll = () => {
   eventIdsRef.current.clear();
 };
 
-export const clearTrackEvents = (trackId: string) => {
+export const clearAudioTrackEvents = (trackId: string) => {
   const { eventIdsRef } = usePlayersCore.getState();
   const ids = eventIdsRef.current.get(trackId) || [];
 

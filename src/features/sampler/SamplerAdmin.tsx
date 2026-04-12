@@ -4,9 +4,8 @@ import { useStack } from "@/features/stacks/hooks/useStackRead";
 import useStackIdStore from "@/features/stacks/hooks/useStackIdStore";
 import SamplerToolbar from "./SamplerToolbar";
 import SamplerEnvelopeControl from "./SamplerEnvelopeControl";
-import { useSamplerEnvelopeStore } from "./hooks/useSamplerEnvelopeStore";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTRPC } from "@/trpc";
 import { useDebouncedMutation } from "./hooks/useDebouncedMutation";
 import SamplerKeyboard from "./SamplerKeyboard";
@@ -28,9 +27,6 @@ export default function SamplerAdmin({
 
   const { tracks, storeUpdateTrack } = useTracksStore();
 
-  const { attackMs, releaseMs, setAttack, setRelease } =
-    useSamplerEnvelopeStore();
-
   const trpc = useTRPC();
 
   const updateEnvelopeMutation = useDebouncedMutation(
@@ -38,26 +34,38 @@ export default function SamplerAdmin({
     400,
   );
 
+  // Local state for this specific sampler
+  const [localAttack, setLocalAttack] = useState(
+    samplerTrack?.samplerTrack?.attackMs ?? 10,
+  );
+  const [localRelease, setLocalRelease] = useState(
+    samplerTrack?.samplerTrack?.releaseMs ?? 200,
+  );
+
+  // Sync from props when samplerTrack changes
   useEffect(() => {
     if (samplerTrack?.samplerTrack) {
       const st = samplerTrack.samplerTrack;
-      if (typeof st.attackMs === "number" && st.attackMs >= 0) {
-        setAttack(st.attackMs);
-      }
-      if (typeof st.releaseMs === "number" && st.releaseMs >= 0) {
-        setRelease(st.releaseMs);
-      }
+      const newAttack =
+        typeof st.attackMs === "number" && st.attackMs >= 0 ? st.attackMs : 10;
+      const newRelease =
+        typeof st.releaseMs === "number" && st.releaseMs >= 0
+          ? st.releaseMs
+          : 200;
+
+      setLocalAttack(newAttack);
+      setLocalRelease(newRelease);
     }
-  }, [samplerTrack, setAttack, setRelease]);
+  }, [samplerTrack]);
 
   const handleAttackChange = useCallback(
     (value: number) => {
       const safeValue = Math.max(0, value);
-      setAttack(safeValue);
+      setLocalAttack(safeValue);
 
       const currentTrack = tracks?.find((t) => t.id === trackId);
       if (currentTrack && currentTrack.samplerTrack) {
-        const updatedTrack = {
+        const updatedTrack: Track = {
           ...currentTrack,
           samplerTrack: {
             ...currentTrack.samplerTrack,
@@ -70,27 +78,20 @@ export default function SamplerAdmin({
       updateEnvelopeMutation.mutate({
         trackId,
         attackMs: safeValue,
-        releaseMs,
+        releaseMs: localRelease,
       });
     },
-    [
-      setAttack,
-      updateEnvelopeMutation,
-      trackId,
-      releaseMs,
-      tracks,
-      storeUpdateTrack,
-    ],
+    [trackId, localRelease, tracks, storeUpdateTrack, updateEnvelopeMutation],
   );
 
   const handleReleaseChange = useCallback(
     (value: number) => {
       const safeValue = Math.max(0, value);
-      setRelease(safeValue);
+      setLocalRelease(safeValue);
 
       const currentTrack = tracks?.find((t) => t.id === trackId);
       if (currentTrack && currentTrack.samplerTrack) {
-        const updatedTrack = {
+        const updatedTrack: Track = {
           ...currentTrack,
           samplerTrack: {
             ...currentTrack.samplerTrack,
@@ -102,18 +103,11 @@ export default function SamplerAdmin({
 
       updateEnvelopeMutation.mutate({
         trackId,
-        attackMs,
+        attackMs: localAttack,
         releaseMs: safeValue,
       });
     },
-    [
-      setRelease,
-      updateEnvelopeMutation,
-      trackId,
-      attackMs,
-      tracks,
-      storeUpdateTrack,
-    ],
+    [trackId, localAttack, tracks, storeUpdateTrack, updateEnvelopeMutation],
   );
 
   const sampleFilename = samplerTrack?.samplerTrack?.sampleUrl
@@ -142,14 +136,14 @@ export default function SamplerAdmin({
             label="ATTACK"
             min={0}
             max={2000}
-            value={attackMs}
+            value={localAttack}
             onChange={handleAttackChange}
           />
           <SamplerEnvelopeControl
             label="RELEASE"
             min={0}
             max={3000}
-            value={releaseMs}
+            value={localRelease}
             onChange={handleReleaseChange}
           />
         </div>

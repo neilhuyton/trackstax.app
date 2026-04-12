@@ -53,28 +53,25 @@ function StackLayout() {
 
   useStackIdStore.setState({ stackId });
 
+  // Reset local tracks when switching stacks
   useEffect(() => {
     if (!stackId) return;
 
     const storedStackId = useStackIdStore.getState().stackId;
-
     if (storedStackId !== stackId) {
       setTracks([]);
     }
   }, [stackId, setTracks]);
 
+  // Load tracks from server
   useEffect(() => {
     if (serverTracks && serverTracks.length > 0 && localTracks.length === 0) {
       const typedTracks = toClientTracks(serverTracks);
       setTracks(typedTracks);
     }
-  }, [
-    serverTracks,
-    setTracks,
-    localTracks.length,
-  ]);
+  }, [serverTracks, setTracks, localTracks.length]);
 
-  // Load master volume from DB once when entering a new stack
+  // Load master volume
   useEffect(() => {
     if (!stackId) return;
 
@@ -96,6 +93,7 @@ function StackLayout() {
     loadMasterVolume();
   }, [stackId, queryClient]);
 
+  // Cleanup when leaving stack
   useEffect(() => {
     return () => {
       const nextPath = router.state.location.pathname;

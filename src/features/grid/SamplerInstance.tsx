@@ -1,10 +1,10 @@
-import * as Tone from "tone";
 import { useEffect, useRef } from "react";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import type { SamplerEvent } from "@/types";
 import { useSampler } from "./hooks/useSampler";
 import { useSamplerPattern } from "./hooks/useSamplerPattern";
 import useTransportStore from "@/features/transport/hooks/useTransportStore";
+import { getCurrentTransportBar } from "../utils/getCurrentBar";
 
 type Props = {
   trackId: string;
@@ -54,10 +54,7 @@ export default function SamplerInstance({ trackId }: Props) {
     ) {
       const { isPlay } = useTransportStore.getState();
       if (isPlay) {
-        const pos = Tone.getTransport().position as string;
-        const [barsStr] = pos.split(":");
-        const currentBar = parseInt(barsStr, 10);
-
+        const currentBar = getCurrentTransportBar();
         if (lastClickedBar < currentBar) {
           prevPatternRef.current = [...pattern];
           prevDurationsRef.current = [...durations];

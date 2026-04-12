@@ -43,6 +43,7 @@
     "@tanstack/react-router": "^1.160.2",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/router-devtools": "^1.160.2",
+    "@tonejs/midi": "^2.0.28",
     "@trpc/client": "^11.10.0",
     "@trpc/server": "^11.10.0",
     "@trpc/tanstack-react-query": "^11.10.0",

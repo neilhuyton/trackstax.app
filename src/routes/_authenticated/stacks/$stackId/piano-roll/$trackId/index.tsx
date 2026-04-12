@@ -3,20 +3,14 @@ import PianoRollViewer from "@/features/sampler/PianoRollViewer";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useSampler } from "@/features/grid/hooks/useSampler";
 import { useMemo } from "react";
-import type { SamplerEvent, Track } from "@/types";
-import { trpc } from "@/trpc";
-import { useMutation } from "@tanstack/react-query";
-
-import {
-  addNoteToPattern,
-  removeNoteFromPattern,
-} from "@/features/sampler/utils/pianoRollUtils";
+import type { SamplerEvent } from "@/types";
 
 import PianoRollToolbar from "@/features/sampler/PianoRollToolbar";
+import { usePatternActions } from "@/features/sampler/hooks/usePatternActions";
 
 const PianoRollPage = () => {
   const { trackId } = Route.useParams();
-  const { tracks, storeUpdateTrack } = useTracksStore();
+  const { tracks } = useTracksStore();
 
   const samplerTrack = tracks?.find(
     (t) => t.id === trackId && t.type === "sampler",
@@ -30,41 +24,11 @@ const PianoRollPage = () => {
   const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
   const { trigger } = useSampler(trackId, sampleUrl);
 
-  const updatePatternMutation = useMutation(
-    trpc.sampler.updatePattern.mutationOptions(),
-  );
-
-  const updatePattern = (newPattern: SamplerEvent[]) => {
-    if (!samplerTrack || !samplerTrack.samplerTrack) return;
-
-    const updatedTrack: Track = {
-      ...samplerTrack,
-      samplerTrack: {
-        pattern: newPattern,
-        sampleUrl: samplerTrack.samplerTrack.sampleUrl ?? null,
-        attackMs: samplerTrack.samplerTrack.attackMs ?? 10,
-        releaseMs: samplerTrack.samplerTrack.releaseMs ?? 200,
-      },
-    };
-
-    storeUpdateTrack(updatedTrack);
-    updatePatternMutation.mutate({ trackId, pattern: newPattern });
-  };
-
-  const handleAddNote = (time: string, note: string, duration = "0:0:0") => {
-    const latestPattern = addNoteToPattern(
-      currentPattern,
-      time,
-      note,
-      duration,
-    );
-    updatePattern(latestPattern);
-  };
-
-  const handleRemoveNote = (time: string, note: string) => {
-    const latestPattern = removeNoteFromPattern(currentPattern, time, note);
-    updatePattern(latestPattern);
-  };
+  const { handleAddNote, handleRemoveNote } = usePatternActions({
+    samplerTrack,
+    currentPattern,
+    trackId,
+  });
 
   if (!samplerTrack) {
     return (
@@ -96,5 +60,3 @@ export const Route = createFileRoute(
 )({
   component: PianoRollPage,
 });
-
-export default PianoRollPage;
