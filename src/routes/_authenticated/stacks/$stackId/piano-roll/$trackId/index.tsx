@@ -2,11 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import PianoRollViewer from "@/features/sampler/PianoRollViewer";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { useSampler } from "@/features/grid/hooks/useSampler";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type { SamplerEvent } from "@/types";
 
 import PianoRollToolbar from "@/features/sampler/PianoRollToolbar";
-import { useMidiImport } from "@/features/sampler/hooks/useMidiImport";
 import { usePatternActions } from "@/features/sampler/hooks/usePatternActions";
 
 const PianoRollPage = () => {
@@ -25,15 +24,6 @@ const PianoRollPage = () => {
   const sampleUrl = samplerTrack?.samplerTrack?.sampleUrl ?? null;
   const { trigger } = useSampler(trackId, sampleUrl);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // MIDI Import
-  const { handleMidiLoad } = useMidiImport({
-    samplerTrack,
-    trackId,
-  });
-
-  // Pattern actions (add / remove / update)
   const { handleAddNote, handleRemoveNote } = usePatternActions({
     samplerTrack,
     currentPattern,
@@ -50,7 +40,7 @@ const PianoRollPage = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#1a1a1a] relative">
-      <PianoRollToolbar onMidiLoadClick={() => fileInputRef.current?.click()} />
+      <PianoRollToolbar />
 
       <div className="flex-1 overflow-hidden">
         <PianoRollViewer
@@ -61,14 +51,6 @@ const PianoRollPage = () => {
           loopLength={samplerTrack.loopLength}
         />
       </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".mid,.midi"
-        onChange={handleMidiLoad}
-        className="hidden"
-      />
     </div>
   );
 };
@@ -78,5 +60,3 @@ export const Route = createFileRoute(
 )({
   component: PianoRollPage,
 });
-
-export default PianoRollPage;
