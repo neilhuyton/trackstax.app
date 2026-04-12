@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as Tone from "tone";
 import useTracksStore from "../../track/hooks/useTracksStore";
-import { useSamplerEnvelopeStore } from "../../sampler/hooks/useSamplerEnvelopeStore";
 import { calcVolumeLevel } from "@/utils";
+import type { Track } from "@/types";
 
 export function useSampler(trackId: string, sampleUrl: string | null) {
   const samplerRef = useRef<Tone.Sampler | null>(null);
   const channelRef = useRef<Tone.Channel | null>(null);
 
   const { tracks } = useTracksStore();
-  const { attackMs, releaseMs } = useSamplerEnvelopeStore();
 
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Cleanup
   useEffect(() => {
     return () => {
       samplerRef.current?.dispose();
@@ -20,6 +20,7 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
     };
   }, [trackId]);
 
+  // Create sampler
   useEffect(() => {
     samplerRef.current?.dispose();
     channelRef.current?.dispose();
@@ -38,7 +39,7 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
       urls: { C4: sampleUrl },
       curve: "linear",
       onload: () => setIsLoaded(true),
-      onerror: (err) => console.error(`Sampler failed for ${trackId}`, err),
+      onerror: (err) => console.error(`Sampler error for ${trackId}`, err),
     }).connect(channel);
 
     samplerRef.current = sampler;
@@ -49,23 +50,37 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
     };
   }, [sampleUrl, trackId]);
 
+  // Apply envelope from this track's data
   useEffect(() => {
     const sampler = samplerRef.current;
     if (!sampler) return;
-    sampler.attack = Math.max(0, Number(attackMs) || 10) / 1000;
-    sampler.release = Math.max(0.001, Number(releaseMs) || 200) / 1000;
-  }, [attackMs, releaseMs]);
 
+    const track = tracks.find((t: Track) => t.id === trackId);
+    if (!track || track.type !== "sampler" || !track.samplerTrack) return;
+
+    const attackMs = track.samplerTrack.attackMs;
+    const releaseMs = track.samplerTrack.releaseMs;
+
+    const finalAttack =
+      typeof attackMs === "number" && attackMs >= 0 ? attackMs : 10;
+    const finalRelease =
+      typeof releaseMs === "number" && releaseMs >= 0 ? releaseMs : 200;
+
+    sampler.attack = Math.max(0, Number(finalAttack) || 10) / 1000;
+    sampler.release = Math.max(0.001, Number(finalRelease) || 200) / 1000;
+  }, [tracks, trackId]);
+
+  // Volume / mute handling
   useEffect(() => {
     const channel = channelRef.current;
     if (!channel) return;
 
-    const track = tracks.find((t) => t.id === trackId);
+    const track = tracks.find((t: Track) => t.id === trackId);
     if (!track || track.type !== "sampler") return;
 
-    const soloTracks = tracks.filter((t) => t.isSolo);
+    const soloTracks = tracks.filter((t: Track) => t.isSolo);
     const shouldMuteBySolo =
-      soloTracks.length > 0 && !soloTracks.some((t) => t.id === trackId);
+      soloTracks.length > 0 && !soloTracks.some((t: Track) => t.id === trackId);
 
     const isMuted = track.isMute || shouldMuteBySolo;
 
@@ -80,15 +95,21 @@ export function useSampler(trackId: string, sampleUrl: string | null) {
       const sampler = samplerRef.current;
       if (!sampler || !isLoaded) return;
 
-      const currentAttack = useSamplerEnvelopeStore.getState().attackMs;
-      const currentRelease = useSamplerEnvelopeStore.getState().releaseMs;
+      const track = tracks.find((t: Track) => t.id === trackId);
+      const attackMs = track?.samplerTrack?.attackMs;
+      const releaseMs = track?.samplerTrack?.releaseMs;
 
-      sampler.attack = Math.max(0, Number(currentAttack) || 10) / 1000;
-      sampler.release = Math.max(0.001, Number(currentRelease) || 200) / 1000;
+      const finalAttack =
+        typeof attackMs === "number" && attackMs >= 0 ? attackMs : 10;
+      const finalRelease =
+        typeof releaseMs === "number" && releaseMs >= 0 ? releaseMs : 200;
+
+      sampler.attack = Math.max(0, Number(finalAttack) || 10) / 1000;
+      sampler.release = Math.max(0.001, Number(finalRelease) || 200) / 1000;
 
       sampler.triggerAttackRelease(note, duration, time);
     },
-    [isLoaded],
+    [isLoaded, trackId, tracks],
   );
 
   return { trigger };

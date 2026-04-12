@@ -1,9 +1,9 @@
 import { TbCircleLetterMFilled } from "react-icons/tb";
 import { type Track } from "@/types";
 import useTracksStore from "./hooks/useTracksStore";
-
 import { useMutation } from "@tanstack/react-query";
 import { trpc } from "@/trpc";
+import { usePlayersStore } from "@/features/transport/hooks/usePlayersStore";
 
 type TrackMuteButtonProps = {
   track: Track;
@@ -11,6 +11,7 @@ type TrackMuteButtonProps = {
 
 export const TrackMuteButton = ({ track }: TrackMuteButtonProps) => {
   const { storeUpdateTrack } = useTracksStore();
+  const { updateTrackSchedule } = usePlayersStore();
 
   const updateTrackMutation = useMutation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -29,6 +30,8 @@ export const TrackMuteButton = ({ track }: TrackMuteButtonProps) => {
       ...track,
       isMute: newIsMute,
     });
+
+    updateTrackSchedule(track.id);
 
     await updateTrackMutation.mutateAsync({
       id: track.id,

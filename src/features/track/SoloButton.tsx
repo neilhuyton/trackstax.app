@@ -1,9 +1,9 @@
 import { TbCircleLetterSFilled } from "react-icons/tb";
 import { type Track } from "@/types";
 import useTracksStore from "./hooks/useTracksStore";
-
 import { useMutation } from "@tanstack/react-query";
 import { trpc } from "@/trpc";
+import { usePlayersStore } from "@/features/transport/hooks/usePlayersStore";
 
 type TrackSoloButtonProps = {
   track: Track;
@@ -11,8 +11,11 @@ type TrackSoloButtonProps = {
 
 export const TrackSoloButton = ({ track }: TrackSoloButtonProps) => {
   const { storeUpdateTrack } = useTracksStore();
+  const { updateTrackSchedule } = usePlayersStore();
 
   const updateTrackMutation = useMutation(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     trpc.track.update.mutationOptions({
       onError: (error) => {
         console.error("Failed to update solo state:", error);
@@ -27,6 +30,8 @@ export const TrackSoloButton = ({ track }: TrackSoloButtonProps) => {
       ...track,
       isSolo: newIsSolo,
     });
+
+    updateTrackSchedule(track.id);
 
     await updateTrackMutation.mutateAsync({
       id: track.id,
