@@ -31,7 +31,6 @@ export default function SamplerZones({
     samplerTrackData?.zones ?? [],
   );
 
-  // Pending zone when returning from library
   const [pendingZone, setPendingZone] = useState<{
     sampleUrl: string;
     lowNote: NoteName;
@@ -74,7 +73,6 @@ export default function SamplerZones({
       });
       setSelectedRootNote("C4");
 
-      // Clean URL
       navigate({
         to: "/stacks/$stackId/sampler/$trackId",
         params: { stackId: track?.stackId || "", trackId },
@@ -96,7 +94,6 @@ export default function SamplerZones({
 
     const updatedZones = [...zones, newZone];
 
-    // Update local store immediately
     const updatedTrack: Track = {
       ...track,
       samplerTrack: {
@@ -104,9 +101,9 @@ export default function SamplerZones({
         zones: updatedZones,
       },
     };
+
     storeUpdateTrack(updatedTrack);
 
-    // Persist to server
     try {
       await updateZonesMutation.mutateAsync({
         trackId,
@@ -114,10 +111,8 @@ export default function SamplerZones({
       });
     } catch (error) {
       console.error("Failed to save zone:", error);
-      // Optionally revert on error, but for now we keep optimistic update
     }
 
-    // Reset pending state
     setPendingZone(null);
     setSelectedRootNote("C4");
   }, [
@@ -128,7 +123,7 @@ export default function SamplerZones({
     zones,
     storeUpdateTrack,
     updateZonesMutation,
-    trackId,
+    trackId, // ← This was missing
   ]);
 
   const cancelNewZone = useCallback(() => {
