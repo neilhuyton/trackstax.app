@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronDown } from "lucide-react";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import { trpc } from "@/trpc";
 import { useMutation } from "@tanstack/react-query";
-import { TbCircleLetterMFilled } from "react-icons/tb";
 
 const PianoRollToolbar = () => {
   const navigate = useNavigate();
@@ -117,10 +116,6 @@ const PianoRollToolbar = () => {
         }`}
         title={isMuted ? "Unmute track" : "Mute track"}
       >
-        <TbCircleLetterMFilled
-          size={20}
-          className={isMuted ? "text-red-400" : ""}
-        />
         <span>{isMuted ? "Muted" : "Mute"}</span>
       </button>
 
@@ -135,7 +130,7 @@ const PianoRollToolbar = () => {
         }}
         className="ml-3 px-4 py-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-sm text-white transition-colors"
       >
-        Open Sampler
+        Sampler
       </button>
     </div>
   );
