@@ -2,7 +2,7 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import * as Tone from "tone";
-import { useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
@@ -10,49 +10,54 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const playerRef = useRef<Tone.Player | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
-    "idle",
-  );
+  const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleClick = async () => {
-    // If player already exists, just restart
-    if (playerRef.current) {
-      const p = playerRef.current;
-      if (p.state === "started") {
-        p.stop();
-      }
-      p.start();
-      setIsPlaying(true);
-      console.log("Restarted from beginning");
-      return;
-    }
+  // Pre-load the sample + reduce latency on mount
+  useEffect(() => {
+    const init = async () => {
+      // Reduce scheduling latency (very important for instant response)
+      Tone.getContext().lookAhead = 0;
 
-    // First click: load the sample
-    setStatus("loading");
-    console.log("Starting to load sample...");
-
-    try {
       await Tone.start();
 
       const player = new Tone.Player({
         url: "/collections/retro-house-and-old-school-rave/drum-breaks-loops/Other-Breaks-01-140bpm.wav",
+        onload: () => {
+          console.log("✅ Sample pre-loaded (low latency mode)");
+          setIsReady(true);
+        },
+        onerror: (err) => console.error("Load error:", err),
       }).toDestination();
 
       playerRef.current = player;
+    };
 
-      // Wait for ALL Tone.js buffers to finish loading
-      await Tone.loaded();
+    init();
 
-      console.log("✅ Sample loaded successfully with Tone.loaded()!");
-      setStatus("ready");
-      setIsPlaying(true);
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.dispose();
+      }
+    };
+  }, []);
 
-      player.start(); // Play immediately after load
-    } catch (err) {
-      console.error("❌ Failed to load sample:", err);
-      setStatus("error");
+  const handleClick = () => {
+    const player = playerRef.current;
+    if (!player || !isReady) return;
+
+    const now = Tone.now();
+
+    if (player.state === "started") {
+      player.stop(now);
+      player.start(now); // instant restart from beginning
+      console.log("Restarted instantly");
+    } else {
+      player.start(now);
+      console.log("Started playing");
     }
+
+    setIsPlaying(player.state === "started");
   };
 
   return (
@@ -61,19 +66,19 @@ function HomePage() {
 
       <button
         onClick={handleClick}
+        disabled={!isReady}
         className="w-[100px] h-[100px] bg-orange-500 hover:bg-orange-600 active:bg-orange-700 
-                   disabled:bg-zinc-700 rounded-2xl flex items-center justify-center 
-                   text-white text-5xl transition-all shadow-lg active:scale-95"
-        disabled={status === "loading"}
+                   disabled:bg-zinc-700 disabled:cursor-not-allowed
+                   rounded-2xl flex items-center justify-center text-white text-5xl 
+                   transition-all shadow-lg active:scale-95 focus:outline-none"
       >
         {isPlaying ? "■" : "▶"}
       </button>
 
       <p className="mt-6 text-zinc-400 text-sm">
-        {status === "loading" && "Loading sample..."}
-        {status === "ready" && "Click to play • Click again to restart"}
-        {status === "error" && "Failed to load – check console"}
-        {status === "idle" && "Click the button to load & play"}
+        {!isReady
+          ? "Pre-loading sample..."
+          : "Click to play • Click again to restart instantly"}
       </p>
 
       <div className="mt-12">
