@@ -86,7 +86,9 @@ export const trackCreateRouter = router({
                   create: {
                     id: crypto.randomUUID(),
                     pattern: [],
-                    sampleUrl: null,
+                    attackMs: 10,
+                    releaseMs: 200,
+                    zones: [],
                   },
                 }
               : undefined,
@@ -98,7 +100,9 @@ export const trackCreateRouter = router({
           samplerTrack: {
             select: {
               pattern: true,
-              sampleUrl: true,
+              attackMs: true,
+              releaseMs: true,
+              zones: true,
             },
           },
         },

@@ -1,7 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 import type { SamplerEvent } from "@/types";
-import { getCurrentTransportBar } from "@/features/utils/getCurrentBar";
+import { getCurrentTransportBar } from "@/features/utils/getCurrentTransportBar";
 
 type Duration = {
   start: number;

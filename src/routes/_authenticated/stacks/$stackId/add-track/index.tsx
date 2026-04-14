@@ -1,5 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useStack } from "@/features/stacks/hooks/useStackRead";
+import { useMutation } from "@tanstack/react-query";
+import { trpc } from "@/trpc";
+import useTracksStore from "@/features/track/hooks/useTracksStore";
+import { createNewTrack } from "@/features/utils/track-utils";
 
 export const Route = createFileRoute(
   "/_authenticated/stacks/$stackId/add-track/",
@@ -12,19 +16,78 @@ function AddTrackPage() {
   const navigate = useNavigate();
   const { data: stack } = useStack(stackId);
 
+  const { storeAddTrack } = useTracksStore();
+
+  const createTrackMutation = useMutation(trpc.track.create.mutationOptions());
+
   const handleCreateAudio = () => {
     navigate({
       to: "/stacks/$stackId/library/$trackId",
       params: { stackId, trackId: "new" },
+      search: {
+        page: 0,
+        returnTo: undefined,
+        lowNote: undefined,
+        highNote: undefined,
+        sampleUrl: undefined,
+        filename: undefined,
+      },
     });
   };
 
-  const handleCreateSampler = () => {
-    navigate({
-      to: "/stacks/$stackId/library/$trackId",
-      params: { stackId, trackId: "new" },
-      search: { type: "sampler" },
-    });
+  const handleCreateSampler = async () => {
+    if (!stack) return;
+
+    const baseTrack = createNewTrack(
+      null,
+      null,
+      useTracksStore.getState().tracks,
+      stack,
+      undefined,
+      true,
+    );
+
+    try {
+      const created = await createTrackMutation.mutateAsync({
+        stackId: stack.id,
+        type: "sampler",
+        label: baseTrack.label,
+        color: baseTrack.color,
+      });
+
+      const newTrack = {
+        ...baseTrack,
+        id: created.id,
+        stackId: stack.id,
+        createdAt: created.createdAt ?? new Date().toISOString(),
+        updatedAt: created.updatedAt ?? new Date().toISOString(),
+        samplerTrack: {
+          pattern: [],
+          attackMs: 10,
+          releaseMs: 200,
+          zones: [],
+        },
+        audioTrack: null,
+      };
+
+      storeAddTrack(newTrack);
+
+      navigate({
+        to: "/stacks/$stackId/sampler/$trackId",
+        params: { stackId: stack.id, trackId: created.id },
+        search: {
+          page: 0,
+          returnTo: undefined,
+          sampleUrl: undefined,
+          filename: undefined,
+          lowNote: undefined,
+          highNote: undefined,
+        },
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Failed to create sampler track:", error);
+    }
   };
 
   if (!stack) {

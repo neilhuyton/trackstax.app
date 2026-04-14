@@ -1,4 +1,4 @@
-import type { SamplerEvent } from "@/types";
+import type { SamplerEvent, SamplerZone } from "@/types";
 import { protectedProcedure } from "../../trpc-base";
 import { z } from "zod";
 
@@ -40,13 +40,15 @@ export const samplerUpdateRouter = {
     .input(
       z.object({
         trackId: z.string().uuid(),
-        sampleUrl: z
-          .string()
-          .refine(
-            (val) =>
-              val.startsWith("/") || z.string().url().safeParse(val).success,
-            { message: "Must be a valid URL or path starting with /" },
-          ),
+        zones: z.array(
+          z.object({
+            id: z.string(),
+            sampleUrl: z.string(),
+            lowNote: z.string(),
+            highNote: z.string(),
+            rootNote: z.string(),
+          }),
+        ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -61,16 +63,16 @@ export const samplerUpdateRouter = {
       const updated = await ctx.prisma.samplerTrack.update({
         where: { id: samplerTrack.id },
         data: {
-          sampleUrl: input.sampleUrl,
+          zones: input.zones,
         },
         select: {
-          sampleUrl: true,
+          zones: true,
         },
       });
 
       return {
         success: true,
-        sampleUrl: updated.sampleUrl,
+        zones: updated.zones as SamplerZone[],
       };
     }),
 };

@@ -19,7 +19,7 @@ export function useTrackRead(stackId: string) {
   );
 
   return {
-    tracks: toClientTracks(query.data), // ensure clean types
+    tracks: toClientTracks(query.data), 
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

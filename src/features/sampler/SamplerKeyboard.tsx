@@ -7,17 +7,31 @@ type Props = {
   trackId: string;
   stackId: string;
   trigger?: (note: string, duration?: string) => void;
+  isCreatingZone: boolean;
+  selectedNotes: string[];
+  toggleNoteSelection: (note: string) => void;
 };
 
-export default function SamplerKeyboard({ trackId, stackId, trigger }: Props) {
+export default function SamplerKeyboard({
+  trackId,
+  stackId,
+  trigger,
+  isCreatingZone,
+  selectedNotes,
+  toggleNoteSelection,
+}: Props) {
   const navigate = useNavigate();
   const keyboardRef = useRef<HTMLDivElement>(null);
 
   const playNote = useCallback(
     (note: NoteName) => {
-      trigger?.(note, "8n");
+      if (isCreatingZone) {
+        toggleNoteSelection(note);
+      } else {
+        trigger?.(note, "8n");
+      }
     },
-    [trigger],
+    [isCreatingZone, toggleNoteSelection, trigger],
   );
 
   const loadSample = () => {
@@ -34,7 +48,8 @@ export default function SamplerKeyboard({ trackId, stackId, trigger }: Props) {
   const isBlackKey = (note: NoteName): boolean =>
     note.includes("#") || note.includes("b");
 
-  // Scroll horizontally to middle of keyboard on mount
+  const isSelected = (note: string) => selectedNotes.includes(note);
+
   useEffect(() => {
     const keyboard = keyboardRef.current;
     if (!keyboard) return;
@@ -62,6 +77,7 @@ export default function SamplerKeyboard({ trackId, stackId, trigger }: Props) {
           >
             {NOTE_NAMES.map((note) => {
               const isBlack = isBlackKey(note);
+              const selected = isSelected(note);
 
               return (
                 <button
@@ -75,6 +91,7 @@ export default function SamplerKeyboard({ trackId, stackId, trigger }: Props) {
                         ? "bg-zinc-950 hover:bg-zinc-900 text-white"
                         : "bg-white hover:bg-zinc-100 text-neutral-900"
                     }
+                    ${selected ? "ring-2 ring-violet-500 bg-violet-600 text-white" : ""}
                   `}
                 >
                   {note}

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSampleLibraryNavigation } from "./hooks/useSampleLibraryNavigation";
-import type { Track, Stack } from "@/types";
 import type { Sample } from "./hooks/useSampleLibrary";
 import { useAudioPreview } from "./hooks/useAudioPreview";
 import {
@@ -13,33 +12,18 @@ import { LibraryCollectionsView } from "./LibraryCollectionsView";
 import { LibraryToolbar } from "./LibraryToolbar";
 import { LibrarySubcategoriesView } from "./LibrarySubcategoriesView";
 import { LibraryContent } from "./LibraryContent";
-import { useLoadTrack } from "../track/hooks/useLoadTrack";
-import { trpc } from "@/trpc";
-import { useNavigate } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import useTracksStore from "../track/hooks/useTracksStore";
-import { createNewTrack } from "../utils/track-utils";
 
 type TrackLibraryProps = {
   userId: string | null;
-  tracks: Track[];
-  stack: Stack;
-  trackId: string;
-  samplerTrack?: Track;
+  onSampleSelected: (sample: Sample) => void | Promise<void>;
 };
 
 export const TrackLibrary = ({
   userId,
-  tracks,
-  stack,
-  trackId,
-  samplerTrack,
+  onSampleSelected,
 }: TrackLibraryProps) => {
   const navigation = useSampleLibraryNavigation();
   const preview = useAudioPreview();
-  const { loadTrack } = useLoadTrack(tracks, stack);
-  const navigate = useNavigate();
-  const { storeAddTrack, storeUpdateTrack } = useTracksStore();
 
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({});
   const [bpmFilter, setBpmFilter] = useState<number | null>(null);
@@ -60,93 +44,19 @@ export const TrackLibrary = ({
     search,
   );
 
-  const createSamplerMutation = useMutation(
-    trpc.track.create.mutationOptions(),
-  );
-  const updateSamplerSampleMutation = useMutation(
-    trpc.sampler.updateSample.mutationOptions(),
-  );
-
   if (!userId) return null;
 
-  const handleAction = async (sample: Sample) => {
+  const handleSelectSample = (sample: Sample) => {
     const sampleId = sample.id;
     setLoadingFiles((prev) => ({ ...prev, [sampleId]: true }));
 
-    try {
-      const searchParams = new URLSearchParams(window.location.search);
-      const mode = searchParams.get("mode");
-      const returnTo = searchParams.get("returnTo");
-
-      const isNewSampler =
-        trackId === "new" && searchParams.get("type") === "sampler";
-
-      if (isNewSampler) {
-        const baseTrack = createNewTrack(
-          null,
-          null,
-          tracks,
-          stack,
-          undefined,
-          true,
-        );
-        const created = await createSamplerMutation.mutateAsync({
-          stackId: stack.id,
-          type: "sampler",
-          label: baseTrack.label,
-          color: baseTrack.color,
-        });
-
-        await updateSamplerSampleMutation.mutateAsync({
-          trackId: created.id,
-          sampleUrl: sample.downloadUrl,
-        });
-
-        const newTrack: Track = {
-          ...created,
-          type: "sampler" as const,
-          audioTrack: null,
-          samplerTrack: {
-            pattern: [],
-            sampleUrl: sample.downloadUrl,
-          },
-        };
-
-        storeAddTrack(newTrack);
-
-        navigate({
-          to: "/stacks/$stackId/sampler/$trackId",
-          params: { stackId: stack.id, trackId: created.id },
-        });
-      } else if (mode === "select-sample" && returnTo === "sampler") {
-        await updateSamplerSampleMutation.mutateAsync({
-          trackId,
-          sampleUrl: sample.downloadUrl,
-        });
-
-        if (samplerTrack) {
-          storeUpdateTrack({
-            ...samplerTrack,
-            samplerTrack: {
-              pattern: samplerTrack.samplerTrack?.pattern ?? [],
-              sampleUrl: sample.downloadUrl,
-            },
-          });
-        }
-
-        navigate({
-          to: "/stacks/$stackId/sampler/$trackId",
-          params: { stackId: stack.id, trackId },
-          replace: true,
-        });
-      } else {
-        await loadTrack(sample);
-      }
-    } catch (error) {
-      console.error("Failed to load sample:", error);
-    } finally {
-      setLoadingFiles((prev) => ({ ...prev, [sampleId]: false }));
-    }
+    Promise.resolve(onSampleSelected(sample))
+      .catch((error) => {
+        console.error("Failed to handle selected sample:", error);
+      })
+      .finally(() => {
+        setLoadingFiles((prev) => ({ ...prev, [sampleId]: false }));
+      });
   };
 
   if (collectionsQuery.isLoading) {
@@ -212,7 +122,7 @@ export const TrackLibrary = ({
                 onSelectSubcategory={navigation.goToSubcategory}
                 preview={preview}
                 loadingFiles={loadingFiles}
-                onLoadTrack={handleAction}
+                onLoadTrack={handleSelectSample}
               />
             )}
           </div>

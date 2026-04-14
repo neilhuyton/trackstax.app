@@ -6,7 +6,7 @@ import { getOrCreateChannel } from "./playersSetup";
 import { setupAudioDurations } from "./playersScheduleAudioDurations";
 import useTracksStore from "@/features/track/hooks/useTracksStore";
 import useTransportStore from "./useTransportStore";
-import { getCurrentTransportBar } from "@/features/utils/getCurrentBar";
+import { getCurrentTransportBar } from "@/features/utils/getCurrentTransportBar";
 
 export const updateTrackSchedule = (
   trackId: string,

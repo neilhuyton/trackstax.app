@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import { v4 as uuid } from "uuid";
 
 import { COLORS } from "@/consts";
-import type { Track, Duration, SamplerPattern } from "@/types";
+import type { Track, Duration, SamplerPattern, SamplerZone } from "@/types";
 import { toClientTrack } from "./prisma-transformer";
 
 const createClientAudioTrack = (
@@ -100,37 +100,6 @@ export const updateTrackDurations = (
   durations: sanitiseDurations(track.durations, currentBar, isActive),
 });
 
-const DEFAULT_SAMPLER_TRACK = {
-  pattern: [] as SamplerPattern,
-  sampleUrl: null as string | null,
-  attackMs: 10,
-  releaseMs: 200,
-} as const;
-
-export type CreateNewTrackInput = {
-  type: "audio" | "sampler";
-  label: string;
-  color: string;
-  sortOrder: number;
-  isMute: boolean;
-  isSolo: boolean;
-  isFavourite: boolean;
-  volumePercent: number;
-  low: number;
-  mid: number;
-  high: number;
-  lowFrequency: number;
-  highFrequency: number;
-  isBypass: boolean;
-  loopLength: number;
-  stackId: string;
-  createdAt: string;
-  updatedAt: string;
-  durations: Duration[];
-  audioTrack: ReturnType<typeof createClientAudioTrack> | null;
-  samplerTrack: typeof DEFAULT_SAMPLER_TRACK | null;
-};
-
 export const createNewTrack = (
   file: File | null,
   downloadUrl: string | null,
@@ -138,7 +107,7 @@ export const createNewTrack = (
   stack: { id: string },
   result?: AudioBuffer,
   isSampler: boolean = false,
-): CreateNewTrackInput => {
+): Track => {
   const [lastTrack] = tracks.slice(-1);
   const lastColorIdx =
     lastTrack?.color && COLORS.some((c) => c.label === lastTrack.color)
@@ -154,9 +123,43 @@ export const createNewTrack = (
 
   const now = new Date().toISOString();
 
+  if (isSampler) {
+    return {
+      id: "",
+      type: "sampler",
+      label: `Sampler ${sortOrder}`,
+      color: color.label,
+      sortOrder,
+      isMute: false,
+      isSolo: false,
+      isFavourite: false,
+      volumePercent: 75,
+      low: 0,
+      mid: 0,
+      high: 0,
+      lowFrequency: 0,
+      highFrequency: 0,
+      isBypass: true,
+      loopLength,
+      stackId: stack.id,
+      createdAt: now,
+      updatedAt: now,
+      durations: [],
+      audioTrack: null,
+      samplerTrack: {
+        pattern: [] as SamplerPattern,
+        attackMs: 10,
+        releaseMs: 200,
+        zones: [] as SamplerZone[],
+      },
+    };
+  }
+
+  // Audio track
   return {
-    type: isSampler ? "sampler" : "audio",
-    label: isSampler ? `Sampler ${sortOrder}` : `Track ${sortOrder}`,
+    id: "",
+    type: "audio",
+    label: `Track ${sortOrder}`,
     color: color.label,
     sortOrder,
     isMute: false,
@@ -174,19 +177,16 @@ export const createNewTrack = (
     createdAt: now,
     updatedAt: now,
     durations: [],
-    audioTrack: isSampler
-      ? null
-      : file
-        ? createClientAudioTrack(
-            file.name,
-            downloadUrl ?? null,
-            result?.duration ?? 0,
-          )
-        : null,
-    samplerTrack: isSampler ? DEFAULT_SAMPLER_TRACK : null,
+    audioTrack: file
+      ? createClientAudioTrack(
+          file.name,
+          downloadUrl ?? null,
+          result?.duration ?? 0,
+        )
+      : null,
+    samplerTrack: null,
   };
 };
-
 
 export const buildClientTrackFromServer = (
   created: unknown,

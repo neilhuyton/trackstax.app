@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTRPC } from "@/trpc";
 import { useDebouncedMutation } from "./hooks/useDebouncedMutation";
 import SamplerKeyboard from "./SamplerKeyboard";
+import SamplerZones from "./SamplerZones";
 
 type Props = {
   trackId: string;
@@ -34,7 +35,6 @@ export default function SamplerAdmin({
     400,
   );
 
-  // Local state for this specific sampler
   const [localAttack, setLocalAttack] = useState(
     samplerTrack?.samplerTrack?.attackMs ?? 10,
   );
@@ -42,7 +42,9 @@ export default function SamplerAdmin({
     samplerTrack?.samplerTrack?.releaseMs ?? 200,
   );
 
-  // Sync from props when samplerTrack changes
+  const [isCreatingZone, setIsCreatingZone] = useState(false);
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+
   useEffect(() => {
     if (samplerTrack?.samplerTrack) {
       const st = samplerTrack.samplerTrack;
@@ -110,8 +112,20 @@ export default function SamplerAdmin({
     [trackId, localAttack, tracks, storeUpdateTrack, updateEnvelopeMutation],
   );
 
-  const sampleFilename = samplerTrack?.samplerTrack?.sampleUrl
-    ? samplerTrack.samplerTrack.sampleUrl.split("/").pop() || "No sample"
+  const toggleNoteSelection = useCallback((note: string) => {
+    setSelectedNotes((prev) =>
+      prev.includes(note) ? prev.filter((n) => n !== note) : [...prev, note],
+    );
+  }, []);
+
+  const clearZoneSelection = useCallback(() => {
+    setSelectedNotes([]);
+    setIsCreatingZone(false);
+  }, []);
+
+  // Updated: Show zone count instead of single sampleUrl
+  const sampleFilename = samplerTrack?.samplerTrack?.zones?.length
+    ? `${samplerTrack.samplerTrack.zones.length} zone(s) loaded`
     : "No sample loaded";
 
   if (!stack || !userId) {
@@ -148,10 +162,21 @@ export default function SamplerAdmin({
           />
         </div>
 
+        <SamplerZones
+          trackId={trackId}
+          isCreatingZone={isCreatingZone}
+          setIsCreatingZone={setIsCreatingZone}
+          selectedNotes={selectedNotes}
+          clearZoneSelection={clearZoneSelection}
+        />
+
         <SamplerKeyboard
           trackId={trackId}
           stackId={stackId}
           trigger={trigger}
+          isCreatingZone={isCreatingZone}
+          selectedNotes={selectedNotes}
+          toggleNoteSelection={toggleNoteSelection}
         />
       </div>
     </div>
